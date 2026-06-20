@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Secure portal to access photographer and administrative controls on FaceSnap.">
+    <title>Access Portal – FaceSnap</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="page-auth">
+
+    <nav class="navbar">
+        <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
+            <div class="brand-icon">📸</div>
+            <span class="brand-name">FaceSnap</span>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+        </div>
+    </nav>
+
+    <main class="auth-container">
+        <div class="auth-card glass">
+            <div class="auth-tabs">
+                <button type="button" id="tab-login" class="auth-tab active" onclick="switchTab('login')">Sign In</button>
+                <button type="button" id="tab-register" class="auth-tab" onclick="switchTab('register')">Photographer Sign Up</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="form-login" class="auth-form active" onsubmit="handleAuth(event, '/api/login')">
+                <div class="form-header">
+                    <h2>Welcome Back</h2>
+                    <p>Log in to access your dashboard</p>
+                </div>
+                <div id="login-error" class="alert alert-danger hidden"></div>
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" name="username" placeholder="Enter your username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                </div>
+                <button type="submit" id="btn-submit-login" class="btn btn-primary btn-block">
+                    <span>Sign In</span>
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="form-register" class="auth-form" onsubmit="handleAuth(event, '/api/register')">
+                <div class="form-header">
+                    <h2>Join FaceSnap</h2>
+                    <p>Create a photographer account to start publishing events</p>
+                </div>
+                <div id="register-error" class="alert alert-danger hidden"></div>
+                <div id="register-success" class="alert alert-success hidden"></div>
+                <div class="form-group">
+                    <label for="register-username">Username</label>
+                    <input type="text" id="register-username" name="username" placeholder="Choose a username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <input type="password" id="register-password" name="password" placeholder="Create a password" required autocomplete="new-password">
+                </div>
+                <button type="submit" id="btn-submit-register" class="btn btn-primary btn-block">
+                    <span>Sign Up</span>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 FaceSnap · All rights reserved</p>
+    </footer>
+
+    <script>
+        function switchTab(tab) {
+            const loginForm = document.getElementById('form-login');
+            const registerForm = document.getElementById('form-register');
+            const loginTab = document.getElementById('tab-login');
+            const registerTab = document.getElementById('tab-register');
+
+            if (tab === 'login') {
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+            } else {
+                registerForm.classList.add('active');
+                loginForm.classList.remove('active');
+                registerTab.classList.add('active');
+                loginTab.classList.remove('active');
+            }
+        }
+
+        async function handleAuth(event, endpoint) {
+            event.preventDefault();
+            const form = event.target;
+            const errorDiv = form.id === 'form-login' ? document.getElementById('login-error') : document.getElementById('register-error');
+            const successDiv = document.getElementById('register-success');
+            
+            if (errorDiv) errorDiv.classList.add('hidden');
+            if (successDiv) successDiv.classList.add('hidden');
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    if (endpoint.includes('login')) {
+                        // Redirect to appropriate dashboard
+                        window.location.href = result.redirect;
+                    } else {
+                        // Sign up success
+                        successDiv.textContent = "Registration successful! You can now sign in.";
+                        successDiv.classList.remove('hidden');
+                        form.reset();
+                        setTimeout(() => {
+                            switchTab('login');
+                        }, 1500);
+                    }
+                } else {
+                    errorDiv.textContent = result.message || "An error occurred. Please try again.";
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error(err);
+                errorDiv.textContent = "Unable to connect to the server.";
+                errorDiv.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

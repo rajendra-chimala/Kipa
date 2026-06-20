@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="FaceSnap Upload Portal – Photographers can upload event photos for AI face processing." />
+    <title>Upload Photos – FaceSnap</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="page-inner">
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="/" class="brand-link">
+                <div class="brand-icon">📸</div>
+                <span class="brand-name">FaceSnap</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/scan" class="nav-link">Scan Face</a>
+            <a href="/gallery" class="nav-link">Gallery</a>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header container">
+        <div class="page-header-icon">📤</div>
+        <h1 class="page-title">Upload Event Photos</h1>
+        <p class="page-subtitle">Drop your event images below. We'll automatically detect and index every face.</p>
+    </div>
+
+    <!-- Upload Area -->
+    <main class="container upload-main">
+
+        <!-- Drop Zone -->
+        <div class="upload-zone" id="uploadZone">
+            <input type="file" id="fileInput" multiple accept="image/*" hidden />
+            <div class="upload-zone-inner">
+                <div class="upload-zone-icon">🖼️</div>
+                <h3>Drag &amp; Drop Images Here</h3>
+                <p>or <button class="link-btn" id="browseBtn">browse your files</button></p>
+                <p class="upload-hint">Supports JPG, PNG, WEBP · Max 50 MB per upload</p>
+            </div>
+        </div>
+
+        <!-- Preview Grid -->
+        <div class="preview-section" id="previewSection" style="display:none">
+            <div class="preview-header">
+                <h3>Selected Files (<span id="fileCount">0</span>)</h3>
+                <button class="btn btn-ghost btn-sm" id="clearBtn">Clear All</button>
+            </div>
+            <div class="preview-grid" id="previewGrid"></div>
+            <div class="upload-actions">
+                <button class="btn btn-primary btn-lg" id="uploadBtn">
+                    <span class="btn-icon">🚀</span>
+                    Upload &amp; Process
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-section" id="progressSection" style="display:none">
+            <div class="progress-card">
+                <div class="progress-header">
+                    <span class="progress-label" id="progressLabel">Processing images…</span>
+                    <span class="progress-pct" id="progressPct">0%</span>
+                </div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <p class="progress-sub" id="progressSub">Detecting faces and generating encodings…</p>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="results-section" id="resultsSection" style="display:none">
+            <h3 class="results-title">Upload Results</h3>
+            <div class="results-grid" id="resultsGrid"></div>
+            <div class="results-actions">
+                <button class="btn btn-secondary" id="uploadMoreBtn">Upload More</button>
+                <a href="/scan" class="btn btn-primary">
+                    <span class="btn-icon">🎯</span>
+                    Try Face Scan
+                </a>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 FaceSnap · Photographer Portal</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+</body>
+</html>

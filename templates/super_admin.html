@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Super Admin control panel for global monitoring and administration.">
+    <title>Super Admin Control – FaceSnap</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="page-dashboard">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
+            <div class="brand-icon">📸</div>
+            <span class="brand-name">FaceSnap</span>
+            <span class="badge badge-admin">Super Admin</span>
+        </div>
+        <div class="nav-links">
+            <span class="user-greeting">Hello, <strong>{{ session['user']['username'] }}</strong></span>
+            <a href="/" class="nav-link">View Site</a>
+            <a href="/logout" class="nav-btn-logout">Logout</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-grid container">
+        
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar glass">
+            <div class="sidebar-header">
+                <h3>System Portal</h3>
+            </div>
+            <div class="sidebar-menu">
+                <button class="menu-item active" onclick="switchTab('system-overview')">📊 Global Stats</button>
+                <button class="menu-item" onclick="switchTab('system-users')">👥 User Accounts</button>
+                <button class="menu-item" onclick="switchTab('system-events')">📅 All Events</button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <section class="dashboard-content">
+
+            <!-- Tab 1: Global Stats -->
+            <div id="sec-system-overview" class="dashboard-section active">
+                <div class="section-title-wrapper">
+                    <h2>Global Analytics</h2>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card glass">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Total Users</span>
+                            <span class="stat-value text-purple">{{ stats['total_users'] }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Total Events</span>
+                            <span class="stat-value">{{ stats['total_events'] }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-icon">🟢</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Active Events</span>
+                            <span class="stat-value text-green">{{ stats['active_events'] }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-icon">🔴</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Inactive Events</span>
+                            <span class="stat-value text-red">{{ stats['inactive_events'] }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-icon">📤</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Images Uploaded</span>
+                            <span class="stat-value">{{ stats['total_images'] }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-icon">💾</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Images Downloaded</span>
+                            <span class="stat-value text-blue">{{ stats['total_downloads'] }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Users List -->
+            <div id="sec-system-users" class="dashboard-section">
+                <div class="section-title-wrapper">
+                    <h2>User Accounts</h2>
+                </div>
+
+                <div class="table-container glass">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Created By</th>
+                                <th>Created At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td><strong>{{ user.username }}</strong></td>
+                                <td>
+                                    {% if user.role == 'super_admin' %}
+                                        <span class="badge badge-admin">Super Admin</span>
+                                    {% elif user.role == 'photographer' %}
+                                        <span class="badge badge-photographer">Photographer</span>
+                                    {% else %}
+                                        <span class="badge badge-assistant">Assistant</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.creator_name or 'System / Self' }}</td>
+                                <td>{{ user.created_at }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 3: Events List -->
+            <div id="sec-system-events" class="dashboard-section">
+                <div class="section-title-wrapper">
+                    <h2>All Platform Events</h2>
+                </div>
+
+                <div class="table-container glass">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Event Name</th>
+                                <th>Creator (Photographer)</th>
+                                <th>Deactivation Date</th>
+                                <th>Publish Status</th>
+                                <th>Active Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in events %}
+                            <tr>
+                                <td><strong>{{ event.name }}</strong></td>
+                                <td>{{ event.creator_name }}</td>
+                                <td>{{ event.deactivation_date or 'No expiry' }}</td>
+                                <td><span class="badge badge-status">{{ event.status }}</span></td>
+                                <td>
+                                    {% if event.is_active %}
+                                        <span class="badge badge-active">Active</span>
+                                    {% else %}
+                                        <span class="badge badge-inactive">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 FaceSnap · Super Admin Administration Control</p>
+    </footer>
+
+    <script>
+        function switchTab(section) {
+            document.querySelectorAll('.dashboard-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`sec-${section}`).classList.add('active');
+            
+            // Highlight sidebar item
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

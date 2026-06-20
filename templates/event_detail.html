@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Event photos portal – scan your face to find your matched photos in this event.">
+    <title>{{ event.name }} – FaceSnap</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="page-event-details">
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
+            <div class="brand-icon">📸</div>
+            <span class="brand-name">FaceSnap</span>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="event-header container">
+        <div class="event-meta-card glass">
+            <div class="event-meta-header">
+                <span class="badge badge-active">Active Event</span>
+                <span class="event-date">Published by <strong>{{ event.creator_name }}</strong></span>
+            </div>
+            <h1 class="event-title">{{ event.name }}</h1>
+            <p class="event-desc">{{ event.description or 'No description provided.' }}</p>
+            {% if event.deactivation_date %}
+            <div class="event-deact-info">📅 Automatically deactivating on: <strong>{{ event.deactivation_date }}</strong></div>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Scan Face Section -->
+    <main class="container scan-main">
+        <div class="scan-layout">
+
+            <!-- Camera Panel -->
+            <div class="camera-panel glass">
+                <div class="camera-viewport" id="cameraViewport">
+                    <!-- State: Idle -->
+                    <div class="cam-state" id="stateIdle">
+                        <div class="cam-placeholder-icon">👤</div>
+                        <h3>Scan Face to Find Photos</h3>
+                        <p>Allow camera access to match your face and fetch your photos in this event.</p>
+                    </div>
+
+                    <!-- Video stream -->
+                    <video id="videoFeed" autoplay playsinline muted style="display:none"></video>
+
+                    <!-- Overlay: Scan frame -->
+                    <div class="scan-overlay" id="scanOverlay" style="display:none">
+                        <div class="scan-frame">
+                            <div class="scan-corner c1"></div>
+                            <div class="scan-corner c2"></div>
+                            <div class="scan-corner c3"></div>
+                            <div class="scan-corner c4"></div>
+                        </div>
+                        <div class="scan-sweep"></div>
+                    </div>
+
+                    <!-- State: Processing -->
+                    <div class="cam-state processing-state" id="stateProcessing" style="display:none">
+                        <div class="spinner"></div>
+                        <h3>Matching Face…</h3>
+                        <p>Searching event database for matches</p>
+                    </div>
+                </div>
+
+                <!-- Hidden Canvas -->
+                <canvas id="captureCanvas" style="display:none"></canvas>
+
+                <!-- Camera Controls -->
+                <div class="camera-controls">
+                    <button class="btn btn-primary btn-lg" id="startCameraBtn">
+                        <span class="btn-icon">📷</span>
+                        Enable Webcam
+                    </button>
+                    <button class="btn btn-success btn-lg" id="captureBtn" style="display:none">
+                        <span class="btn-icon">🔍</span>
+                        Scan My Face
+                    </button>
+                    <button class="btn btn-secondary" id="stopCameraBtn" style="display:none">
+                        Close Camera
+                    </button>
+                </div>
+
+                <!-- Sensitivity Slider -->
+                <div class="sensitivity-control mt-3" id="sensitivityControl" style="display:none">
+                    <label class="sensitivity-label">
+                        Recognition Confidence
+                        <span class="sensitivity-value" id="sensitivityValue">Balanced</span>
+                    </label>
+                    <input type="range" id="thresholdSlider" min="30" max="70" value="50" class="slider" />
+                    <div class="slider-labels">
+                        <span>Strict (Fewer matches)</span>
+                        <span>Relaxed (More matches)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instruction Tips -->
+            <div class="instruction-panel glass">
+                <h3 class="instruction-title">How to scan</h3>
+                <ul class="tip-list">
+                    <li class="tip-item">
+                        <div class="tip-icon">💡</div>
+                        <div>
+                            <strong>Bright Environment</strong>
+                            <p>Avoid strong background lights or shadows.</p>
+                        </div>
+                    </li>
+                    <li class="tip-item">
+                        <div class="tip-icon">👁️</div>
+                        <div>
+                            <strong>Direct Pose</strong>
+                            <p>Look straight into the webcam without tilted angles.</p>
+                        </div>
+                    </li>
+                    <li class="tip-item">
+                        <div class="tip-icon">🕶️</div>
+                        <div>
+                            <strong>Remove Obstacles</strong>
+                            <p>Take off sunglasses or large hats if matching fails.</p>
+                        </div>
+                    </li>
+                </ul>
+
+                <!-- Scan Status Banner -->
+                <div class="status-card" id="statusCard">
+                    <div class="status-dot idle" id="statusDot"></div>
+                    <span id="statusText">Webcam disconnected</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Dynamic Matched Gallery Section -->
+        <section id="gallery-container" class="matched-gallery-section mt-5 hidden">
+            <div class="section-header">
+                <h2>Your Matched Photos</h2>
+                <p>We found <strong id="matched-count-val">0</strong> photo(s) containing your face. Click download below to save.</p>
+            </div>
+            
+            <div class="event-photos-grid mt-4" id="matched-photos-grid">
+                <!-- Loaded dynamically -->
+            </div>
+        </section>
+
+        <!-- No Photos Match Banner -->
+        <section id="no-photos-container" class="matched-gallery-section mt-5 hidden">
+            <div class="no-matches-card glass text-center py-5">
+                <span class="card-large-icon">🔍</span>
+                <h3>No Matching Photos Found</h3>
+                <p>We could not find any photos matching your face in this event, or they have already been downloaded.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 FaceSnap · AI Face Recognition Photo Delivery</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // 1. Toast helper
+        function toast(msg, type = 'info') {
+            let c = document.querySelector('.toast-container');
+            if (!c) { c = document.createElement('div'); c.className = 'toast-container'; document.body.appendChild(c); }
+            const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+            const t = document.createElement('div');
+            t.className = `toast toast-${type}`;
+            t.innerHTML = `<span class="toast-icon">${icons[type]}</span><span class="toast-msg">${msg}</span>`;
+            c.appendChild(t);
+            setTimeout(() => { t.classList.add('leaving'); setTimeout(() => t.remove(), 300); }, 5000);
+        }
+
+        // 2. Establish Unique Session Token in LocalStorage
+        let sessionToken = localStorage.getItem('facesnap_session_token');
+        if (!sessionToken) {
+            sessionToken = 'token_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            localStorage.setItem('facesnap_session_token', sessionToken);
+        }
+
+        // 3. Elements
+        const startCameraBtn = document.getElementById('startCameraBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        const stopCameraBtn = document.getElementById('stopCameraBtn');
+        const videoFeed = document.getElementById('videoFeed');
+        const captureCanvas = document.getElementById('captureCanvas');
+        const scanOverlay = document.getElementById('scanOverlay');
+        const stateIdle = document.getElementById('stateIdle');
+        const stateProcessing = document.getElementById('stateProcessing');
+        const sensitivityControl = document.getElementById('sensitivityControl');
+        const thresholdSlider = document.getElementById('thresholdSlider');
+        const sensitivityValue = document.getElementById('sensitivityValue');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const galleryContainer = document.getElementById('gallery-container');
+        const noPhotosContainer = document.getElementById('no-photos-container');
+        const matchedPhotosGrid = document.getElementById('matched-photos-grid');
+        const matchedCountVal = document.getElementById('matched-count-val');
+
+        let stream = null;
+        const eventId = {{ event.id }};
+
+        // 4. Sensitivity slider mapping
+        const sensitivityLabels = {
+            30: 'Very Strict',
+            35: 'Strict',
+            40: 'Fairly Strict',
+            45: 'Moderate',
+            50: 'Balanced',
+            55: 'Relaxed',
+            60: 'Fairly Relaxed',
+            65: 'Very Relaxed',
+            70: 'Maximum'
+        };
+
+        thresholdSlider.addEventListener('input', () => {
+            const val = parseInt(thresholdSlider.value);
+            const keys = Object.keys(sensitivityLabels).map(Number).sort((a,b) => a-b);
+            const nearest = keys.reduce((a,b) => Math.abs(b-val) < Math.abs(a-val) ? b : a);
+            sensitivityValue.textContent = sensitivityLabels[nearest] || 'Balanced';
+        });
+
+        // 5. Webcam controls
+        startCameraBtn.addEventListener('click', startCamera);
+        stopCameraBtn.addEventListener('click', stopCamera);
+        captureBtn.addEventListener('click', captureAndMatch);
+
+        async function startCamera() {
+            try {
+                setStatus('Requesting webcam access…', 'scanning');
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+                    audio: false
+                });
+
+                videoFeed.srcObject = stream;
+                videoFeed.style.display = 'block';
+                stateIdle.style.display = 'none';
+                scanOverlay.style.display = 'block';
+
+                startCameraBtn.style.display = 'none';
+                captureBtn.style.display = 'inline-flex';
+                stopCameraBtn.style.display = 'inline-flex';
+                sensitivityControl.style.display = 'block';
+
+                setStatus('Webcam active — position your face in the scan ring', 'active');
+                toast('Camera active! Frame your face and click Scan.', 'info');
+            } catch (err) {
+                let message = 'Could not access webcam.';
+                if (err.name === 'NotAllowedError') message = 'Camera access was denied. Enable webcam permissions in browser Settings.';
+                if (err.name === 'NotFoundError') message = 'No webcam detected on this hardware.';
+                setStatus(message, 'error');
+                toast(message, 'error');
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            videoFeed.srcObject = null;
+            videoFeed.style.display = 'none';
+            scanOverlay.style.display = 'none';
+            stateIdle.style.display = 'flex';
+            stateProcessing.style.display = 'none';
+
+            startCameraBtn.style.display = 'inline-flex';
+            captureBtn.style.display = 'none';
+            stopCameraBtn.style.display = 'none';
+            sensitivityControl.style.display = 'none';
+
+            setStatus('Webcam disconnected', 'idle');
+        }
+
+        async function captureAndMatch() {
+            if (!stream) return;
+
+            // Capture frame from webcam stream
+            const video = videoFeed;
+            const canvas = captureCanvas;
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            
+            // Mirror image adjustment
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const base64Data = canvas.toDataURL('image/jpeg', 0.9);
+
+            // Set UI processing states
+            videoFeed.style.display = 'none';
+            scanOverlay.style.display = 'none';
+            stateProcessing.style.display = 'flex';
+            captureBtn.disabled = true;
+            stopCameraBtn.disabled = true;
+            setStatus('Matching face with event gallery...', 'scanning');
+
+            const confidenceThreshold = parseInt(thresholdSlider.value) / 100;
+
+            try {
+                const response = await fetch(`/api/event/${eventId}/match`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image: base64Data,
+                        session_token: sessionToken,
+                        threshold: confidenceThreshold
+                    })
+                });
+
+                let res;
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    res = await response.json();
+                } else {
+                    const text = await response.text();
+                    console.error("Server returned non-JSON error:", text);
+                    throw new Error("Server returned invalid HTML error. Check browser logs.");
+                }
+                
+                restoreCameraView();
+
+                if (response.ok && res.success) {
+                    toast(`Face matched! Found ${res.count} photo(s).`, 'success');
+                    setStatus(`Matching finished. Found ${res.count} photo(s).`, 'success');
+                    renderMatchedPhotos(res.images);
+                } else {
+                    setStatus(res.message || 'No matches found.', 'error');
+                    toast(res.message || 'No matching photos found in this event.', 'warning');
+                    
+                    // Clear matched gallery
+                    galleryContainer.classList.add('hidden');
+                    noPhotosContainer.classList.remove('hidden');
+                }
+            } catch (err) {
+                restoreCameraView();
+                setStatus(`Match request failed: ${err.message}`, 'error');
+                toast(`Error: ${err.message}`, 'error');
+            }
+        }
+
+        function restoreCameraView() {
+            stateProcessing.style.display = 'none';
+            videoFeed.style.display = 'block';
+            scanOverlay.style.display = 'block';
+            captureBtn.disabled = false;
+            stopCameraBtn.disabled = false;
+            setStatus('Webcam active — position your face', 'active');
+        }
+
+        function setStatus(text, type) {
+            statusText.textContent = text;
+            statusDot.className = `status-dot ${type}`;
+        }
+
+        // 6. Dynamic gallery renderer with disappearance animations
+        function renderMatchedPhotos(images) {
+            matchedPhotosGrid.innerHTML = '';
+            
+            if (!images || images.length === 0) {
+                galleryContainer.classList.add('hidden');
+                noPhotosContainer.classList.remove('hidden');
+                return;
+            }
+
+            noPhotosContainer.classList.add('hidden');
+            galleryContainer.classList.remove('hidden');
+            matchedCountVal.textContent = images.length;
+
+            images.forEach(img => {
+                const card = document.createElement('div');
+                card.className = 'photo-container-dashboard glass-item';
+                card.id = `matched-photo-${img.id}`;
+                
+                const imageEl = document.createElement('img');
+                imageEl.src = img.path;
+                imageEl.className = 'photo-dashboard-img';
+                imageEl.loading = 'lazy';
+
+                const actionsWrapper = document.createElement('div');
+                actionsWrapper.className = 'photo-dashboard-overlay';
+
+                const dlBtn = document.createElement('button');
+                dlBtn.className = 'btn btn-primary btn-sm';
+                dlBtn.innerHTML = '📥 Download';
+                dlBtn.onclick = () => triggerDownload(img.id, card);
+
+                actionsWrapper.appendChild(dlBtn);
+                card.appendChild(imageEl);
+                card.appendChild(actionsWrapper);
+                matchedPhotosGrid.appendChild(card);
+            });
+        }
+
+        function triggerDownload(imageId, cardElement) {
+            // Open download url in iframe/window trigger to execute download action
+            const downloadUrl = `/api/download/${imageId}?token=${sessionToken}`;
+            
+            // Initiate browser file save
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = '';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            toast('Downloading photo...', 'success');
+
+            // Apply fade out animation to card since download limit was hit/used
+            cardElement.classList.add('fading-out');
+            setTimeout(() => {
+                cardElement.remove();
+                
+                // Adjust matched count label
+                const count = matchedPhotosGrid.children.length;
+                matchedCountVal.textContent = count;
+
+                if (count === 0) {
+                    galleryContainer.classList.add('hidden');
+                    noPhotosContainer.classList.remove('hidden');
+                }
+            }, 600);
+        }
+    </script>
+</body>
+</html>

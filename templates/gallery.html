@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="FaceSnap Gallery – View and download your matched event photos." />
+    <title>My Photo Gallery – FaceSnap</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="page-inner">
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="/" class="brand-link">
+                <div class="brand-icon">📸</div>
+                <span class="brand-name">FaceSnap</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/upload" class="nav-link">Upload</a>
+            <a href="/scan" class="nav-link">Scan Again</a>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header container" id="galleryHeader">
+        <div class="page-header-icon">🖼️</div>
+        <h1 class="page-title" id="galleryTitle">Your Matched Photos</h1>
+        <p class="page-subtitle" id="gallerySubtitle">Loading your personalised gallery…</p>
+    </div>
+
+    <main class="container gallery-main">
+
+        <!-- Loading state -->
+        <div class="gallery-loading" id="galleryLoading">
+            <div class="spinner spinner-lg"></div>
+            <p>Searching for your photos…</p>
+        </div>
+
+        <!-- Empty state (no results) -->
+        <div class="gallery-empty" id="galleryEmpty" style="display:none">
+            <div class="empty-icon">😔</div>
+            <h3>No Photos Found</h3>
+            <p>We couldn't find photos matching your face. Try adjusting the sensitivity or scan again.</p>
+            <div class="empty-actions">
+                <a href="/scan" class="btn btn-primary">Scan Again</a>
+                <a href="/" class="btn btn-ghost">Go Home</a>
+            </div>
+        </div>
+
+        <!-- No session state (arrived directly without scanning) -->
+        <div class="gallery-no-session" id="galleryNoSession" style="display:none">
+            <div class="empty-icon">🎯</div>
+            <h3>No Scan Session Found</h3>
+            <p>Please scan your face first to see your personalised gallery.</p>
+            <a href="/scan" class="btn btn-primary btn-lg">
+                <span class="btn-icon">📷</span>
+                Go to Scan
+            </a>
+        </div>
+
+        <!-- Gallery toolbar -->
+        <div class="gallery-toolbar" id="galleryToolbar" style="display:none">
+            <div class="gallery-meta">
+                <span class="gallery-count" id="photoCount">0 photos found</span>
+            </div>
+            <div class="toolbar-actions">
+                <button class="btn btn-secondary" id="downloadAllBtn">
+                    <span class="btn-icon">📦</span>
+                    Download All
+                </button>
+                <a href="/scan" class="btn btn-ghost">
+                    <span class="btn-icon">🔄</span>
+                    Scan Again
+                </a>
+            </div>
+        </div>
+
+        <!-- Photo grid -->
+        <div class="gallery-grid" id="galleryGrid" style="display:none"></div>
+
+    </main>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" style="display:none">
+        <div class="lightbox-overlay" id="lightboxOverlay"></div>
+        <div class="lightbox-content">
+            <button class="lightbox-close" id="lightboxClose">✕</button>
+            <button class="lightbox-nav lightbox-prev" id="lightboxPrev">‹</button>
+            <img class="lightbox-image" id="lightboxImage" src="" alt="Event photo" />
+            <button class="lightbox-nav lightbox-next" id="lightboxNext">›</button>
+            <div class="lightbox-footer">
+                <span class="lightbox-counter" id="lightboxCounter">1 / 1</span>
+                <a class="btn btn-primary btn-sm" id="lightboxDownload" href="#" download>
+                    ⬇ Download
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2026 FaceSnap · Your photos, instantly found</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/gallery.js') }}"></script>
+</body>
+</html>

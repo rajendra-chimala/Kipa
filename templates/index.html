@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="FaceSnap - Upload event photos and let attendees find themselves using face recognition technology." />
+    <title>FaceSnap – Smart Photo Distribution</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="page-home">
+
+    <!-- ── Navigation ─────────────────────────────────────────── -->
+    <nav class="navbar">
+        <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
+            <div class="brand-icon">📸</div>
+            <span class="brand-name">FaceSnap</span>
+        </div>
+        <div class="nav-links">
+            {% if session.get('user') %}
+                {% if session['user']['role'] == 'super_admin' %}
+                    <a href="/admin/dashboard" class="nav-link">Admin Dashboard</a>
+                {% elif session['user']['role'] == 'photographer' %}
+                    <a href="/dashboard" class="nav-link">Photographer Dashboard</a>
+                {% else %}
+                    <a href="/assistant/dashboard" class="nav-link">Assistant Dashboard</a>
+                {% endif %}
+                <a href="/logout" class="nav-btn">Logout</a>
+            {% else %}
+                <a href="/auth" class="nav-btn">Photographer Portal</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- ── Hero ───────────────────────────────────────────────── -->
+    <section class="hero">
+        <div class="hero-bg">
+            <div class="hero-orb orb-1"></div>
+            <div class="hero-orb orb-2"></div>
+            <div class="hero-orb orb-3"></div>
+        </div>
+
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="badge-dot"></span>
+                AI-Powered Face Recognition
+            </div>
+            <h1 class="hero-title">
+                Find <em>Your</em> Photos<br />
+                Instantly with Your Face
+            </h1>
+            <p class="hero-subtitle">
+                Photographers upload event photos — attendees scan their face and
+                instantly retrieve every picture they appear in. No searching, no scrolling.
+            </p>
+            <div class="hero-actions">
+                <a href="#active-galleries" class="btn btn-primary btn-lg">
+                    <span class="btn-icon">🎯</span>
+                    Scan My Face
+                </a>
+                <a href="/auth" class="btn btn-secondary btn-lg">
+                    <span class="btn-icon">📤</span>
+                    Upload Portal
+                </a>
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <div class="phone-mockup">
+                <div class="phone-screen">
+                    <div class="scan-ring">
+                        <div class="scan-inner">
+                            <div class="face-icon">👤</div>
+                        </div>
+                        <div class="scan-corner c1"></div>
+                        <div class="scan-corner c2"></div>
+                        <div class="scan-corner c3"></div>
+                        <div class="scan-corner c4"></div>
+                    </div>
+                    <div class="scan-label">Scanning…</div>
+                    <div class="scan-bar"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Active Events ───────────────────────────────────────── -->
+    <section class="active-events container" id="active-galleries">
+        <div class="section-header">
+            <h2 class="section-title">Active Event Galleries</h2>
+            <p class="section-sub">Select an event below, scan your face, and retrieve your matching photos instantly.</p>
+        </div>
+
+        <div class="events-grid">
+            {% if not events %}
+            <div class="no-events-card glass">
+                <span class="card-icon">📅</span>
+                <h3>No Active Events</h3>
+                <p>There are currently no active public events. Log in to create and publish events.</p>
+            </div>
+            {% else %}
+                {% for event in events %}
+                <div class="event-public-card glass" onclick="window.location.href='/event/{{ event.id }}'">
+                    <div class="event-card-header">
+                        <span class="badge badge-active">🟢 Active</span>
+                        <span class="event-creator">By {{ event.creator_name }}</span>
+                    </div>
+                    <h3 class="event-card-title">{{ event.name }}</h3>
+                    <p class="event-card-desc">{{ event.description or 'No description provided.' }}</p>
+                    {% if event.deactivation_date %}
+                    <div class="event-card-expiry">⏳ Expires: {{ event.deactivation_date }}</div>
+                    {% endif %}
+                    <div class="event-card-action">
+                        <span class="btn btn-secondary btn-sm btn-block">Scan &amp; Find Photos →</span>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- ── How It Works ───────────────────────────────────────── -->
+    <section class="how-it-works container">
+        <div class="section-header">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-sub">Three simple steps from event to gallery</p>
+        </div>
+
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">01</div>
+                <div class="step-icon">📤</div>
+                <h3>Upload Photos</h3>
+                <p>Photographers or permitted assistants upload bulk event images through their secure portal.</p>
+            </div>
+            <div class="step-connector">→</div>
+            <div class="step-card">
+                <div class="step-number">02</div>
+                <div class="step-icon">🧠</div>
+                <h3>AI Processing</h3>
+                <p>Our AI detects every face and generates unique 128-point encodings instantly.</p>
+            </div>
+            <div class="step-connector">→</div>
+            <div class="step-card">
+                <div class="step-number">03</div>
+                <div class="step-icon">🎉</div>
+                <h3>Scan &amp; Download</h3>
+                <p>Attendees scan their face on the event detail page and download their matching photos.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Features ───────────────────────────────────────────── -->
+    <section class="features container">
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon gradient-blue">🔒</div>
+                <h4>Privacy First</h4>
+                <p>Face encodings are numerical vectors — raw photos of user faces are never uploaded as templates.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon gradient-purple">⚡</div>
+                <h4>Instant Results</h4>
+                <p>Matching happens in milliseconds against our optimized encoding index.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon gradient-pink">📦</div>
+                <h4>Bulk Upload</h4>
+                <p>Photographers can upload hundreds of images in one go during an event.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon gradient-green">💾</div>
+                <h4>Download Limits</h4>
+                <p>Control the maximum number of times attendees can download photos per session.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Footer ─────────────────────────────────────────────── -->
+    <footer class="footer">
+        <p>© 2026 FaceSnap · Built with Flask &amp; face_recognition · All rights reserved</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
