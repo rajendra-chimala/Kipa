@@ -115,7 +115,7 @@ def role_required(*roles):
 def index():
     """Landing page displaying active and published events."""
     events = get_all_published_active_events()
-    return render_template('index.html', events=events)
+    return render_template('frontend/index.html', events=events)
 
 
 @app.route('/auth')
@@ -129,7 +129,7 @@ def auth_page():
             return redirect(url_for('photographer_dashboard'))
         elif role == 'assistant':
             return redirect(url_for('assistant_dashboard'))
-    return render_template('auth.html')
+    return render_template('frontend/auth.html')
 
 
 @app.route('/event/<int:event_id>')
@@ -139,7 +139,7 @@ def event_detail(event_id):
     if not event or not event['is_active']:
         flash("This event is inactive, expired, or does not exist.", "warning")
         return redirect(url_for('index'))
-    return render_template('event_detail.html', event=event)
+    return render_template('frontend/event_detail.html', event=event)
 
 
 # ─── Auth API ────────────────────────────────────────────────────────────────
@@ -201,7 +201,7 @@ def photographer_dashboard():
     events = get_events_by_photographer(p_id)
     assistants = get_assistants_by_photographer(p_id)
     stats = get_photographer_stats(p_id)
-    return render_template('dashboard.html', events=events, assistants=assistants, stats=stats)
+    return render_template('photographer/dashboard.html', events=events, assistants=assistants, stats=stats)
 
 
 @app.route('/assistant/dashboard')
@@ -210,7 +210,7 @@ def assistant_dashboard():
     """Assistant Dashboard."""
     a_id = session['user']['id']
     assigned_events = get_assigned_events_for_assistant(a_id)
-    return render_template('assistant_dashboard.html', events=assigned_events)
+    return render_template('assistant/assistant_dashboard.html', events=assigned_events)
 
 
 @app.route('/admin/dashboard')
@@ -220,7 +220,7 @@ def super_admin_dashboard():
     stats = get_global_stats()
     users = get_all_users_with_creators()
     events = get_all_events_with_creators()
-    return render_template('super_admin.html', stats=stats, users=users, events=events)
+    return render_template('super_admin/super_admin.html', stats=stats, users=users, events=events)
 
 
 # ─── Event Management API ────────────────────────────────────────────────────
