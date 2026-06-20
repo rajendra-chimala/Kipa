@@ -15,7 +15,10 @@ from utils.face_utils import (
     extract_face_encodings,
     match_face_encoding,
     decode_base64_image,
-    get_mouth_open_ratio
+    get_mouth_open_ratio,
+    get_face_encoding_from_image,
+    verify_same_face,
+    analyze_spoof
 )
 from database import (
     init_db,
@@ -65,6 +68,31 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # Initialize the SQLite database on startup
 init_db()
 
+# ─── Server-side Liveness Session Store ──────────────────────────────────────
+# Maps session_token -> {'verified': bool, 'encoding': np.ndarray or None}
+# Prevents API bypass by requiring server-verified liveness tokens.
+import threading
+_liveness_store = {}
+_liveness_lock = threading.Lock()
+
+def _mark_liveness_verified(session_token, face_encoding=None):
+    with _liveness_lock:
+        _liveness_store[session_token] = {
+            'verified': True,
+            'encoding': face_encoding,
+        }
+
+def _is_liveness_verified(session_token):
+    with _liveness_lock:
+        entry = _liveness_store.get(session_token)
+        return entry is not None and entry.get('verified', False)
+
+def _consume_liveness(session_token):
+    """Check and consume (invalidate) a liveness token (one-time use)."""
+    with _liveness_lock:
+        entry = _liveness_store.pop(session_token, None)
+        return entry is not None and entry.get('verified', False)
+
 
 # ─── Helpers & Decorators ────────────────────────────────────────────────────
 def allowed_file(filename):
@@ -83,6 +111,11 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if 'user' not in session:
             return redirect(url_for('auth_page'))
+        # Guard: session user must still exist in DB (handles DB resets)
+        if not get_user_by_id(session['user']['id']):
+            session.clear()
+            flash('Your session has expired. Please log in again.', 'warning')
+            return redirect(url_for('auth_page'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -93,9 +126,13 @@ def role_required(*roles):
         def decorated_function(*args, **kwargs):
             if 'user' not in session:
                 return redirect(url_for('auth_page'))
+            # Guard: session user must still exist in DB (handles DB resets)
+            if not get_user_by_id(session['user']['id']):
+                session.clear()
+                flash('Your session has expired. Please log in again.', 'warning')
+                return redirect(url_for('auth_page'))
             if session['user']['role'] not in roles:
                 flash("You do not have permission to access that page.", "warning")
-                # Redirect to their appropriate dashboard
                 role = session['user']['role']
                 if role == 'super_admin':
                     return redirect(url_for('super_admin_dashboard'))
@@ -231,21 +268,31 @@ def api_create_event():
     """Create a new event."""
     name = request.form.get('name')
     description = request.form.get('description', '')
-    deactivation_date = request.form.get('deactivation_date', None)
+    deactivation_date = request.form.get('deactivation_date', None) or None
     download_limit = request.form.get('download_limit', 1)
 
     if not name:
         return jsonify({'success': False, 'message': 'Event name is required.'}), 400
 
     created_by = session['user']['id']
-    event_id = create_event(
-        name=name,
-        description=description,
-        created_by=created_by,
-        status='unpublished',
-        deactivation_date=deactivation_date,
-        download_limit=download_limit
-    )
+
+    # Double-check user still exists (belt-and-suspenders against FK failure)
+    if not get_user_by_id(created_by):
+        session.clear()
+        return jsonify({'success': False, 'message': 'Session invalid — please log in again.'}), 401
+
+    try:
+        event_id = create_event(
+            name=name,
+            description=description,
+            created_by=created_by,
+            status='unpublished',
+            deactivation_date=deactivation_date,
+            download_limit=download_limit
+        )
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Failed to create event: {str(e)}'}), 500
+
     flash(f"Event '{name}' created successfully as unpublished.", "success")
     return jsonify({'success': True, 'event_id': event_id})
 
@@ -515,15 +562,175 @@ def api_delete_photo(event_id, image_id):
 
 # ─── Public Matching & Download API ──────────────────────────────────────────
 
+@app.route('/api/event/<int:event_id>/liveness', methods=['POST'])
+def api_liveness_check(event_id):
+    """
+    Liveness / anti-spoofing check (v2).
+    Accepts two frames (neutral + action) and verifies:
+      1. The requested facial action was performed (mouth-open or blink)
+      2. Both frames contain the SAME person (face encoding cross-check)
+      3. The captured images show a real face (texture/spoof analysis)
+      4. Stores verification server-side (session_token required)
+
+    On success, marks the session_token as liveness-verified so the
+    match API can check it server-side rather than trusting a client flag.
+    """
+    import face_recognition as fr
+    import numpy as np
+
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'Missing request body.'}), 400
+
+        session_token = data.get('session_token', '')
+        if not session_token:
+            return jsonify({'success': False, 'message': 'Missing session_token.'}), 400
+
+        challenge    = data.get('challenge')           # 'mouth' | 'blink'
+        frame_neutral_b64 = data.get('frame_neutral')
+        frame_action_b64  = data.get('frame_action')
+        if not challenge or not frame_neutral_b64 or not frame_action_b64:
+            return jsonify({'success': False, 'message': 'Missing liveness frames or challenge type.'}), 400
+
+        uid = datetime.now().strftime('%H%M%S_%f')
+        tmp_neutral = os.path.join(app.config['UPLOAD_FOLDER'], f'_lv_neutral_{uid}.jpg')
+        tmp_action  = os.path.join(app.config['UPLOAD_FOLDER'], f'_lv_action_{uid}.jpg')
+
+        try:
+            decode_base64_image(frame_neutral_b64, tmp_neutral)
+            decode_base64_image(frame_action_b64,  tmp_action)
+        except Exception as e:
+            return jsonify({'success': False, 'message': f'Frame decode error: {str(e)}'}), 400
+
+        def _cleanup():
+            for p in [tmp_neutral, tmp_action]:
+                if os.path.exists(p):
+                    try: os.remove(p)
+                    except: pass
+
+        # ── Load images ──────────────────────────────────────────────────────
+        try:
+            img_n = fr.load_image_file(tmp_neutral)
+            img_a = fr.load_image_file(tmp_action)
+        except Exception as e:
+            _cleanup()
+            return jsonify({'success': False, 'message': f'Image load error: {str(e)}'}), 400
+
+        # ── Step 1: Detect face landmarks (for action verification) ──────────
+        lm_neutral = fr.face_landmarks(img_n)
+        lm_action  = fr.face_landmarks(img_a)
+
+        if not lm_neutral or not lm_action:
+            _cleanup()
+            return jsonify({
+                'success': False,
+                'message': 'Could not detect a face in one or both frames. Make sure your face is clearly visible.'
+            }), 200
+
+        lm_n = lm_a = None
+        lm_n = lm_neutral[0]
+        lm_a = lm_action[0]
+
+        # ── Step 2: Extract face encodings (for same-face verification) ──────
+        enc_n, err_n = get_face_encoding_from_image(tmp_neutral)
+        enc_a, err_a = get_face_encoding_from_image(tmp_action)
+
+        # ── Step 3: Spoof / texture analysis on both frames ──────────────────
+        spoof_n = analyze_spoof(tmp_neutral)
+        spoof_a = analyze_spoof(tmp_action)
+
+        # Combined spoof risk – if either frame looks suspicious, flag it
+        spoof_risk = max(spoof_n['risk'], spoof_a['risk'])
+        spoof_flags = list(set(spoof_n['flags'] + spoof_a['flags']))
+
+        # ── Step 4: Verify the requested action ──────────────────────────────
+        action_passed = False
+        if challenge == 'mouth':
+            ratio_neutral = get_mouth_open_ratio(lm_n)
+            ratio_action  = get_mouth_open_ratio(lm_a)
+            action_passed = (ratio_action >= 0.12) and (ratio_action >= ratio_neutral * 1.8)
+            print(f'[Liveness] mouth: neutral={ratio_neutral:.4f}, action={ratio_action:.4f}, passed={action_passed}')
+
+        elif challenge == 'blink':
+            def _ear(eye_pts):
+                pts = np.array(eye_pts)
+                v1 = np.linalg.norm(pts[1] - pts[5])
+                v2 = np.linalg.norm(pts[2] - pts[4])
+                h  = np.linalg.norm(pts[0] - pts[3])
+                return (v1 + v2) / (2.0 * h + 1e-6)
+
+            def _avg_ear(lm):
+                le = _ear(lm.get('left_eye',  []))
+                re = _ear(lm.get('right_eye', []))
+                return (le + re) / 2.0
+
+            ear_n = _avg_ear(lm_n)
+            ear_a = _avg_ear(lm_a)
+            action_passed = (ear_a <= 0.20) or (ear_n - ear_a >= 0.08)
+            print(f'[Liveness] blink: neutral_ear={ear_n:.4f}, action_ear={ear_a:.4f}, passed={action_passed}')
+
+        else:
+            _cleanup()
+            return jsonify({'success': False, 'message': 'Unknown challenge type.'}), 400
+
+        # ── Step 5: Same-face cross-check ────────────────────────────────────
+        same_face, face_dist = verify_same_face(enc_n, enc_a, threshold=0.5) if (enc_n is not None and enc_a is not None) else (False, 1.0)
+        if not same_face:
+            _cleanup()
+            return jsonify({
+                'success': False,
+                'message': 'Face mismatch detected between frames. Please use the same person\'s face throughout.'
+            }), 200
+
+        # ── Step 6: Evaluate overall result ──────────────────────────────────
+        reject_reasons = []
+        if not action_passed:
+            reject_reasons.append('action_not_performed')
+        if spoof_risk >= 0.5:
+            reject_reasons.append('spoof_suspected')
+            print(f'[Liveness] Spoof risk={spoof_risk:.2f}, flags={spoof_flags}')
+
+        _cleanup()
+
+        if not reject_reasons:
+            # Mark this session as liveness-verified on the server
+            _mark_liveness_verified(session_token, face_encoding=enc_n)
+
+            # Check if this is the final challenge in a multi-challenge sequence
+            return jsonify({
+                'success': True,
+                'message': 'Liveness verified.',
+                'challenge_completed': challenge,
+                'more_challenges_remaining': False
+            })
+        else:
+            reason_text = 'Action not performed. ' if 'action_not_performed' in reject_reasons else ''
+            if 'spoof_suspected' in reject_reasons:
+                reason_text += 'Photo or screen detected. Please use your real face.'
+            return jsonify({
+                'success': False,
+                'message': reason_text or 'Liveness check failed. Please try again.'
+            }), 200
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': f'Liveness error: {str(e)}'}), 500
+
+
 @app.route('/api/event/<int:event_id>/match', methods=['POST'])
 def api_match_face(event_id):
-    """Perform face matching in an event. Filters out files matching user's download limit."""
+    """Perform face matching in an event. Requires server-side liveness verification. Filters out files matching user's download limit."""
     try:
         data = request.get_json()
         if not data or 'image' not in data or 'session_token' not in data:
             return jsonify({'success': False, 'message': 'Missing image or session token.'}), 400
 
-        session_token = data['session_token']
+        # ── Liveness gate (server-side) ────────────────────────────────────────
+        session_token = data.get('session_token', '')
+        if not session_token or not _consume_liveness(session_token):
+            return jsonify({'success': False, 'message': 'Liveness check not completed. Please pass the anti-spoof challenge first.'}), 403
         image_data = data['image']
         threshold = float(data.get('threshold', 0.5))
 
@@ -635,4 +842,4 @@ def uploaded_file(filename):
 
 # ─── Run ─────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=8000)

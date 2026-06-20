@@ -38,7 +38,7 @@
     </header>
 
     <!-- Scan Face Section -->
-    <main class="container scan-main">
+    <main class="container scan-main" id="scanMain" data-event-id="{{ event.id }}">
         <div class="scan-layout">
 
             <!-- Camera Panel -->
@@ -110,6 +110,13 @@
                 <h3 class="instruction-title">How to scan</h3>
                 <ul class="tip-list">
                     <li class="tip-item">
+                        <div class="tip-icon">🛡️</div>
+                        <div>
+                            <strong>Anti-Spoof Protection</strong>
+                            <p>You must pass a quick liveness check before scanning — photos and phone screens are blocked.</p>
+                        </div>
+                    </li>
+                    <li class="tip-item">
                         <div class="tip-icon">💡</div>
                         <div>
                             <strong>Bright Environment</strong>
@@ -170,7 +177,7 @@
 
     <!-- Scripts -->
     <script>
-        // 1. Toast helper
+        // ── Toast helper ───────────────────────────────────────────────────────
         function toast(msg, type = 'info') {
             let c = document.querySelector('.toast-container');
             if (!c) { c = document.createElement('div'); c.className = 'toast-container'; document.body.appendChild(c); }
@@ -182,223 +189,364 @@
             setTimeout(() => { t.classList.add('leaving'); setTimeout(() => t.remove(), 300); }, 5000);
         }
 
-        // 2. Establish Unique Session Token in LocalStorage
+        // ── Session Token ──────────────────────────────────────────────────────
         let sessionToken = localStorage.getItem('facesnap_session_token');
         if (!sessionToken) {
             sessionToken = 'token_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
             localStorage.setItem('facesnap_session_token', sessionToken);
         }
 
-        // 3. Elements
-        const startCameraBtn = document.getElementById('startCameraBtn');
-        const captureBtn = document.getElementById('captureBtn');
-        const stopCameraBtn = document.getElementById('stopCameraBtn');
-        const videoFeed = document.getElementById('videoFeed');
-        const captureCanvas = document.getElementById('captureCanvas');
-        const scanOverlay = document.getElementById('scanOverlay');
-        const stateIdle = document.getElementById('stateIdle');
-        const stateProcessing = document.getElementById('stateProcessing');
-        const sensitivityControl = document.getElementById('sensitivityControl');
-        const thresholdSlider = document.getElementById('thresholdSlider');
-        const sensitivityValue = document.getElementById('sensitivityValue');
-        const statusDot = document.getElementById('statusDot');
-        const statusText = document.getElementById('statusText');
-        const galleryContainer = document.getElementById('gallery-container');
+        // ── DOM Elements ───────────────────────────────────────────────────────
+        const startCameraBtn    = document.getElementById('startCameraBtn');
+        const captureBtn        = document.getElementById('captureBtn');
+        const stopCameraBtn     = document.getElementById('stopCameraBtn');
+        const videoFeed         = document.getElementById('videoFeed');
+        const captureCanvas     = document.getElementById('captureCanvas');
+        const scanOverlay       = document.getElementById('scanOverlay');
+        const stateIdle         = document.getElementById('stateIdle');
+        const stateProcessing   = document.getElementById('stateProcessing');
+        const sensitivityControl= document.getElementById('sensitivityControl');
+        const thresholdSlider   = document.getElementById('thresholdSlider');
+        const sensitivityValue  = document.getElementById('sensitivityValue');
+        const statusDot         = document.getElementById('statusDot');
+        const statusText        = document.getElementById('statusText');
+        const galleryContainer  = document.getElementById('gallery-container');
         const noPhotosContainer = document.getElementById('no-photos-container');
         const matchedPhotosGrid = document.getElementById('matched-photos-grid');
-        const matchedCountVal = document.getElementById('matched-count-val');
+        const matchedCountVal   = document.getElementById('matched-count-val');
 
         let stream = null;
-        const eventId = {{ event.id }};
+        let livenessVerified = false;
+        const eventId = parseInt(document.getElementById('scanMain').dataset.eventId, 10);
 
-        // 4. Sensitivity slider mapping
+        // ── Liveness Challenges ────────────────────────────────────────────────
+        const CHALLENGES = [
+            { type: 'mouth', emoji: '😮', title: 'Open Your Mouth Wide',
+              hint: 'Slowly open your mouth as wide as you can within 3 seconds.' },
+            { type: 'blink', emoji: '😉', title: 'Close Both Eyes Firmly',
+              hint: 'Close both eyes tightly for 1–2 seconds within the countdown.' }
+        ];
+        const REQUIRED_CHALLENGES = 2;  // must pass BOTH mouth + blink
+        let currentChallenge = null;
+        let neutralFrame     = null;
+        let challengeTimer   = null;
+        let challengeList    = [];
+        let challengeIndex   = 0;
+
+        // ── Sensitivity Slider ─────────────────────────────────────────────────
         const sensitivityLabels = {
-            30: 'Very Strict',
-            35: 'Strict',
-            40: 'Fairly Strict',
-            45: 'Moderate',
-            50: 'Balanced',
-            55: 'Relaxed',
-            60: 'Fairly Relaxed',
-            65: 'Very Relaxed',
-            70: 'Maximum'
+            30:'Very Strict',35:'Strict',40:'Fairly Strict',45:'Moderate',
+            50:'Balanced',55:'Relaxed',60:'Fairly Relaxed',65:'Very Relaxed',70:'Maximum'
         };
-
         thresholdSlider.addEventListener('input', () => {
             const val = parseInt(thresholdSlider.value);
-            const keys = Object.keys(sensitivityLabels).map(Number).sort((a,b) => a-b);
-            const nearest = keys.reduce((a,b) => Math.abs(b-val) < Math.abs(a-val) ? b : a);
-            sensitivityValue.textContent = sensitivityLabels[nearest] || 'Balanced';
+            const keys = Object.keys(sensitivityLabels).map(Number).sort((a,b)=>a-b);
+            const nearest = keys.reduce((a,b)=>Math.abs(b-val)<Math.abs(a-val)?b:a);
+            sensitivityValue.textContent = sensitivityLabels[nearest]||'Balanced';
         });
 
-        // 5. Webcam controls
+        // ── Camera Controls ────────────────────────────────────────────────────
         startCameraBtn.addEventListener('click', startCamera);
-        stopCameraBtn.addEventListener('click', stopCamera);
-        captureBtn.addEventListener('click', captureAndMatch);
+        stopCameraBtn.addEventListener('click',  stopCamera);
+        captureBtn.addEventListener('click',     startLivenessChallenge);
 
         async function startCamera() {
             try {
-                setStatus('Requesting webcam access…', 'scanning');
+                setStatus('Requesting webcam access…','scanning');
                 stream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+                    video:{ width:{ideal:1280}, height:{ideal:720}, facingMode:'user' },
                     audio: false
                 });
-
                 videoFeed.srcObject = stream;
-                videoFeed.style.display = 'block';
-                stateIdle.style.display = 'none';
+                videoFeed.style.display   = 'block';
+                stateIdle.style.display   = 'none';
                 scanOverlay.style.display = 'block';
-
                 startCameraBtn.style.display = 'none';
-                captureBtn.style.display = 'inline-flex';
-                stopCameraBtn.style.display = 'inline-flex';
+                captureBtn.style.display     = 'inline-flex';
+                stopCameraBtn.style.display  = 'inline-flex';
                 sensitivityControl.style.display = 'block';
-
-                setStatus('Webcam active — position your face in the scan ring', 'active');
-                toast('Camera active! Frame your face and click Scan.', 'info');
-            } catch (err) {
+                livenessVerified = false;
+                setStatus('Webcam active — click "Scan My Face" to begin','active');
+                toast('Camera active! Click Scan My Face to start.','info');
+            } catch(err) {
                 let message = 'Could not access webcam.';
-                if (err.name === 'NotAllowedError') message = 'Camera access was denied. Enable webcam permissions in browser Settings.';
-                if (err.name === 'NotFoundError') message = 'No webcam detected on this hardware.';
-                setStatus(message, 'error');
-                toast(message, 'error');
+                if(err.name==='NotAllowedError') message='Camera access was denied. Enable webcam permissions in browser Settings.';
+                if(err.name==='NotFoundError')   message='No webcam detected on this hardware.';
+                setStatus(message,'error');
+                toast(message,'error');
             }
         }
 
         function stopCamera() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
+            clearChallengeTimer();
+            removeLivenessPanel();
+            if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
             videoFeed.srcObject = null;
-            videoFeed.style.display = 'none';
+            videoFeed.style.display   = 'none';
             scanOverlay.style.display = 'none';
-            stateIdle.style.display = 'flex';
+            stateIdle.style.display   = 'flex';
             stateProcessing.style.display = 'none';
-
-            startCameraBtn.style.display = 'inline-flex';
-            captureBtn.style.display = 'none';
-            stopCameraBtn.style.display = 'none';
+            startCameraBtn.style.display  = 'inline-flex';
+            captureBtn.style.display      = 'none';
+            stopCameraBtn.style.display   = 'none';
             sensitivityControl.style.display = 'none';
-
-            setStatus('Webcam disconnected', 'idle');
+            livenessVerified = false;
+            challengeIndex = 0;
+            challengeList  = [];
+            setStatus('Webcam disconnected','idle');
         }
 
-        async function captureAndMatch() {
-            if (!stream) return;
-
-            // Capture frame from webcam stream
-            const video = videoFeed;
-            const canvas = captureCanvas;
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
-            const ctx = canvas.getContext('2d');
-            
-            // Mirror image adjustment
-            ctx.translate(canvas.width, 0);
+        // ── Frame Capture Helper ───────────────────────────────────────────────
+        function captureFrame() {
+            captureCanvas.width  = videoFeed.videoWidth  || 640;
+            captureCanvas.height = videoFeed.videoHeight || 480;
+            const ctx = captureCanvas.getContext('2d');
+            ctx.save();
+            ctx.translate(captureCanvas.width, 0);
             ctx.scale(-1, 1);
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(videoFeed, 0, 0, captureCanvas.width, captureCanvas.height);
+            ctx.restore();
+            return captureCanvas.toDataURL('image/jpeg', 0.85);
+        }
 
-            const base64Data = canvas.toDataURL('image/jpeg', 0.9);
+        function clearChallengeTimer() {
+            if(challengeTimer){ clearTimeout(challengeTimer); challengeTimer=null; }
+        }
+        function removeLivenessPanel() {
+            const old = document.getElementById('livenessPanel');
+            if(old) old.remove();
+        }
 
-            // Set UI processing states
-            videoFeed.style.display = 'none';
-            scanOverlay.style.display = 'none';
+        // ── Liveness Challenge (multi-stage) ───────────────────────────────────
+        function startLivenessChallenge() {
+            if(!stream) return;
+            livenessVerified   = false;
+            // Randomise the order of the two required challenges
+            challengeList  = [...CHALLENGES].sort(() => Math.random() - 0.5);
+            challengeIndex = 0;
+            runCurrentChallenge();
+        }
+
+        function runCurrentChallenge() {
+            if(challengeIndex >= challengeList.length) {
+                // All challenges passed — proceed to face match
+                livenessVerified = true;
+                captureAndMatch();
+                return;
+            }
+            currentChallenge = challengeList[challengeIndex];
+            neutralFrame     = captureFrame();   // capture resting face FIRST
+            showLivenessPanel();
+        }
+
+        function showLivenessPanel() {
+            removeLivenessPanel();
+            const ch = currentChallenge;
+            const progressLabel = `Challenge ${challengeIndex + 1} of ${challengeList.length}`;
+            const panel = document.createElement('div');
+            panel.id = 'livenessPanel';
+            panel.innerHTML = `
+                <div class="liveness-backdrop"></div>
+                <div class="liveness-card glass">
+                    <div class="liveness-header">
+                        <span class="liveness-shield">🛡️</span>
+                        <div>
+                            <h3>Anti-Spoof Check</h3>
+                            <p class="liveness-sub">${progressLabel} — Prove you are a real person</p>
+                        </div>
+                    </div>
+                    <div class="liveness-challenge-box">
+                        <div class="liveness-emoji" id="lvEmoji">${ch.emoji}</div>
+                        <div class="liveness-title" id="lvTitle">${ch.title}</div>
+                        <div class="liveness-hint"  id="lvHint">${ch.hint}</div>
+                    </div>
+                    <div class="liveness-countdown">
+                        <div class="liveness-bar-bg">
+                            <div class="liveness-bar" id="lvBar" style="width:100%"></div>
+                        </div>
+                        <span class="liveness-secs-label">Capturing in <strong id="lvSecs">3</strong>s</span>
+                    </div>
+                    <div class="liveness-actions">
+                        <button class="btn btn-secondary btn-sm" id="lvCancelBtn">✕ Cancel</button>
+                    </div>
+                    <div class="liveness-status" id="lvStatus"></div>
+                </div>`;
+            document.body.appendChild(panel);
+            document.getElementById('lvCancelBtn').onclick = () => {
+                clearChallengeTimer();
+                removeLivenessPanel();
+                setStatus('Liveness check cancelled.','idle');
+            };
+            requestAnimationFrame(()=>panel.classList.add('liveness-visible'));
+            runCountdown(3);
+        }
+
+        function runCountdown(total) {
+            let remaining = total;
+            function tick() {
+                if(!document.getElementById('livenessPanel')) return;
+                const lvSecs = document.getElementById('lvSecs');
+                const lvBar  = document.getElementById('lvBar');
+                if(lvSecs) lvSecs.textContent = remaining;
+                if(lvBar)  lvBar.style.width  = ((remaining / total) * 100) + '%';
+                if(remaining <= 0) {
+                    const actionFrame = captureFrame();
+                    submitLiveness(neutralFrame, actionFrame);
+                    return;
+                }
+                remaining--;
+                challengeTimer = setTimeout(tick, 1000);
+            }
+            tick();
+        }
+
+        async function submitLiveness(neutral, action) {
+            const lvStatus = document.getElementById('lvStatus');
+            const lvTitle  = document.getElementById('lvTitle');
+            const lvEmoji  = document.getElementById('lvEmoji');
+            if(lvEmoji)  lvEmoji.textContent  = '⏳';
+            if(lvTitle)  lvTitle.textContent  = 'Verifying…';
+            if(lvStatus) lvStatus.innerHTML   = `<div class="lv-checking"><div class="spinner" style="width:24px;height:24px;margin:0 auto 6px;border-width:2px;"></div>Analysing frames…</div>`;
+
+            try {
+                const resp = await fetch(`/api/event/${eventId}/liveness`, {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({
+                        challenge:       currentChallenge.type,
+                        frame_neutral:   neutral,
+                        frame_action:    action,
+                        session_token:   sessionToken
+                    })
+                });
+                const res = await resp.json();
+
+                if(res.success) {
+                    challengeIndex++;
+                    const isLast = challengeIndex >= challengeList.length;
+                    if(lvEmoji) lvEmoji.textContent = '✅';
+                    if(lvTitle) lvTitle.textContent  = isLast ? 'All Checks Passed!' : 'Challenge Passed!';
+                    if(lvStatus) lvStatus.innerHTML  = `<p class="lv-pass">${isLast ? 'Anti-spoof verified. Scanning your face…' : 'Moving to next challenge…'}</p>`;
+                    toast(isLast ? 'Anti-spoof check passed! Scanning your face…' : 'Challenge passed! One more to go.','success');
+                    setTimeout(()=>{
+                        removeLivenessPanel();
+                        if(isLast) {
+                            livenessVerified = true;
+                            captureAndMatch();
+                        } else {
+                            runCurrentChallenge();
+                        }
+                    }, isLast ? 1300 : 1000);
+                } else {
+                    if(lvEmoji) lvEmoji.textContent = '❌';
+                    if(lvTitle) lvTitle.textContent  = 'Check Failed';
+                    if(lvStatus) lvStatus.innerHTML  = `<p class="lv-fail">${res.message}</p><button class="btn btn-primary btn-sm" id="lvRetryBtn">🔄 Try Again</button>`;
+                    document.getElementById('lvRetryBtn').onclick = ()=>{
+                        clearChallengeTimer();
+                        removeLivenessPanel();
+                        startLivenessChallenge();
+                    };
+                    toast('Anti-spoof check failed. Please try again.','warning');
+                }
+            } catch(err) {
+                removeLivenessPanel();
+                toast(`Liveness error: ${err.message}`,'error');
+            }
+        }
+
+        // ── Face Match (runs only after liveness passes) ───────────────────────
+        async function captureAndMatch() {
+            if(!stream || !livenessVerified) return;
+
+            const base64Data = captureFrame();
+            videoFeed.style.display       = 'none';
+            scanOverlay.style.display     = 'none';
             stateProcessing.style.display = 'flex';
-            captureBtn.disabled = true;
+            captureBtn.disabled    = true;
             stopCameraBtn.disabled = true;
-            setStatus('Matching face with event gallery...', 'scanning');
+            setStatus('Matching face with event gallery...','scanning');
 
             const confidenceThreshold = parseInt(thresholdSlider.value) / 100;
 
             try {
                 const response = await fetch(`/api/event/${eventId}/match`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {'Content-Type':'application/json'},
                     body: JSON.stringify({
-                        image: base64Data,
-                        session_token: sessionToken,
-                        threshold: confidenceThreshold
+                        image:           base64Data,
+                        session_token:   sessionToken,
+                        threshold:       confidenceThreshold
                     })
                 });
 
                 let res;
-                const contentType = response.headers.get("content-type");
-                if (contentType && contentType.indexOf("application/json") !== -1) {
+                const ct = response.headers.get('content-type');
+                if(ct && ct.includes('application/json')) {
                     res = await response.json();
                 } else {
-                    const text = await response.text();
-                    console.error("Server returned non-JSON error:", text);
-                    throw new Error("Server returned invalid HTML error. Check browser logs.");
+                    throw new Error('Server returned non-JSON response. Check console.');
                 }
-                
+
                 restoreCameraView();
 
-                if (response.ok && res.success) {
-                    toast(`Face matched! Found ${res.count} photo(s).`, 'success');
-                    setStatus(`Matching finished. Found ${res.count} photo(s).`, 'success');
+                if(response.ok && res.success) {
+                    toast(`Face matched! Found ${res.count} photo(s).`,'success');
+                    setStatus(`Matching finished. Found ${res.count} photo(s).`,'success');
                     renderMatchedPhotos(res.images);
                 } else {
-                    setStatus(res.message || 'No matches found.', 'error');
-                    toast(res.message || 'No matching photos found in this event.', 'warning');
-                    
-                    // Clear matched gallery
+                    setStatus(res.message||'No matches found.','error');
+                    toast(res.message||'No matching photos found in this event.','warning');
                     galleryContainer.classList.add('hidden');
                     noPhotosContainer.classList.remove('hidden');
                 }
-            } catch (err) {
+            } catch(err) {
                 restoreCameraView();
-                setStatus(`Match request failed: ${err.message}`, 'error');
-                toast(`Error: ${err.message}`, 'error');
+                setStatus(`Match request failed: ${err.message}`,'error');
+                toast(`Error: ${err.message}`,'error');
+            } finally {
+                livenessVerified = false; // Require fresh check for every scan
             }
         }
 
         function restoreCameraView() {
             stateProcessing.style.display = 'none';
-            videoFeed.style.display = 'block';
-            scanOverlay.style.display = 'block';
-            captureBtn.disabled = false;
+            videoFeed.style.display       = 'block';
+            scanOverlay.style.display     = 'block';
+            captureBtn.disabled    = false;
             stopCameraBtn.disabled = false;
-            setStatus('Webcam active — position your face', 'active');
+            setStatus('Webcam active — click Scan My Face for another scan','active');
         }
 
         function setStatus(text, type) {
-            statusText.textContent = text;
-            statusDot.className = `status-dot ${type}`;
+            statusText.textContent   = text;
+            statusDot.className      = `status-dot ${type}`;
         }
 
-        // 6. Dynamic gallery renderer with disappearance animations
+        // ── Gallery Renderer ───────────────────────────────────────────────────
         function renderMatchedPhotos(images) {
             matchedPhotosGrid.innerHTML = '';
-            
-            if (!images || images.length === 0) {
+            if(!images || images.length===0){
                 galleryContainer.classList.add('hidden');
                 noPhotosContainer.classList.remove('hidden');
                 return;
             }
-
             noPhotosContainer.classList.add('hidden');
             galleryContainer.classList.remove('hidden');
             matchedCountVal.textContent = images.length;
-
-            images.forEach(img => {
+            images.forEach(img=>{
                 const card = document.createElement('div');
                 card.className = 'photo-container-dashboard glass-item';
                 card.id = `matched-photo-${img.id}`;
-                
                 const imageEl = document.createElement('img');
-                imageEl.src = img.path;
+                imageEl.src   = img.path;
                 imageEl.className = 'photo-dashboard-img';
-                imageEl.loading = 'lazy';
-
+                imageEl.loading   = 'lazy';
                 const actionsWrapper = document.createElement('div');
                 actionsWrapper.className = 'photo-dashboard-overlay';
-
                 const dlBtn = document.createElement('button');
                 dlBtn.className = 'btn btn-primary btn-sm';
                 dlBtn.innerHTML = '📥 Download';
-                dlBtn.onclick = () => triggerDownload(img.id, card);
-
+                dlBtn.onclick   = ()=>triggerDownload(img.id, card);
                 actionsWrapper.appendChild(dlBtn);
                 card.appendChild(imageEl);
                 card.appendChild(actionsWrapper);
@@ -407,29 +555,19 @@
         }
 
         function triggerDownload(imageId, cardElement) {
-            // Open download url in iframe/window trigger to execute download action
-            const downloadUrl = `/api/download/${imageId}?token=${sessionToken}`;
-            
-            // Initiate browser file save
             const link = document.createElement('a');
-            link.href = downloadUrl;
+            link.href     = `/api/download/${imageId}?token=${sessionToken}`;
             link.download = '';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
-            toast('Downloading photo...', 'success');
-
-            // Apply fade out animation to card since download limit was hit/used
+            toast('Downloading photo...','success');
             cardElement.classList.add('fading-out');
-            setTimeout(() => {
+            setTimeout(()=>{
                 cardElement.remove();
-                
-                // Adjust matched count label
                 const count = matchedPhotosGrid.children.length;
                 matchedCountVal.textContent = count;
-
-                if (count === 0) {
+                if(count===0){
                     galleryContainer.classList.add('hidden');
                     noPhotosContainer.classList.remove('hidden');
                 }

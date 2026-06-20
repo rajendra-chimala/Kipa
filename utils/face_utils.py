@@ -100,6 +100,110 @@ def draw_face_boxes(image_path: str, face_locations: list):
     return boxes
 
 
+def get_face_encoding_from_image(image_path: str):
+    """
+    Extract a single face encoding from an image.
+    Returns (encoding, None) on success, or (None, error_msg) on failure.
+    """
+    try:
+        image = face_recognition.load_image_file(image_path)
+        locations = face_recognition.face_locations(image, model='hog')
+        if not locations:
+            return None, 'No face detected'
+        encodings = face_recognition.face_encodings(image, known_face_locations=locations)
+        if not encodings:
+            return None, 'Could not compute face encoding'
+        return encodings[0], None
+    except Exception as e:
+        return None, str(e)
+
+
+def verify_same_face(enc1, enc2, threshold=0.5):
+    """
+    Verify that two face encodings belong to the same person.
+    Returns (True, distance) if match, (False, distance) otherwise.
+    """
+    if enc1 is None or enc2 is None:
+        return False, 1.0
+    distance = face_recognition.face_distance([enc1], enc2)[0]
+    return bool(distance <= threshold), float(distance)
+
+
+def analyze_spoof(image_path: str):
+    """
+    Basic spoof / photo-detection analysis.
+    Checks for:
+      - Laplacian variance (blur indicator – printed photos often have uniform blur)
+      - Edge ratio (screen/paper edges create sharp boundaries)
+    Returns a dict with risk indicators.
+    """
+    import cv2
+
+    img = cv2.imread(image_path)
+    if img is None:
+        return {'risk': 0.5, 'flags': ['could_not_read']}
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    h, w = gray.shape
+
+    # 1. Laplacian variance – measures focal sharpness
+    lap_var = cv2.Laplacian(gray, cv2.CV_64F).var()
+    # Very low variance = overly smooth (possible printed photo blur)
+    # Very high variance = overly sharp (possible screen moire)
+    laplacian_risk = 0.0
+    if lap_var < 20:
+        laplacian_risk = 0.4   # too smooth
+    elif lap_var > 500:
+        laplacian_risk = 0.2   # possibly screen artifacts
+    else:
+        laplacian_risk = 0.0   # normal
+
+    # 2. Edge detection – look for sharp rectangle boundaries (photo frame)
+    edges = cv2.Canny(gray, 50, 150)
+    edge_pixels = cv2.countNonZero(edges)
+    edge_ratio = edge_pixels / (h * w)
+
+    # Very high edge density can indicate screen/texture noise
+    edge_risk = 0.0
+    if edge_ratio > 0.18:
+        edge_risk = 0.35
+    elif edge_ratio < 0.01:
+        edge_risk = 0.1   # too few edges (very smooth = possibly printed)
+
+    # 3. Histogram analysis – check for flat color distribution (photo print)
+    hist = cv2.calcHist([gray], [0], None, [256], [0, 256])
+    hist_std = float(np.std(hist))
+    # Very low histogram std = flat image (possible photo)
+    hist_risk = 0.0
+    if hist_std < 500:
+        hist_risk = 0.25
+
+    # 4. Check for specular highlights / glare (screen reflection)
+    bright_pixels = float(np.sum(gray > 240)) / (h * w)
+    glare_risk = 0.0
+    if bright_pixels > 0.05:
+        glare_risk = 0.2   # possible screen glare
+
+    flags = []
+    if laplacian_risk > 0: flags.append('unusual_sharpness')
+    if edge_risk > 0:      flags.append('unusual_edge_density')
+    if hist_risk > 0:      flags.append('flat_histogram')
+    if glare_risk > 0:     flags.append('possible_glare')
+
+    total_risk = min(1.0, laplacian_risk + edge_risk + hist_risk + glare_risk)
+
+    return {
+        'risk': total_risk,
+        'flags': flags,
+        'details': {
+            'laplacian_var': round(lap_var, 2),
+            'edge_ratio': round(edge_ratio, 4),
+            'hist_std': round(hist_std, 2),
+            'glare_ratio': round(bright_pixels, 4)
+        }
+    }
+
+
 def get_mouth_open_ratio(landmarks):
     """
     Calculate the ratio of mouth opening normalized by eye distance.
