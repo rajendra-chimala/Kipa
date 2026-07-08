@@ -4,9 +4,10 @@
  */
 
 // ── Toast Notification System ───────────────────────────────────────────
-window.FaceSnap = window.FaceSnap || {};
+window.Kipa = window.Kipa || {};
+window.FaceSnap = window.Kipa; // Backward compatibility alias
 
-FaceSnap.toast = function(message, type = 'info', duration = 4000) {
+Kipa.toast = function(message, type = 'info', duration = 4000) {
     let container = document.querySelector('.toast-container');
     if (!container) {
         container = document.createElement('div');
@@ -34,8 +35,10 @@ FaceSnap.toast = function(message, type = 'info', duration = 4000) {
     const navbar = document.querySelector('.navbar');
     if (!navbar) return;
     window.addEventListener('scroll', () => {
-        navbar.style.background = window.scrollY > 50
-            ? 'rgba(10,14,26,0.95)'
-            : 'rgba(10,14,26,0.8)';
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
     });
 })();

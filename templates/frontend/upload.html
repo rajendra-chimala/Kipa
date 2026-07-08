@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="FaceSnap Upload Portal – Photographers can upload event photos for AI face processing." />
-    <title>Upload Photos – FaceSnap</title>
+    <meta name="description" content="KIPA Upload Portal – Upload event photos for AI face recognition processing." />
+    <title>Upload Photos – KIPA</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body class="page-inner">
@@ -16,7 +15,7 @@
         <div class="nav-brand">
             <a href="/" class="brand-link">
                 <div class="brand-icon">📸</div>
-                <span class="brand-name">FaceSnap</span>
+                <span class="brand-name">KIPA (किपा)</span>
             </a>
         </div>
         <div class="nav-links">
@@ -30,7 +29,7 @@
     <div class="page-header container">
         <div class="page-header-icon">📤</div>
         <h1 class="page-title">Upload Event Photos</h1>
-        <p class="page-subtitle">Drop your event images below. We'll automatically detect and index every face.</p>
+        <p class="page-subtitle">Drop your event images below. KIPA will automatically detect and index every face.</p>
     </div>
 
     <!-- Upload Area -->
@@ -40,9 +39,9 @@
         <div class="upload-zone" id="uploadZone">
             <input type="file" id="fileInput" multiple accept="image/*" hidden />
             <div class="upload-zone-inner">
-                <div class="upload-zone-icon">🖼️</div>
+                <div class="upload-icon">🖼️</div>
                 <h3>Drag &amp; Drop Images Here</h3>
-                <p>or <button class="link-btn" id="browseBtn">browse your files</button></p>
+                <p>or <button class="btn-danger-link" id="browseBtn" style="font-weight: 700;">browse your files</button></p>
                 <p class="upload-hint">Supports JPG, PNG, WEBP · Max 50 MB per upload</p>
             </div>
         </div>
@@ -92,7 +91,7 @@
     </main>
 
     <footer class="footer">
-        <p>© 2026 FaceSnap · Photographer Portal</p>
+        <p>© 2026 KIPA (किपा) · Photographer Management Portal</p>
     </footer>
 
     <script src="{{ url_for('static', filename='js/upload.js') }}"></script>

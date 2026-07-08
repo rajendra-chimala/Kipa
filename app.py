@@ -617,24 +617,61 @@ def api_liveness_check(event_id):
             _cleanup()
             return jsonify({'success': False, 'message': f'Image load error: {str(e)}'}), 400
 
-        # ── Step 1: Detect face landmarks (for action verification) ──────────
-        lm_neutral = fr.face_landmarks(img_n)
-        lm_action  = fr.face_landmarks(img_a)
+        # ── Step 1: Detect face locations once on scaled images, then scale up ──
+        import cv2
 
-        if not lm_neutral or not lm_action:
+        try:
+            # Detect locations on scaled neutral image
+            img_n_bgr = cv2.imread(tmp_neutral)
+            if img_n_bgr is not None:
+                img_n_small = cv2.resize(img_n_bgr, (0, 0), fx=0.5, fy=0.5)
+                img_n_small_rgb = cv2.cvtColor(img_n_small, cv2.COLOR_BGR2RGB)
+                locs_n_small = fr.face_locations(img_n_small_rgb, model='hog')
+                locs_n = [(top * 2, right * 2, bottom * 2, left * 2) for (top, right, bottom, left) in locs_n_small]
+            else:
+                locs_n = fr.face_locations(img_n, model='hog')
+
+            # Detect locations on scaled action image
+            img_a_bgr = cv2.imread(tmp_action)
+            if img_a_bgr is not None:
+                img_a_small = cv2.resize(img_a_bgr, (0, 0), fx=0.5, fy=0.5)
+                img_a_small_rgb = cv2.cvtColor(img_a_small, cv2.COLOR_BGR2RGB)
+                locs_a_small = fr.face_locations(img_a_small_rgb, model='hog')
+                locs_a = [(top * 2, right * 2, bottom * 2, left * 2) for (top, right, bottom, left) in locs_a_small]
+            else:
+                locs_a = fr.face_locations(img_a, model='hog')
+        except Exception as e:
+            print(f"[Liveness] Optimization error: {e}")
+            _cleanup()
+            return jsonify({'success': False, 'message': 'Failed to process camera frames.'}), 200
+
+        if not locs_n or not locs_a:
             _cleanup()
             return jsonify({
                 'success': False,
                 'message': 'Could not detect a face in one or both frames. Make sure your face is clearly visible.'
             }), 200
 
-        lm_n = lm_a = None
+        # Compute landmarks using the pre-computed locations
+        lm_neutral = fr.face_landmarks(img_n, face_locations=locs_n)
+        lm_action  = fr.face_landmarks(img_a, face_locations=locs_a)
+
+        if not lm_neutral or not lm_action:
+            _cleanup()
+            return jsonify({
+                'success': False,
+                'message': 'Could not extract landmarks. Position your face clearly.'
+            }), 200
+
         lm_n = lm_neutral[0]
         lm_a = lm_action[0]
 
-        # ── Step 2: Extract face encodings (for same-face verification) ──────
-        enc_n, err_n = get_face_encoding_from_image(tmp_neutral)
-        enc_a, err_a = get_face_encoding_from_image(tmp_action)
+        # ── Step 2: Extract face encodings using the same locations ──────
+        enc_n_list = fr.face_encodings(img_n, known_face_locations=locs_n)
+        enc_a_list = fr.face_encodings(img_a, known_face_locations=locs_a)
+
+        enc_n = enc_n_list[0] if enc_n_list else None
+        enc_a = enc_a_list[0] if enc_a_list else None
 
         # ── Step 3: Spoof / texture analysis on both frames ──────────────────
         spoof_n = analyze_spoof(tmp_neutral)

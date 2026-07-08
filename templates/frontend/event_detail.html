@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Event photos portal – scan your face to find your matched photos in this event.">
-    <title>{{ event.name }} – FaceSnap</title>
+    <meta name="description" content="Event photos portal – scan your face to find your matched photos in this event instantly.">
+    <title>{{ event.name }} – KIPA</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body class="page-event-details">
@@ -15,7 +14,7 @@
     <nav class="navbar">
         <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
             <div class="brand-icon">📸</div>
-            <span class="brand-name">FaceSnap</span>
+            <span class="brand-name">KIPA (किपा)</span>
         </div>
         <div class="nav-links">
             <a href="/" class="nav-link">Home</a>
@@ -24,15 +23,15 @@
 
     <!-- Page Header -->
     <header class="event-header container">
-        <div class="event-meta-card glass">
+        <div class="event-meta-card">
             <div class="event-meta-header">
-                <span class="badge badge-active">Active Event</span>
+                <span class="badge badge-active">🟢 Active Event</span>
                 <span class="event-date">Published by <strong>{{ event.creator_name }}</strong></span>
             </div>
             <h1 class="event-title">{{ event.name }}</h1>
             <p class="event-desc">{{ event.description or 'No description provided.' }}</p>
             {% if event.deactivation_date %}
-            <div class="event-deact-info">📅 Automatically deactivating on: <strong>{{ event.deactivation_date }}</strong></div>
+            <div class="event-deact-info">⏳ Automatically deactivating on: <strong>{{ event.deactivation_date }}</strong></div>
             {% endif %}
         </div>
     </header>
@@ -42,7 +41,7 @@
         <div class="scan-layout">
 
             <!-- Camera Panel -->
-            <div class="camera-panel glass">
+            <div class="camera-panel">
                 <div class="camera-viewport" id="cameraViewport">
                     <!-- State: Idle -->
                     <div class="cam-state" id="stateIdle">
@@ -67,8 +66,8 @@
 
                     <!-- State: Processing -->
                     <div class="cam-state processing-state" id="stateProcessing" style="display:none">
-                        <div class="spinner"></div>
-                        <h3>Matching Face…</h3>
+                        <div class="spinner spinner-lg"></div>
+                        <h3 style="margin-top: 12px;">Matching Face…</h3>
                         <p>Searching event database for matches</p>
                     </div>
                 </div>
@@ -92,7 +91,7 @@
                 </div>
 
                 <!-- Sensitivity Slider -->
-                <div class="sensitivity-control mt-3" id="sensitivityControl" style="display:none">
+                <div class="sensitivity-control" id="sensitivityControl" style="display:none">
                     <label class="sensitivity-label">
                         Recognition Confidence
                         <span class="sensitivity-value" id="sensitivityValue">Balanced</span>
@@ -106,21 +105,21 @@
             </div>
 
             <!-- Instruction Tips -->
-            <div class="instruction-panel glass">
-                <h3 class="instruction-title">How to scan</h3>
+            <div class="instruction-panel">
+                <h3 class="instruction-title">How to Scan</h3>
                 <ul class="tip-list">
                     <li class="tip-item">
                         <div class="tip-icon">🛡️</div>
                         <div>
                             <strong>Anti-Spoof Protection</strong>
-                            <p>You must pass a quick liveness check before scanning — photos and phone screens are blocked.</p>
+                            <p>You must pass a quick liveness check before scanning—photos and phone screens are blocked.</p>
                         </div>
                     </li>
                     <li class="tip-item">
                         <div class="tip-icon">💡</div>
                         <div>
                             <strong>Bright Environment</strong>
-                            <p>Avoid strong background lights or shadows.</p>
+                            <p>Avoid strong background lights, shadows, or backlit setups.</p>
                         </div>
                     </li>
                     <li class="tip-item">
@@ -134,7 +133,7 @@
                         <div class="tip-icon">🕶️</div>
                         <div>
                             <strong>Remove Obstacles</strong>
-                            <p>Take off sunglasses or large hats if matching fails.</p>
+                            <p>Take off sunglasses, masks, or large hats if matching fails.</p>
                         </div>
                     </li>
                 </ul>
@@ -152,7 +151,7 @@
         <section id="gallery-container" class="matched-gallery-section mt-5 hidden">
             <div class="section-header">
                 <h2>Your Matched Photos</h2>
-                <p>We found <strong id="matched-count-val">0</strong> photo(s) containing your face. Click download below to save.</p>
+                <p>We found <strong id="matched-count-val" style="color: var(--primary);">0</strong> photo(s) containing your face. Click download below to save.</p>
             </div>
             
             <div class="event-photos-grid mt-4" id="matched-photos-grid">
@@ -162,7 +161,7 @@
 
         <!-- No Photos Match Banner -->
         <section id="no-photos-container" class="matched-gallery-section mt-5 hidden">
-            <div class="no-matches-card glass text-center py-5">
+            <div class="no-matches-card">
                 <span class="card-large-icon">🔍</span>
                 <h3>No Matching Photos Found</h3>
                 <p>We could not find any photos matching your face in this event, or they have already been downloaded.</p>
@@ -172,7 +171,7 @@
     </main>
 
     <footer class="footer">
-        <p>© 2026 FaceSnap · AI Face Recognition Photo Delivery</p>
+        <p>© 2026 KIPA (किपा) · AI Face Recognition Photo Delivery · Privacy First</p>
     </footer>
 
     <!-- Scripts -->
@@ -222,11 +221,9 @@
         // ── Liveness Challenges ────────────────────────────────────────────────
         const CHALLENGES = [
             { type: 'mouth', emoji: '😮', title: 'Open Your Mouth Wide',
-              hint: 'Slowly open your mouth as wide as you can within 3 seconds.' },
-            { type: 'blink', emoji: '😉', title: 'Close Both Eyes Firmly',
-              hint: 'Close both eyes tightly for 1–2 seconds within the countdown.' }
+              hint: 'Slowly open your mouth as wide as you can.' }
         ];
-        const REQUIRED_CHALLENGES = 2;  // must pass BOTH mouth + blink
+        const REQUIRED_CHALLENGES = 1;  // only mouth open required
         let currentChallenge = null;
         let neutralFrame     = null;
         let challengeTimer   = null;
@@ -347,7 +344,7 @@
             panel.id = 'livenessPanel';
             panel.innerHTML = `
                 <div class="liveness-backdrop"></div>
-                <div class="liveness-card glass">
+                <div class="liveness-card">
                     <div class="liveness-header">
                         <span class="liveness-shield">🛡️</span>
                         <div>
@@ -364,7 +361,7 @@
                         <div class="liveness-bar-bg">
                             <div class="liveness-bar" id="lvBar" style="width:100%"></div>
                         </div>
-                        <span class="liveness-secs-label">Capturing in <strong id="lvSecs">3</strong>s</span>
+                        <span class="liveness-secs-label">Capturing in <strong id="lvSecs">1.5</strong>s</span>
                     </div>
                     <div class="liveness-actions">
                         <button class="btn btn-secondary btn-sm" id="lvCancelBtn">✕ Cancel</button>
@@ -378,7 +375,7 @@
                 setStatus('Liveness check cancelled.','idle');
             };
             requestAnimationFrame(()=>panel.classList.add('liveness-visible'));
-            runCountdown(3);
+            runCountdown(1.5);
         }
 
         function runCountdown(total) {
@@ -387,15 +384,15 @@
                 if(!document.getElementById('livenessPanel')) return;
                 const lvSecs = document.getElementById('lvSecs');
                 const lvBar  = document.getElementById('lvBar');
-                if(lvSecs) lvSecs.textContent = remaining;
+                if(lvSecs) lvSecs.textContent = remaining.toFixed(1);
                 if(lvBar)  lvBar.style.width  = ((remaining / total) * 100) + '%';
-                if(remaining <= 0) {
+                if(remaining <= 0.05) {
                     const actionFrame = captureFrame();
                     submitLiveness(neutralFrame, actionFrame);
                     return;
                 }
-                remaining--;
-                challengeTimer = setTimeout(tick, 1000);
+                remaining = Math.max(0, remaining - 0.1);
+                challengeTimer = setTimeout(tick, 100);
             }
             tick();
         }
@@ -535,7 +532,7 @@
             matchedCountVal.textContent = images.length;
             images.forEach(img=>{
                 const card = document.createElement('div');
-                card.className = 'photo-container-dashboard glass-item';
+                card.className = 'photo-container-dashboard';
                 card.id = `matched-photo-${img.id}`;
                 const imageEl = document.createElement('img');
                 imageEl.src   = img.path;

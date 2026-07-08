@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Secure portal to access photographer and administrative controls on FaceSnap.">
-    <title>Access Portal – FaceSnap</title>
+    <meta name="description" content="Secure portal to access photographer and administrative controls on KIPA.">
+    <title>Access Portal – KIPA</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body class="page-auth">
@@ -14,7 +13,7 @@
     <nav class="navbar">
         <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
             <div class="brand-icon">📸</div>
-            <span class="brand-name">FaceSnap</span>
+            <span class="brand-name">KIPA (किपा)</span>
         </div>
         <div class="nav-links">
             <a href="/" class="nav-link">Home</a>
@@ -22,7 +21,7 @@
     </nav>
 
     <main class="auth-container">
-        <div class="auth-card glass">
+        <div class="auth-card">
             <div class="auth-tabs">
                 <button type="button" id="tab-login" class="auth-tab active" onclick="switchTab('login')">Sign In</button>
                 <button type="button" id="tab-register" class="auth-tab" onclick="switchTab('register')">Photographer Sign Up</button>
@@ -32,7 +31,7 @@
             <form id="form-login" class="auth-form active" onsubmit="handleAuth(event, '/api/login')">
                 <div class="form-header">
                     <h2>Welcome Back</h2>
-                    <p>Log in to access your dashboard</p>
+                    <p>Log in to access your photographer dashboard</p>
                 </div>
                 <div id="login-error" class="alert alert-danger hidden"></div>
                 <div class="form-group">
@@ -51,7 +50,7 @@
             <!-- Register Form -->
             <form id="form-register" class="auth-form" onsubmit="handleAuth(event, '/api/register')">
                 <div class="form-header">
-                    <h2>Join FaceSnap</h2>
+                    <h2>Join KIPA</h2>
                     <p>Create a photographer account to start publishing events</p>
                 </div>
                 <div id="register-error" class="alert alert-danger hidden"></div>
@@ -72,7 +71,7 @@
     </main>
 
     <footer class="footer">
-        <p>© 2026 FaceSnap · All rights reserved</p>
+        <p>© 2026 KIPA (किपा) · Find Your Photos Instantly · All rights reserved</p>
     </footer>
 
     <script>

@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Assistant portal to upload and manage assigned photographer events.">
-    <title>Assistant Dashboard – FaceSnap</title>
+    <title>Assistant Dashboard – KIPA</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body class="page-dashboard">
@@ -15,7 +14,7 @@
     <nav class="navbar">
         <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
             <div class="brand-icon">📸</div>
-            <span class="brand-name">FaceSnap</span>
+            <span class="brand-name">KIPA (किपा)</span>
             <span class="badge badge-assistant">Assistant</span>
         </div>
         <div class="nav-links">
@@ -29,7 +28,7 @@
     <main class="dashboard-grid container">
         
         <!-- Sidebar -->
-        <aside class="dashboard-sidebar glass">
+        <aside class="dashboard-sidebar">
             <div class="sidebar-header">
                 <h3>Control Panel</h3>
             </div>
@@ -45,7 +44,7 @@
             </div>
 
             <!-- Events Table -->
-            <div class="table-container glass">
+            <div class="table-container">
                 <table class="dashboard-table">
                     <thead>
                         <tr>
@@ -102,7 +101,7 @@
             </div>
 
             <!-- Event Details Area (Dynamic) -->
-            <div id="event-details-panel" class="dashboard-card glass mt-4 hidden">
+            <div id="event-details-panel" class="dashboard-card mt-4 hidden">
                 <div class="panel-header">
                     <h3 id="details-event-name">Event Photos</h3>
                     <button class="btn-close" onclick="closeDetailsPanel()">✕</button>
@@ -122,7 +121,7 @@
                     <div class="progress-bar-wrapper">
                         <div id="upload-progress-bar" class="progress-bar" style="width: 0%"></div>
                     </div>
-                    <div id="upload-status-text" class="text-sm mt-1">Uploading...</div>
+                    <div id="upload-status-text" class="text-sm mt-1" style="font-weight: 700; color: var(--primary);">Uploading...</div>
                 </div>
 
                 <div id="upload-results" class="mt-3"></div>
@@ -137,7 +136,7 @@
     </main>
 
     <footer class="footer">
-        <p>© 2026 FaceSnap · Assistant Portal</p>
+        <p>© 2026 KIPA (किपा) · Assistant Management Portal</p>
     </footer>
 
     <!-- Scripts -->
@@ -210,7 +209,7 @@
 
                 res.images.forEach(img => {
                     const container = document.createElement('div');
-                    container.className = 'photo-container-dashboard glass-item';
+                    container.className = 'photo-container-dashboard';
                     
                     const imageEl = document.createElement('img');
                     imageEl.src = '/' + img.image_path;

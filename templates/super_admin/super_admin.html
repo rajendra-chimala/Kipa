@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Super Admin control panel for global monitoring and administration.">
-    <title>Super Admin Control – FaceSnap</title>
+    <title>Super Admin Control – KIPA</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body class="page-dashboard">
@@ -15,7 +14,7 @@
     <nav class="navbar">
         <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
             <div class="brand-icon">📸</div>
-            <span class="brand-name">FaceSnap</span>
+            <span class="brand-name">KIPA (किपा)</span>
             <span class="badge badge-admin">Super Admin</span>
         </div>
         <div class="nav-links">
@@ -29,7 +28,7 @@
     <main class="dashboard-grid container">
         
         <!-- Sidebar -->
-        <aside class="dashboard-sidebar glass">
+        <aside class="dashboard-sidebar">
             <div class="sidebar-header">
                 <h3>System Portal</h3>
             </div>
@@ -50,42 +49,42 @@
                 </div>
 
                 <div class="stats-grid">
-                    <div class="stat-card glass">
+                    <div class="stat-card">
                         <div class="stat-icon">👥</div>
                         <div class="stat-info">
                             <span class="stat-label">Total Users</span>
-                            <span class="stat-value text-purple">{{ stats['total_users'] }}</span>
+                            <span class="stat-value text-purple" style="color: #8B5CF6 !important;">{{ stats['total_users'] }}</span>
                         </div>
                     </div>
-                    <div class="stat-card glass">
+                    <div class="stat-card">
                         <div class="stat-icon">📅</div>
                         <div class="stat-info">
                             <span class="stat-label">Total Events</span>
                             <span class="stat-value">{{ stats['total_events'] }}</span>
                         </div>
                     </div>
-                    <div class="stat-card glass">
+                    <div class="stat-card">
                         <div class="stat-icon">🟢</div>
                         <div class="stat-info">
                             <span class="stat-label">Active Events</span>
                             <span class="stat-value text-green">{{ stats['active_events'] }}</span>
                         </div>
                     </div>
-                    <div class="stat-card glass">
+                    <div class="stat-card">
                         <div class="stat-icon">🔴</div>
                         <div class="stat-info">
                             <span class="stat-label">Inactive Events</span>
                             <span class="stat-value text-red">{{ stats['inactive_events'] }}</span>
                         </div>
                     </div>
-                    <div class="stat-card glass">
+                    <div class="stat-card">
                         <div class="stat-icon">📤</div>
                         <div class="stat-info">
                             <span class="stat-label">Images Uploaded</span>
                             <span class="stat-value">{{ stats['total_images'] }}</span>
                         </div>
                     </div>
-                    <div class="stat-card glass">
+                    <div class="stat-card">
                         <div class="stat-icon">💾</div>
                         <div class="stat-info">
                             <span class="stat-label">Images Downloaded</span>
@@ -101,7 +100,7 @@
                     <h2>User Accounts</h2>
                 </div>
 
-                <div class="table-container glass">
+                <div class="table-container">
                     <table class="dashboard-table">
                         <thead>
                             <tr>
@@ -139,7 +138,7 @@
                     <h2>All Platform Events</h2>
                 </div>
 
-                <div class="table-container glass">
+                <div class="table-container">
                     <table class="dashboard-table">
                         <thead>
                             <tr>
@@ -175,7 +174,7 @@
     </main>
 
     <footer class="footer">
-        <p>© 2026 FaceSnap · Super Admin Administration Control</p>
+        <p>© 2026 KIPA (किपा) · Super Admin Administration Control</p>
     </footer>
 
     <script>

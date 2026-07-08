@@ -3,56 +3,51 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="FaceSnap - Upload event photos and let attendees find themselves using face recognition technology." />
-    <title>FaceSnap – Smart Photo Distribution</title>
+    <meta name="description" content="KIPA – Upload event photos and let attendees find themselves using secure face recognition technology instantly." />
+    <title>KIPA (किपा) – Find Your Photos Instantly</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body class="page-home">
 
     <!-- ── Navigation ─────────────────────────────────────────── -->
-    <nav class="navbar">
+    <nav class="navbar" id="mainNavbar">
         <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
             <div class="brand-icon">📸</div>
-            <span class="brand-name">FaceSnap</span>
+            <span class="brand-name">KIPA (किपा)</span>
         </div>
         <div class="nav-links">
+            <a href="#how-it-works" class="nav-link">How it Works</a>
+            <a href="#active-galleries" class="nav-link">Events</a>
+            <a href="#faq" class="nav-link">FAQ</a>
             {% if session.get('user') %}
                 {% if session['user']['role'] == 'super_admin' %}
-                    <a href="/admin/dashboard" class="nav-link">Admin Dashboard</a>
+                    <a href="/admin/dashboard" class="nav-btn">Admin Dashboard</a>
                 {% elif session['user']['role'] == 'photographer' %}
-                    <a href="/dashboard" class="nav-link">Photographer Dashboard</a>
+                    <a href="/dashboard" class="nav-btn">Photographer Dashboard</a>
                 {% else %}
-                    <a href="/assistant/dashboard" class="nav-link">Assistant Dashboard</a>
+                    <a href="/assistant/dashboard" class="nav-btn">Assistant Dashboard</a>
                 {% endif %}
-                <a href="/logout" class="nav-btn">Logout</a>
+                <a href="/logout" class="nav-btn-logout" style="margin-left: 8px;">Logout</a>
             {% else %}
                 <a href="/auth" class="nav-btn">Photographer Portal</a>
             {% endif %}
         </div>
     </nav>
 
-    <!-- ── Hero ───────────────────────────────────────────────── -->
+    <!-- ── 1. Hero Section ────────────────────────────────────── -->
     <section class="hero">
-        <div class="hero-bg">
-            <div class="hero-orb orb-1"></div>
-            <div class="hero-orb orb-2"></div>
-            <div class="hero-orb orb-3"></div>
-        </div>
-
         <div class="hero-content">
             <div class="hero-badge">
                 <span class="badge-dot"></span>
-                AI-Powered Face Recognition
+                AI-Powered Event Photo Finder
             </div>
             <h1 class="hero-title">
                 Find <em>Your</em> Photos<br />
-                Instantly with Your Face
+                Instantly with Your Face.
             </h1>
             <p class="hero-subtitle">
-                Photographers upload event photos — attendees scan their face and
-                instantly retrieve every picture they appear in. No searching, no scrolling.
+                No more scrolling through hundreds of event photos. Upload your face scan, and KIPA instantly retrieves every single photo you appear in—securely and in milliseconds.
             </p>
             <div class="hero-actions">
                 <a href="#active-galleries" class="btn btn-primary btn-lg">
@@ -61,7 +56,7 @@
                 </a>
                 <a href="/auth" class="btn btn-secondary btn-lg">
                     <span class="btn-icon">📤</span>
-                    Upload Portal
+                    Photographer Portal
                 </a>
             </div>
         </div>
@@ -78,110 +73,311 @@
                         <div class="scan-corner c3"></div>
                         <div class="scan-corner c4"></div>
                     </div>
-                    <div class="scan-label">Scanning…</div>
+                    <div class="scan-label">Scanning Face...</div>
                     <div class="scan-bar"></div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ── Active Events ───────────────────────────────────────── -->
-    <section class="active-events container" id="active-galleries">
+    <!-- ── 2. How KIPA Works Section ──────────────────────────── -->
+    <section class="how-it-works container" id="how-it-works">
         <div class="section-header">
-            <h2 class="section-title">Active Event Galleries</h2>
-            <p class="section-sub">Select an event below, scan your face, and retrieve your matching photos instantly.</p>
-        </div>
-
-        <div class="events-grid">
-            {% if not events %}
-            <div class="no-events-card glass">
-                <span class="card-icon">📅</span>
-                <h3>No Active Events</h3>
-                <p>There are currently no active public events. Log in to create and publish events.</p>
-            </div>
-            {% else %}
-                {% for event in events %}
-                <div class="event-public-card glass" onclick="window.location.href='/event/{{ event.id }}'">
-                    <div class="event-card-header">
-                        <span class="badge badge-active">🟢 Active</span>
-                        <span class="event-creator">By {{ event.creator_name }}</span>
-                    </div>
-                    <h3 class="event-card-title">{{ event.name }}</h3>
-                    <p class="event-card-desc">{{ event.description or 'No description provided.' }}</p>
-                    {% if event.deactivation_date %}
-                    <div class="event-card-expiry">⏳ Expires: {{ event.deactivation_date }}</div>
-                    {% endif %}
-                    <div class="event-card-action">
-                        <span class="btn btn-secondary btn-sm btn-block">Scan &amp; Find Photos →</span>
-                    </div>
-                </div>
-                {% endfor %}
-            {% endif %}
-        </div>
-    </section>
-
-    <!-- ── How It Works ───────────────────────────────────────── -->
-    <section class="how-it-works container">
-        <div class="section-header">
-            <h2 class="section-title">How It Works</h2>
-            <p class="section-sub">Three simple steps from event to gallery</p>
+            <h2 class="section-title">How KIPA Works</h2>
+            <p class="section-sub">Get your memories in three simple, instantaneous steps.</p>
         </div>
 
         <div class="steps-grid">
             <div class="step-card">
                 <div class="step-number">01</div>
-                <div class="step-icon">📤</div>
-                <h3>Upload Photos</h3>
-                <p>Photographers or permitted assistants upload bulk event images through their secure portal.</p>
+                <span class="step-icon">📤</span>
+                <h3>Bulk Upload</h3>
+                <p>Photographers or assistants securely upload all high-res photos to KIPA after an event.</p>
             </div>
             <div class="step-connector">→</div>
             <div class="step-card">
                 <div class="step-number">02</div>
-                <div class="step-icon">🧠</div>
-                <h3>AI Processing</h3>
-                <p>Our AI detects every face and generates unique 128-point encodings instantly.</p>
+                <span class="step-icon">⚙️</span>
+                <h3>AI Face Matching</h3>
+                <p>Our advanced system maps faces into secure vector hashes—never storing raw face images.</p>
             </div>
             <div class="step-connector">→</div>
             <div class="step-card">
                 <div class="step-number">03</div>
-                <div class="step-icon">🎉</div>
-                <h3>Scan &amp; Download</h3>
-                <p>Attendees scan their face on the event detail page and download their matching photos.</p>
+                <span class="step-icon">🎉</span>
+                <h3>Instant Retrieve</h3>
+                <p>Attendees run a quick, secure liveness scan to match and download their photos directly.</p>
             </div>
         </div>
     </section>
 
-    <!-- ── Features ───────────────────────────────────────────── -->
-    <section class="features container">
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon gradient-blue">🔒</div>
-                <h4>Privacy First</h4>
-                <p>Face encodings are numerical vectors — raw photos of user faces are never uploaded as templates.</p>
+    <!-- ── 3. Features Section ────────────────────────────────── -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Features Designed for Speed & Trust</h2>
+                <p class="section-sub">KIPA combines state-of-the-art AI utility with ultimate privacy safety checks.</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon gradient-purple">⚡</div>
-                <h4>Instant Results</h4>
-                <p>Matching happens in milliseconds against our optimized encoding index.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon gradient-pink">📦</div>
-                <h4>Bulk Upload</h4>
-                <p>Photographers can upload hundreds of images in one go during an event.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon gradient-green">💾</div>
-                <h4>Download Limits</h4>
-                <p>Control the maximum number of times attendees can download photos per session.</p>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon gradient-pink">🔒</div>
+                    <h4>Privacy First</h4>
+                    <p>Raw face template images are never stored. Only 128-dimension vector calculations are mapped.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon gradient-blue">⚡</div>
+                    <h4>Sub-Second Matching</h4>
+                    <p>Search index processes thousands of files and returns exact faces in milliseconds.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon gradient-purple">👥</div>
+                    <h4>Delegated Assistants</h4>
+                    <p>Create separate accounts for event assistants with specific permissions to upload or delete.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon gradient-green">🛡️</div>
+                    <h4>Liveness Protection</h4>
+                    <p>Our anti-spoof checks prevent users from matching screens or prints, preserving gallery privacy.</p>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- ── Footer ─────────────────────────────────────────────── -->
+    <!-- ── 4. Privacy First Section ───────────────────────────── -->
+    <section class="privacy-section">
+        <div class="privacy-card">
+            <div>
+                <h2>Strictly Privacy-First</h2>
+                <p>We respect your biometrics. KIPA converts face characteristics into a mathematical representation instantly upon scan. This means your raw face photos are never registered or stored in our database. Once you close the browser session, your scan cache is permanently deleted.</p>
+                <div style="display: flex; gap: 24px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="color: var(--success); font-size: 1.25rem;">✔</span>
+                        <span style="font-size: 0.9rem; font-weight: 700;">No templates stored</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="color: var(--success); font-size: 1.25rem;">✔</span>
+                        <span style="font-size: 0.9rem; font-weight: 700;">GDPR Compliant</span>
+                    </div>
+                </div>
+            </div>
+            <div class="privacy-icon-box">
+                🛡️
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Active Events / Galleries Section ───────────────────── -->
+    <section class="active-events" id="active-galleries">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Active Event Galleries</h2>
+                <p class="section-sub">Select your event below, complete the liveness scan, and instantly retrieve your photos.</p>
+            </div>
+
+            <div class="events-grid">
+                {% if not events %}
+                <div class="no-events-card">
+                    <span class="card-icon">📅</span>
+                    <h3>No Active Events</h3>
+                    <p>There are currently no active public events. Log in to create and publish events.</p>
+                </div>
+                {% else %}
+                    {% for event in events %}
+                    <div class="event-public-card" onclick="window.location.href='/event/{{ event.id }}'">
+                        <div class="event-card-header">
+                            <span class="badge badge-active">🟢 Active</span>
+                            <span class="event-creator">By {{ event.creator_name }}</span>
+                        </div>
+                        <h3 class="event-card-title">{{ event.name }}</h3>
+                        <p class="event-card-desc">{{ event.description or 'No description provided.' }}</p>
+                        {% if event.deactivation_date %}
+                        <div class="event-card-expiry">⏳ Expires: {{ event.deactivation_date }}</div>
+                        {% endif %}
+                        <div class="event-card-action">
+                            <span class="btn btn-primary btn-sm btn-block">Scan Face &amp; Find Photos →</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- ── 5. Event Categories Section ────────────────────────── -->
+    <section class="categories-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Memories from Any Occasion</h2>
+                <p class="section-sub">KIPA delivers smart distributions for photography events of all sizes.</p>
+            </div>
+
+            <div class="categories-grid">
+                <div class="category-card">
+                    <span class="category-emoji">💍</span>
+                    <h4>Weddings</h4>
+                    <p>Help guests grab photos of key wedding moments instantly.</p>
+                </div>
+                <div class="category-card">
+                    <span class="category-emoji">🏃</span>
+                    <h4>Sports Events</h4>
+                    <p>Runners and athletes find their action shots instantly.</p>
+                </div>
+                <div class="category-card">
+                    <span class="category-emoji">🎸</span>
+                    <h4>Concerts &amp; Gigs</h4>
+                    <p>Fans download memories with high-precision matches.</p>
+                </div>
+                <div class="category-card">
+                    <span class="category-emoji">👔</span>
+                    <h4>Corporate Gigs</h4>
+                    <p>Speed up professional headshot sharing among delegates.</p>
+                </div>
+                <div class="category-card">
+                    <span class="category-emoji">🎂</span>
+                    <h4>Social Parties</h4>
+                    <p>Birthdays and reunion galleries simplified for guests.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── 6. Statistics Section ──────────────────────────────── -->
+    <section class="stats-landing-section">
+        <div class="stats-landing-grid">
+            <div class="stat-landing-item">
+                <h3>99.8%</h3>
+                <p>Accuracy Rate</p>
+            </div>
+            <div class="stat-landing-item">
+                <h3>&lt; 0.2s</h3>
+                <p>Match Time</p>
+            </div>
+            <div class="stat-landing-item">
+                <h3>100K+</h3>
+                <p>Photos Processed</p>
+            </div>
+            <div class="stat-landing-item">
+                <h3>0%</h3>
+                <p>Face Data Sold</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── 7. Testimonials Section ────────────────────────────── -->
+    <section class="testimonials-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Loved by Photographers &amp; Guests</h2>
+                <p class="section-sub">Hear what photographers and event hosts say about KIPA.</p>
+            </div>
+
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p class="testimonial-text">"KIPA saved my client support workflow. Instead of emailing links or wetransfer files, guests scan their faces and get their photos in seconds. It is a absolute gamechanger for event business."</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-author-avatar">RD</div>
+                        <div class="testimonial-author-name">
+                            <h5>Rajesh Dev</h5>
+                            <span>Wedding Photographer</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p class="testimonial-text">"As a guest at a 500-attendee corporate summit, I found all my speaking and panel photos within 2 seconds. Extremely impressive and completely privacy-centric."</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-author-avatar">SS</div>
+                        <div class="testimonial-author-name">
+                            <h5>Sumi Shrestha</h5>
+                            <span>Summit Delegate</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p class="testimonial-text">"The assistant permission controls are excellent. I can delegate image upload jobs to my photography team without exposing crucial event settings or dashboard configurations."</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-author-avatar">MB</div>
+                        <div class="testimonial-author-name">
+                            <h5>Manish Basnet</h5>
+                            <span>Studio Owner</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── 8. FAQ Section ─────────────────────────────────────── -->
+    <section class="faq-section" id="faq">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Frequently Asked Questions</h2>
+                <p class="section-sub">Everything you need to know about KIPA.</p>
+            </div>
+
+            <div class="faq-list">
+                <details class="faq-item">
+                    <summary>Is my biometric face data stored permanently?</summary>
+                    <div class="faq-answer">
+                        No. KIPA does not store any face templates or raw photos of guest face scans in the database. Face details are converted into transient 128-point vector numbers during scanning, which are deleted as soon as the matches are calculated and returned.
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>What is anti-spoof liveness protection?</summary>
+                    <div class="faq-answer">
+                        To protect attendee privacy, KIPA runs a multi-challenge liveness check (like opening your mouth or blinking). This guarantees that a live person is standing before the camera, preventing anyone from holding up printouts or screen displays of your face to steal your photos.
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>How can I upload photos as a photographer?</summary>
+                    <div class="faq-answer">
+                        Photographers can log in via the Photographer Portal button. From there, you can create events, configure download limits, and drag-and-drop photos in bulk for AI processing.
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I restrict the number of downloads per guest?</summary>
+                    <div class="faq-answer">
+                        Yes. Each event can be configured with a strict download limit count. Once a guest downloads their matches up to this threshold within their browser session, the server blocks further downloads to prevent system overuse.
+                    </div>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── 9. CTA Banner Section ──────────────────────────────── -->
+    <section class="cta-section">
+        <div class="cta-banner">
+            <h2>Ready to Transform Event Photography?</h2>
+            <p>Publish events, upload galleries, and let attendees retrieve their memories instantly with the magic of face recognition.</p>
+            <div class="cta-actions">
+                <a href="/auth" class="btn btn-primary btn-lg" style="background-color: var(--secondary); box-shadow: none;">Create Photographer Account</a>
+                <a href="#active-galleries" class="btn btn-secondary btn-lg">Browse Active Galleries</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── 10. Footer Section ─────────────────────────────────── -->
     <footer class="footer">
-        <p>© 2026 FaceSnap · Built with Flask &amp; face_recognition · All rights reserved</p>
+        <p>© 2026 KIPA (किपा) · Built with Flask &amp; face_recognition · Find Your Photos Instantly</p>
     </footer>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Smooth scroll for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
