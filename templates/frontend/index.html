@@ -13,8 +13,7 @@
     <!-- ── Navigation ─────────────────────────────────────────── -->
     <nav class="navbar" id="mainNavbar">
         <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
-            <div class="brand-icon">📸</div>
-            <span class="brand-name">KIPA (किपा)</span>
+           <img src="{{ url_for('static', filename='images/logo.png') }}" style="height: 35px;" alt="KIPA Logo" class="nav-logo" />
         </div>
         <div class="nav-links">
             <a href="#how-it-works" class="nav-link">How it Works</a>

@@ -5,188 +5,291 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Super Admin control panel for global monitoring and administration.">
     <title>Super Admin Control – KIPA</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="page-dashboard">
+<body style="margin:0;padding:0;background:#F9FAFB;">
 
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
-            <div class="brand-icon">📸</div>
-            <span class="brand-name">KIPA (किपा)</span>
-            <span class="badge badge-admin">Super Admin</span>
+<div class="ta-wrapper">
+
+    <!-- ═══ LEFT SIDEBAR ═══ -->
+    <aside class="ta-sidebar" id="taSidebar">
+
+        <a href="/" class="ta-sidebar-logo">
+            <div class="logo-mark">📸</div>
+            <div class="logo-text">
+                KIPA (किपा)
+                <small>Super Admin</small>
+            </div>
+        </a>
+
+        <nav class="ta-sidebar-nav">
+            <div class="ta-menu-group-label">MONITORING</div>
+
+            <button class="ta-menu-item active" id="mi-overview" onclick="switchSection('system-overview', this)">
+                <span class="ta-mi-icon">📊</span>
+                Global Stats
+            </button>
+
+            <button class="ta-menu-item" id="mi-users" onclick="switchSection('system-users', this)">
+                <span class="ta-mi-icon">👥</span>
+                User Accounts
+            </button>
+
+            <button class="ta-menu-item" id="mi-events" onclick="switchSection('system-events', this)">
+                <span class="ta-mi-icon">📅</span>
+                All Events
+            </button>
+
+            <div class="ta-menu-group-label">SITE</div>
+            <a class="ta-menu-item" href="/">
+                <span class="ta-mi-icon">🌐</span>
+                View Site
+            </a>
+        </nav>
+
+        <div class="ta-sidebar-footer">
+            <div class="ta-sidebar-user">
+                <div class="user-avatar">{{ session['user']['username'][0]|upper }}</div>
+                <div class="user-info">
+                    <div class="user-name">{{ session['user']['username'] }}</div>
+                    <div class="user-role">Super Administrator</div>
+                </div>
+            </div>
         </div>
-        <div class="nav-links">
-            <span class="user-greeting">Hello, <strong>{{ session['user']['username'] }}</strong></span>
-            <a href="/" class="nav-link">View Site</a>
-            <a href="/logout" class="nav-btn-logout">Logout</a>
-        </div>
-    </nav>
+    </aside>
 
-    <!-- Main Content -->
-    <main class="dashboard-grid container">
-        
-        <!-- Sidebar -->
-        <aside class="dashboard-sidebar">
-            <div class="sidebar-header">
-                <h3>System Portal</h3>
-            </div>
-            <div class="sidebar-menu">
-                <button class="menu-item active" onclick="switchTab('system-overview')">📊 Global Stats</button>
-                <button class="menu-item" onclick="switchTab('system-users')">👥 User Accounts</button>
-                <button class="menu-item" onclick="switchTab('system-events')">📅 All Events</button>
-            </div>
-        </aside>
+    <!-- ═══ RIGHT COLUMN ═══ -->
+    <div class="ta-right-col">
 
-        <!-- Main Content Area -->
-        <section class="dashboard-content">
+        <div class="ta-sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-            <!-- Tab 1: Global Stats -->
-            <div id="sec-system-overview" class="dashboard-section active">
-                <div class="section-title-wrapper">
-                    <h2>Global Analytics</h2>
+        <!-- Sticky Header -->
+        <header class="ta-header">
+            <div class="ta-header-left">
+                <button class="ta-hamburger" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
+                <div class="ta-page-breadcrumb">
+                    KIPA &rsaquo; <span id="breadcrumbLabel">Global Stats</span>
                 </div>
+            </div>
+            <div class="ta-header-right">
+                <span class="ta-header-badge admin">🛡️ Super Admin</span>
+                <a href="/logout" class="ta-logout-btn">↩ Logout</a>
+            </div>
+        </header>
 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Total Users</span>
-                            <span class="stat-value text-purple" style="color: #8B5CF6 !important;">{{ stats['total_users'] }}</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📅</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Total Events</span>
-                            <span class="stat-value">{{ stats['total_events'] }}</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🟢</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Active Events</span>
-                            <span class="stat-value text-green">{{ stats['active_events'] }}</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🔴</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Inactive Events</span>
-                            <span class="stat-value text-red">{{ stats['inactive_events'] }}</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📤</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Images Uploaded</span>
-                            <span class="stat-value">{{ stats['total_images'] }}</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">💾</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Images Downloaded</span>
-                            <span class="stat-value text-blue">{{ stats['total_downloads'] }}</span>
+        <!-- Scrollable Main -->
+        <main class="ta-main">
+
+            <!-- ══ SECTION 1: Global Stats ══ -->
+            <div id="sec-system-overview" class="ta-section active">
+
+                <div>
+                    <div class="ta-section-header">
+                        <div>
+                            <div class="ta-section-title">Global Analytics</div>
+                            <div class="ta-section-sub">Platform-wide statistics across all photographers and events</div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Tab 2: Users List -->
-            <div id="sec-system-users" class="dashboard-section">
-                <div class="section-title-wrapper">
-                    <h2>User Accounts</h2>
+                <div class="ta-stats-grid">
+                    <div class="ta-stat-card">
+                        <div class="ta-stat-icon purple">👥</div>
+                        <div class="ta-stat-body">
+                            <div class="ta-stat-label">Total Users</div>
+                            <div class="ta-stat-value purple">{{ stats['total_users'] }}</div>
+                        </div>
+                    </div>
+                    <div class="ta-stat-card">
+                        <div class="ta-stat-icon blue">📅</div>
+                        <div class="ta-stat-body">
+                            <div class="ta-stat-label">Total Events</div>
+                            <div class="ta-stat-value">{{ stats['total_events'] }}</div>
+                        </div>
+                    </div>
+                    <div class="ta-stat-card">
+                        <div class="ta-stat-icon green">🟢</div>
+                        <div class="ta-stat-body">
+                            <div class="ta-stat-label">Active Events</div>
+                            <div class="ta-stat-value green">{{ stats['active_events'] }}</div>
+                        </div>
+                    </div>
+                    <div class="ta-stat-card">
+                        <div class="ta-stat-icon red">🔴</div>
+                        <div class="ta-stat-body">
+                            <div class="ta-stat-label">Inactive Events</div>
+                            <div class="ta-stat-value red">{{ stats['inactive_events'] }}</div>
+                        </div>
+                    </div>
+                    <div class="ta-stat-card">
+                        <div class="ta-stat-icon orange">📤</div>
+                        <div class="ta-stat-body">
+                            <div class="ta-stat-label">Images Uploaded</div>
+                            <div class="ta-stat-value">{{ stats['total_images'] }}</div>
+                        </div>
+                    </div>
+                    <div class="ta-stat-card">
+                        <div class="ta-stat-icon blue">💾</div>
+                        <div class="ta-stat-body">
+                            <div class="ta-stat-label">Images Downloaded</div>
+                            <div class="ta-stat-value blue">{{ stats['total_downloads'] }}</div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="table-container">
-                    <table class="dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Username</th>
-                                <th>Role</th>
-                                <th>Created By</th>
-                                <th>Created At</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for user in users %}
-                            <tr>
-                                <td><strong>{{ user.username }}</strong></td>
-                                <td>
-                                    {% if user.role == 'super_admin' %}
-                                        <span class="badge badge-admin">Super Admin</span>
-                                    {% elif user.role == 'photographer' %}
-                                        <span class="badge badge-photographer">Photographer</span>
-                                    {% else %}
-                                        <span class="badge badge-assistant">Assistant</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ user.creator_name or 'System / Self' }}</td>
-                                <td>{{ user.created_at }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="ta-info-card">
+                    <h4>🛡️ Super Admin Overview</h4>
+                    <p>You have full platform visibility. Switch to the sidebar tabs to manage User Accounts and inspect All Events across all photographers.</p>
                 </div>
             </div>
 
-            <!-- Tab 3: Events List -->
-            <div id="sec-system-events" class="dashboard-section">
-                <div class="section-title-wrapper">
-                    <h2>All Platform Events</h2>
+            <!-- ══ SECTION 2: User Accounts ══ -->
+            <div id="sec-system-users" class="ta-section">
+
+                <div>
+                    <div class="ta-section-header">
+                        <div>
+                            <div class="ta-section-title">User Accounts</div>
+                            <div class="ta-section-sub">All photographers, assistants and admins on the platform</div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="table-container">
-                    <table class="dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Event Name</th>
-                                <th>Creator (Photographer)</th>
-                                <th>Deactivation Date</th>
-                                <th>Publish Status</th>
-                                <th>Active Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for event in events %}
-                            <tr>
-                                <td><strong>{{ event.name }}</strong></td>
-                                <td>{{ event.creator_name }}</td>
-                                <td>{{ event.deactivation_date or 'No expiry' }}</td>
-                                <td><span class="badge badge-status">{{ event.status }}</span></td>
-                                <td>
-                                    {% if event.is_active %}
-                                        <span class="badge badge-active">Active</span>
-                                    {% else %}
-                                        <span class="badge badge-inactive">Inactive</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="ta-table-card">
+                    <div class="ta-table-card-header">
+                        <h3>All Users</h3>
+                        <span class="ta-badge purple">{{ users|length }} user(s)</span>
+                    </div>
+                    <div class="ta-table-scroll">
+                        <table class="ta-table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Role</th>
+                                    <th>Created By</th>
+                                    <th>Created At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:10px;">
+                                            <div style="width:30px;height:30px;border-radius:50%;background:#F4F3FF;color:#6941C6;font-size:0.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;">
+                                                {{ user.username[0]|upper }}
+                                            </div>
+                                            <span class="td-primary">{{ user.username }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if user.role == 'super_admin' %}
+                                            <span class="ta-badge purple">🛡️ Super Admin</span>
+                                        {% elif user.role == 'photographer' %}
+                                            <span class="ta-badge info">📷 Photographer</span>
+                                        {% else %}
+                                            <span class="ta-badge warning">🤝 Assistant</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="color:#667085;font-size:0.84rem;">{{ user.creator_name or 'System / Self' }}</td>
+                                    <td style="color:#667085;font-size:0.82rem;">{{ user.created_at }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-        </section>
-    </main>
+            <!-- ══ SECTION 3: All Events ══ -->
+            <div id="sec-system-events" class="ta-section">
 
-    <footer class="footer">
-        <p>© 2026 KIPA (किपा) · Super Admin Administration Control</p>
-    </footer>
+                <div>
+                    <div class="ta-section-header">
+                        <div>
+                            <div class="ta-section-title">All Platform Events</div>
+                            <div class="ta-section-sub">Every event across all photographer accounts</div>
+                        </div>
+                    </div>
+                </div>
 
-    <script>
-        function switchTab(section) {
-            document.querySelectorAll('.dashboard-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(`sec-${section}`).classList.add('active');
-            
-            // Highlight sidebar item
-            event.target.classList.add('active');
-        }
-    </script>
+                <div class="ta-table-card">
+                    <div class="ta-table-card-header">
+                        <h3>Events Directory</h3>
+                        <span class="ta-badge info">{{ events|length }} event(s)</span>
+                    </div>
+                    <div class="ta-table-scroll">
+                        <table class="ta-table">
+                            <thead>
+                                <tr>
+                                    <th>Event Name</th>
+                                    <th>Photographer</th>
+                                    <th>Expiry</th>
+                                    <th>Publish</th>
+                                    <th>Active</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in events %}
+                                <tr>
+                                    <td class="td-primary">{{ event.name }}</td>
+                                    <td style="color:#667085;">{{ event.creator_name }}</td>
+                                    <td style="color:#667085;font-size:0.82rem;">{{ event.deactivation_date or '—' }}</td>
+                                    <td>
+                                        {% if event.status == 'published' %}
+                                            <span class="ta-badge info">Published</span>
+                                        {% else %}
+                                            <span class="ta-badge gray">Unpublished</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if event.is_active %}
+                                            <span class="ta-badge success">● Active</span>
+                                        {% else %}
+                                            <span class="ta-badge danger">● Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script>
+    // ── Sidebar ─────────────────────────────────────────────────────
+    function toggleSidebar() {
+        const sb = document.getElementById('taSidebar');
+        const ov = document.getElementById('sidebarOverlay');
+        sb.classList.toggle('open');
+        ov.style.display = sb.classList.contains('open') ? 'block' : 'none';
+    }
+    function closeSidebar() {
+        document.getElementById('taSidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').style.display = 'none';
+    }
+
+    // ── Section Switching ───────────────────────────────────────────
+    const sectionLabels = {
+        'system-overview': 'Global Stats',
+        'system-users':    'User Accounts',
+        'system-events':   'All Events'
+    };
+
+    function switchSection(section, btn) {
+        document.querySelectorAll('.ta-section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.ta-menu-item').forEach(el => el.classList.remove('active'));
+        document.getElementById(`sec-${section}`).classList.add('active');
+        if (btn) btn.classList.add('active');
+        document.getElementById('breadcrumbLabel').textContent = sectionLabels[section] || section;
+        closeSidebar();
+    }
+</script>
 </body>
 </html>

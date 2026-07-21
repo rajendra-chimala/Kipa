@@ -5,352 +5,335 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Assistant portal to upload and manage assigned photographer events.">
     <title>Assistant Dashboard – KIPA</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="page-dashboard">
+<body style="margin:0;padding:0;background:#F9FAFB;">
 
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
-            <div class="brand-icon">📸</div>
-            <span class="brand-name">KIPA (किपा)</span>
-            <span class="badge badge-assistant">Assistant</span>
+<div class="ta-wrapper">
+
+    <!-- ═══ LEFT SIDEBAR ═══ -->
+    <aside class="ta-sidebar" id="taSidebar">
+
+        <a href="/" class="ta-sidebar-logo">
+            <div class="logo-mark">📸</div>
+            <div class="logo-text">
+                KIPA (किपा)
+                <small>Assistant Portal</small>
+            </div>
+        </a>
+
+        <nav class="ta-sidebar-nav">
+            <div class="ta-menu-group-label">MENU</div>
+            <button class="ta-menu-item active">
+                <span class="ta-mi-icon">📅</span>
+                Assigned Events
+            </button>
+            <div class="ta-menu-group-label">SITE</div>
+            <a class="ta-menu-item" href="/">
+                <span class="ta-mi-icon">🌐</span>
+                View Site
+            </a>
+        </nav>
+
+        <div class="ta-sidebar-footer">
+            <div class="ta-sidebar-user">
+                <div class="user-avatar">{{ session['user']['username'][0]|upper }}</div>
+                <div class="user-info">
+                    <div class="user-name">{{ session['user']['username'] }}</div>
+                    <div class="user-role">Assistant</div>
+                </div>
+            </div>
         </div>
-        <div class="nav-links">
-            <span class="user-greeting">Hello, <strong>{{ session['user']['username'] }}</strong></span>
-            <a href="/" class="nav-link">View Site</a>
-            <a href="/logout" class="nav-btn-logout">Logout</a>
-        </div>
-    </nav>
+    </aside>
 
-    <!-- Main Content -->
-    <main class="dashboard-grid container">
-        
-        <!-- Sidebar -->
-        <aside class="dashboard-sidebar">
-            <div class="sidebar-header">
-                <h3>Control Panel</h3>
-            </div>
-            <div class="sidebar-menu">
-                <button class="menu-item active" onclick="window.location.reload()">📅 Assigned Events</button>
-            </div>
-        </aside>
+    <!-- ═══ RIGHT COLUMN ═══ -->
+    <div class="ta-right-col">
 
-        <!-- Main Content Area -->
-        <section class="dashboard-content">
-            <div class="section-title-wrapper">
-                <h2>My Assigned Events</h2>
+        <div class="ta-sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <!-- Sticky Header -->
+        <header class="ta-header">
+            <div class="ta-header-left">
+                <button class="ta-hamburger" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
+                <div class="ta-page-breadcrumb">
+                    KIPA &rsaquo; <span>Assigned Events</span>
+                </div>
+            </div>
+            <div class="ta-header-right">
+                <span class="ta-header-badge assistant">🤝 Assistant</span>
+                <a href="/logout" class="ta-logout-btn">↩ Logout</a>
+            </div>
+        </header>
+
+        <!-- Scrollable Main -->
+        <main class="ta-main">
+
+            <!-- Events Table Card -->
+            <div>
+                <div class="ta-section-header">
+                    <div>
+                        <div class="ta-section-title">My Assigned Events</div>
+                        <div class="ta-section-sub">Events your photographer has granted you access to</div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Events Table -->
-            <div class="table-container">
-                <table class="dashboard-table">
-                    <thead>
-                        <tr>
-                            <th>Event Name</th>
-                            <th>Status</th>
-                            <th>Your Permissions</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if not events %}
-                        <tr>
-                            <td colspan="4" class="text-center text-muted">You are not assigned to any events yet.</td>
-                        </tr>
-                        {% endif %}
-                        {% for event in events %}
-                        <tr id="event-row-{{ event.id }}">
-                            <td>
-                                <strong>{{ event.name }}</strong>
-                                <div class="text-muted small">Creator: {{ event.creator_name }}</div>
-                            </td>
-                            <td>
-                                {% if event.is_active %}
-                                    <span class="badge badge-active">Active</span>
-                                {% else %}
-                                    <span class="badge badge-inactive">Inactive</span>
-                                {% endif %}
-                                <span class="badge badge-status">{{ event.status }}</span>
-                            </td>
-                            <td>
-                                <div class="perm-badges">
-                                    <span class="badge badge-perm {{ 'granted' if event.can_upload else 'denied' }}">Upload</span>
-                                    <span class="badge badge-perm {{ 'granted' if event.can_delete else 'denied' }}">Delete</span>
-                                    <span class="badge badge-perm {{ 'granted' if event.can_deactivate else 'denied' }}">Deactivate</span>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-secondary" onclick="viewEventDetails({{ event.id }}, '{{ event.name|escape }}', {{ event.can_upload }}, {{ event.can_delete }})">🖼️ Photos</button>
-                                    
-                                    {% if event.can_deactivate %}
-                                        {% if event.status == 'published' %}
-                                            <button class="btn btn-sm btn-danger" onclick="toggleEventStatus({{ event.id }}, 'unpublished')">Deactivate</button>
-                                        {% else %}
-                                            <button class="btn btn-sm btn-success" onclick="toggleEventStatus({{ event.id }}, 'published')">Activate</button>
-                                        {% endif %}
+            <div class="ta-table-card">
+                <div class="ta-table-card-header">
+                    <h3>Assigned Events</h3>
+                    <span class="ta-badge info">{{ events|length }} event(s)</span>
+                </div>
+                <div class="ta-table-scroll">
+                    <table class="ta-table">
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Status</th>
+                                <th>Your Permissions</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if not events %}
+                            <tr>
+                                <td colspan="4" style="text-align:center;padding:28px;color:#98A2B3;">
+                                    You have not been assigned to any events yet.
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% for event in events %}
+                            <tr id="event-row-{{ event.id }}">
+                                <td>
+                                    <div class="td-primary">{{ event.name }}</div>
+                                    <div class="td-muted">Creator: {{ event.creator_name }}</div>
+                                </td>
+                                <td>
+                                    {% if event.is_active %}
+                                        <span class="ta-badge success">● Active</span>
+                                    {% else %}
+                                        <span class="ta-badge danger">● Inactive</span>
                                     {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                    &nbsp;
+                                    {% if event.status == 'published' %}
+                                        <span class="ta-badge info">Published</span>
+                                    {% else %}
+                                        <span class="ta-badge gray">Unpublished</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                                        <span class="ta-badge {{ 'success' if event.can_upload else 'danger' }}">{{ '✅' if event.can_upload else '—' }} Upload</span>
+                                        <span class="ta-badge {{ 'success' if event.can_delete else 'danger' }}">{{ '✅' if event.can_delete else '—' }} Delete</span>
+                                        <span class="ta-badge {{ 'success' if event.can_deactivate else 'danger' }}">{{ '✅' if event.can_deactivate else '—' }} Deactivate</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="td-actions">
+                                        <button class="ta-btn ta-btn-secondary ta-btn-sm" onclick="viewEventDetails({{ event.id }}, '{{ event.name|escape }}', {{ event.can_upload }}, {{ event.can_delete }})">
+                                            🖼️ Photos
+                                        </button>
+                                        {% if event.can_deactivate %}
+                                            {% if event.status == 'published' %}
+                                                <button class="ta-btn ta-btn-danger ta-btn-sm" onclick="toggleEventStatus({{ event.id }}, 'unpublished')">Deactivate</button>
+                                            {% else %}
+                                                <button class="ta-btn ta-btn-primary ta-btn-sm" onclick="toggleEventStatus({{ event.id }}, 'published')">Activate</button>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            <!-- Event Details Area (Dynamic) -->
-            <div id="event-details-panel" class="dashboard-card mt-4 hidden">
-                <div class="panel-header">
+            <!-- Event Photo Panel (dynamic) -->
+            <div id="event-details-panel" class="ta-table-card" style="display:none;">
+                <div class="ta-table-card-header">
                     <h3 id="details-event-name">Event Photos</h3>
-                    <button class="btn-close" onclick="closeDetailsPanel()">✕</button>
+                    <button class="ta-btn ta-btn-ghost ta-btn-sm" onclick="closeDetailsPanel()">✕ Close</button>
                 </div>
+                <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
 
-                <!-- Upload Form (Gated by Permission) -->
-                <div class="upload-zone mt-3 hidden" id="drop-zone">
-                    <div class="upload-zone-content">
-                        <span class="upload-icon">📤</span>
-                        <p>Drag &amp; drop photos here or <strong>browse files</strong></p>
-                        <span class="upload-hint">Supports JPG, PNG, WEBP (Max 50MB per upload)</span>
+                    <!-- Upload Zone (permission gated) -->
+                    <div class="ta-upload-zone" id="drop-zone" style="display:none;">
+                        <div class="ta-upload-icon">📤</div>
+                        <div class="ta-upload-title">Drag &amp; drop photos here</div>
+                        <div class="ta-upload-hint">or click to browse — JPG, PNG, WEBP (Max 50 MB per upload)</div>
+                        <input type="file" id="file-input" multiple accept="image/*" style="display:none;">
                     </div>
-                    <input type="file" id="file-input" multiple accept="image/*" class="hidden">
-                </div>
 
-                <div id="upload-progress-container" class="mt-3 hidden">
-                    <div class="progress-bar-wrapper">
-                        <div id="upload-progress-bar" class="progress-bar" style="width: 0%"></div>
+                    <!-- Progress -->
+                    <div id="upload-progress-container" style="display:none;">
+                        <div class="ta-progress-wrap">
+                            <div id="upload-progress-bar" class="ta-progress-bar" style="width:0%"></div>
+                        </div>
+                        <div id="upload-status-text" class="ta-progress-label">Uploading…</div>
                     </div>
-                    <div id="upload-status-text" class="text-sm mt-1" style="font-weight: 700; color: var(--primary);">Uploading...</div>
-                </div>
 
-                <div id="upload-results" class="mt-3"></div>
+                    <div id="upload-results"></div>
 
-                <!-- Images Grid -->
-                <div class="event-photos-grid mt-4" id="photos-grid">
-                    <!-- Loaded dynamically via JS -->
+                    <!-- Photos Grid -->
+                    <div class="ta-photo-grid" id="photos-grid"></div>
                 </div>
             </div>
 
-        </section>
-    </main>
+        </main>
+    </div>
+</div>
 
-    <footer class="footer">
-        <p>© 2026 KIPA (किपा) · Assistant Management Portal</p>
-    </footer>
 
-    <!-- Scripts -->
-    <script>
-        let activeEventId = null;
-        let userCanUpload = false;
-        let userCanDelete = false;
+<!-- ═══ SCRIPTS (100% preserved from original) ═══ -->
+<script>
+    // ── Sidebar ─────────────────────────────────────────────────────
+    function toggleSidebar() {
+        const sb = document.getElementById('taSidebar');
+        const ov = document.getElementById('sidebarOverlay');
+        sb.classList.toggle('open');
+        ov.style.display = sb.classList.contains('open') ? 'block' : 'none';
+    }
+    function closeSidebar() {
+        document.getElementById('taSidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').style.display = 'none';
+    }
 
-        async function toggleEventStatus(eventId, newStatus) {
-            if (!confirm(`Are you sure you want to change this event status to ${newStatus}?`)) return;
-            
+    // ── State ────────────────────────────────────────────────────────
+    let activeEventId = null;
+    let userCanUpload = false;
+    let userCanDelete = false;
+
+    // ── Toggle Event Status ──────────────────────────────────────────
+    async function toggleEventStatus(eventId, newStatus) {
+        if (!confirm(`Change this event status to ${newStatus}?`)) return;
+        const formData = new FormData();
+        formData.append('status', newStatus);
+        try {
+            const response = await fetch(`/api/event/${eventId}/update`, { method: 'POST', body: formData });
+            const res = await response.json();
+            if (res.success) { window.location.reload(); } else { alert(res.message); }
+        } catch (err) { alert("Server connection failed."); }
+    }
+
+    // ── View Event Photos ────────────────────────────────────────────
+    async function viewEventDetails(eventId, name, canUpload, canDelete) {
+        activeEventId = eventId;
+        userCanUpload = !!canUpload;
+        userCanDelete = !!canDelete;
+
+        document.getElementById('details-event-name').textContent = `Photos: ${name}`;
+        document.getElementById('event-details-panel').style.display = 'block';
+
+        const dropZone = document.getElementById('drop-zone');
+        dropZone.style.display = userCanUpload ? 'flex' : 'none';
+
+        document.getElementById('event-details-panel').scrollIntoView({ behavior: 'smooth' });
+        await loadEventPhotos();
+    }
+
+    function closeDetailsPanel() {
+        document.getElementById('event-details-panel').style.display = 'none';
+        activeEventId = null;
+    }
+
+    async function loadEventPhotos() {
+        const grid = document.getElementById('photos-grid');
+        grid.innerHTML = '<div style="color:#98A2B3;font-size:0.875rem;">Loading photos…</div>';
+        try {
+            const response = await fetch(`/api/event/${activeEventId}/photos`);
+            const res = await response.json();
+            grid.innerHTML = '';
+            if (!res.images || res.images.length === 0) {
+                grid.innerHTML = '<div style="color:#98A2B3;font-size:0.875rem;">No photos in this event yet.</div>';
+                return;
+            }
+            res.images.forEach(img => {
+                const wrap = document.createElement('div');
+                wrap.className = 'ta-photo-item';
+                let inner = `<img src="/${img.image_path}" loading="lazy" alt="Event photo">`;
+                if (userCanDelete) {
+                    inner += `<button class="ta-photo-del" onclick="deletePhoto(${img.id})" title="Delete">🗑️</button>`;
+                }
+                wrap.innerHTML = inner;
+                grid.appendChild(wrap);
+            });
+        } catch (err) {
+            grid.innerHTML = '<div style="color:#B42318;font-size:0.875rem;">Failed to load photos.</div>';
+        }
+    }
+
+    async function deletePhoto(imageId) {
+        if (!confirm("Delete this photo?")) return;
+        try {
+            const response = await fetch(`/api/event/${activeEventId}/image/${imageId}`, { method: 'DELETE' });
+            const res = await response.json();
+            if (res.success) { await loadEventPhotos(); } else { alert(res.message); }
+        } catch (err) { alert("Server connection failed."); }
+    }
+
+    // ── Drag & Drop ──────────────────────────────────────────────────
+    const dropZone  = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+
+    dropZone.addEventListener('click',     () => { if (userCanUpload) fileInput.click(); });
+    dropZone.addEventListener('dragover',  e  => { e.preventDefault(); if (userCanUpload) dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', ()  => { dropZone.classList.remove('dragover'); });
+    dropZone.addEventListener('drop',      e  => {
+        e.preventDefault();
+        if (userCanUpload) { dropZone.classList.remove('dragover'); if (e.dataTransfer.files.length > 0) uploadFiles(e.dataTransfer.files); }
+    });
+    fileInput.addEventListener('change', () => { if (userCanUpload && fileInput.files.length > 0) uploadFiles(fileInput.files); });
+
+    async function uploadFiles(files) {
+        if (!activeEventId || !userCanUpload) return;
+        const progressContainer = document.getElementById('upload-progress-container');
+        const progressBar       = document.getElementById('upload-progress-bar');
+        const statusText        = document.getElementById('upload-status-text');
+        const resultsDiv        = document.getElementById('upload-results');
+
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        statusText.textContent = `Preparing ${files.length} image(s)…`;
+        resultsDiv.innerHTML = '';
+
+        const total = files.length;
+        let successCount = 0;
+        let summaryHTML = '<ul class="ta-upload-summary">';
+
+        for (let i = 0; i < total; i++) {
+            const file = files[i];
+            progressBar.style.width = `${Math.round((i / total) * 100)}%`;
+            statusText.textContent = `Processing ${i + 1} / ${total}: ${file.name}…`;
+
             const formData = new FormData();
-            formData.append('status', newStatus);
-
+            formData.append('images', file);
             try {
-                const response = await fetch(`/api/event/${eventId}/update`, {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await fetch(`/api/event/${activeEventId}/upload`, { method: 'POST', body: formData });
                 const res = await response.json();
-                if (res.success) {
-                    window.location.reload();
+                if (response.ok && res.success && res.results && res.results.length > 0) {
+                    const fileRes = res.results[0];
+                    if (fileRes.status === 'success') {
+                        summaryHTML += `<li>✅ <strong>${file.name}</strong> — ${fileRes.faces} face(s) detected</li>`;
+                        successCount++;
+                    } else {
+                        summaryHTML += `<li>⚠️ <strong>${file.name}</strong> — Skipped (${fileRes.status})</li>`;
+                    }
                 } else {
-                    alert(res.message);
+                    summaryHTML += `<li>❌ <strong>${file.name}</strong> — Failed (${res.message || 'Unknown error'})</li>`;
                 }
             } catch (err) {
-                alert("Server connection failed.");
+                summaryHTML += `<li>❌ <strong>${file.name}</strong> — Connection error</li>`;
             }
-        }
-
-        async function viewEventDetails(eventId, name, canUpload, canDelete) {
-            activeEventId = eventId;
-            userCanUpload = !!canUpload;
-            userCanDelete = !!canDelete;
-
-            document.getElementById('details-event-name').textContent = `Photos for: ${name}`;
-            document.getElementById('event-details-panel').classList.remove('hidden');
-
-            const dropZone = document.getElementById('drop-zone');
-            if (userCanUpload) {
-                dropZone.classList.remove('hidden');
-            } else {
-                dropZone.classList.add('hidden');
-            }
-
-            // Scroll to details panel
-            document.getElementById('event-details-panel').scrollIntoView({ behavior: 'smooth' });
-
+            resultsDiv.innerHTML = summaryHTML + '</ul>';
             await loadEventPhotos();
         }
 
-        function closeDetailsPanel() {
-            document.getElementById('event-details-panel').classList.add('hidden');
-            activeEventId = null;
-        }
-
-        async function loadEventPhotos() {
-            const grid = document.getElementById('photos-grid');
-            grid.innerHTML = '<div class="text-center text-muted col-span-full">Loading photos...</div>';
-
-            try {
-                const response = await fetch(`/api/event/${activeEventId}/photos`);
-                const res = await response.json();
-                
-                grid.innerHTML = '';
-                if (!res.images || res.images.length === 0) {
-                    grid.innerHTML = '<div class="text-center text-muted col-span-full mt-4">No photos in this event yet.</div>';
-                    return;
-                }
-
-                res.images.forEach(img => {
-                    const container = document.createElement('div');
-                    container.className = 'photo-container-dashboard';
-                    
-                    const imageEl = document.createElement('img');
-                    imageEl.src = '/' + img.image_path;
-                    imageEl.className = 'photo-dashboard-img';
-                    imageEl.loading = 'lazy';
-                    
-                    container.appendChild(imageEl);
-
-                    if (userCanDelete) {
-                        const deleteBtn = document.createElement('button');
-                        deleteBtn.className = 'photo-delete-btn';
-                        deleteBtn.innerHTML = '🗑️';
-                        deleteBtn.title = 'Delete Photo';
-                        deleteBtn.onclick = () => deletePhoto(img.id);
-                        container.appendChild(deleteBtn);
-                    }
-
-                    grid.appendChild(container);
-                });
-            } catch (err) {
-                grid.innerHTML = '<div class="text-center text-danger col-span-full">Failed to load photos.</div>';
-            }
-        }
-
-        async function deletePhoto(imageId) {
-            if (!confirm("Are you sure you want to delete this photo?")) return;
-
-            try {
-                const response = await fetch(`/api/event/${activeEventId}/image/${imageId}`, {
-                    method: 'DELETE'
-                });
-                const res = await response.json();
-                if (res.success) {
-                    await loadEventPhotos();
-                } else {
-                    alert(res.message);
-                }
-            } catch (err) {
-                alert("Server connection failed.");
-            }
-        }
-
-        // Drag & Drop / Upload Setup
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-input');
-
-        dropZone.addEventListener('click', () => {
-            if (userCanUpload) fileInput.click();
-        });
-
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            if (userCanUpload) dropZone.classList.add('dragover');
-        });
-
-        dropZone.addEventListener('dragleave', () => {
-            if (userCanUpload) dropZone.classList.remove('dragover');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            if (userCanUpload) {
-                dropZone.classList.remove('dragover');
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    uploadFiles(files);
-                }
-            }
-        });
-
-        fileInput.addEventListener('change', () => {
-            if (userCanUpload) {
-                const files = fileInput.files;
-                if (files.length > 0) {
-                    uploadFiles(files);
-                }
-            }
-        });
-
-        async function uploadFiles(files) {
-            if (!activeEventId || !userCanUpload) return;
-
-            const progressContainer = document.getElementById('upload-progress-container');
-            const progressBar = document.getElementById('upload-progress-bar');
-            const statusText = document.getElementById('upload-status-text');
-            const resultsDiv = document.getElementById('upload-results');
-
-            progressContainer.classList.remove('hidden');
-            progressBar.style.width = '0%';
-            statusText.textContent = `Preparing upload for ${files.length} images...`;
-            resultsDiv.innerHTML = '';
-
-            const total = files.length;
-            let successCount = 0;
-            let summaryHTML = '<ul class="upload-summary-ul">';
-
-            for (let i = 0; i < total; i++) {
-                const file = files[i];
-                const progressPct = Math.round((i / total) * 100);
-                progressBar.style.width = `${progressPct}%`;
-                statusText.textContent = `Processing image ${i + 1} of ${total}: ${file.name}...`;
-
-                const formData = new FormData();
-                formData.append('images', file);
-
-                try {
-                    const response = await fetch(`/api/event/${activeEventId}/upload`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const res = await response.json();
-
-                    if (response.ok && res.success && res.results && res.results.length > 0) {
-                        const fileRes = res.results[0];
-                        if (fileRes.status === 'success') {
-                            summaryHTML += `<li>🟢 <strong>${file.name}</strong>: Detected ${fileRes.faces} face(s)</li>`;
-                            successCount++;
-                        } else {
-                            summaryHTML += `<li>🔴 <strong>${file.name}</strong>: Skipped (${fileRes.status})</li>`;
-                        }
-                    } else {
-                        summaryHTML += `<li>🔴 <strong>${file.name}</strong>: Failed (${res.message || 'Unknown error'})</li>`;
-                    }
-                } catch (err) {
-                    summaryHTML += `<li>🔴 <strong>${file.name}</strong>: Connection or server error</li>`;
-                }
-
-                // Update results text in real-time
-                resultsDiv.innerHTML = summaryHTML + '</ul>';
-
-                // Load photos in real time
-                await loadEventPhotos();
-            }
-
-            progressBar.style.width = '100%';
-            statusText.textContent = `Upload finished. Successfully processed ${successCount} of ${total} images.`;
-
-            setTimeout(() => {
-                progressContainer.classList.add('hidden');
-            }, 6000);
-        }
-    </script>
+        progressBar.style.width = '100%';
+        statusText.textContent = `Done! ${successCount} of ${total} images uploaded.`;
+        setTimeout(() => { progressContainer.style.display = 'none'; }, 6000);
+    }
+</script>
 </body>
 </html>

@@ -1,421 +1,590 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Photographer control center to configure events, upload galleries, and manage sub-user access.">
+    <meta name="description"
+        content="Photographer control center to configure events, upload galleries, and manage sub-user access.">
     <title>Photographer Dashboard – KIPA</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
-<body class="page-dashboard">
 
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
-            <div class="brand-icon">📸</div>
-            <span class="brand-name">KIPA (किपा)</span>
-            <span class="badge badge-photographer">Photographer</span>
-        </div>
-        <div class="nav-links">
-            <span class="user-greeting">Hello, <strong>{{ session['user']['username'] }}</strong></span>
-            <a href="/" class="nav-link">View Site</a>
-            <a href="/logout" class="nav-btn-logout">Logout</a>
-        </div>
-    </nav>
+<body style="margin:0;padding:0;background:#F9FAFB;">
 
-    <!-- Main Grid -->
-    <main class="dashboard-grid container">
-        
-        <!-- Sidebar / Navigation -->
-        <aside class="dashboard-sidebar">
-            <div class="sidebar-header">
-                <h3>Control Panel</h3>
-            </div>
-            <div class="sidebar-menu">
-                <button class="menu-item active" onclick="switchSection('overview')">📊 Overview</button>
-                <button class="menu-item" onclick="switchSection('events')">📅 My Events</button>
-                <button class="menu-item" onclick="switchSection('assistants')">👥 Assistants</button>
+    <div class="ta-wrapper">
+
+        <!-- ═══ LEFT SIDEBAR ═══ -->
+        <aside class="ta-sidebar" id="taSidebar">
+
+            <!-- Logo -->
+            <a href="/" class="ta-sidebar-logo" style="display:flex;align-items:center;gap:8px;">
+               <img src="{{ url_for('static', filename='images/logo.png') }}" alt="KIPA Logo" style="height:42px;">
+            </a>
+
+            <!-- Nav -->
+            <nav class="ta-sidebar-nav">
+                <div class="ta-menu-group-label">MENU</div>
+
+                <button class="ta-menu-item active" id="mi-overview" onclick="switchSection('overview', this)">
+                    <span class="ta-mi-icon"><i class="fa-solid fa-chart-column"></i></span>
+                    Overview
+                </button>
+
+                <button class="ta-menu-item " id="mi-events" onclick="switchSection('events', this) ">
+                    <span class="ta-mi-icon"><i class="fa-solid fa-ticket"></i></span>
+                    Events
+                </button>
+
+                <button class="ta-menu-item" id="mi-assistants" onclick="switchSection('assistants', this)">
+                    <span class="ta-mi-icon"><i class="fa-solid fa-users"></i></span>
+                    Assistants
+                </button>
+
+                <div class="ta-menu-group-label">SITE</div>
+
+                <a class="ta-menu-item" href="/">
+                    <span class="ta-mi-icon"><i class="fa-solid fa-globe"></i></span>
+                    View Site
+                </a>
+            </nav>
+
+            <!-- User footer -->
+            <div class="ta-sidebar-footer">
+                <div class="ta-sidebar-user">
+                    <div class="user-avatar">{{ session['user']['username'][0]|upper }}</div>
+                    <div class="user-info">
+                        <div class="user-name">{{ session['user']['username'] }}</div>
+                        <div class="user-role">Photographer</div>
+                    </div>
+                </div>
             </div>
         </aside>
 
-        <!-- Main Content Area -->
-        <section class="dashboard-content">
+        <!-- ═══ RIGHT COLUMN ═══ -->
+        <div class="ta-right-col">
 
-            <!-- 1. Overview Section -->
-            <div id="sec-overview" class="dashboard-section active">
-                <div class="section-title-wrapper">
-                    <h2>Overview &amp; Statistics</h2>
-                </div>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">📅</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Total Events</span>
-                            <span class="stat-value">{{ stats['total_events'] }}</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🟢</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Active Events</span>
-                            <span class="stat-value text-green">{{ stats['active_events'] }}</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📤</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Uploaded Photos</span>
-                            <span class="stat-value">{{ stats['total_images'] }}</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">💾</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Downloads</span>
-                            <span class="stat-value text-blue">{{ stats['total_downloads'] }}</span>
-                        </div>
+            <!-- Mobile overlay -->
+            <div class="ta-sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+            <!-- Sticky Header -->
+            <header class="ta-header">
+                <div class="ta-header-left">
+                   
+                    <div class="ta-page-breadcrumb" style="display:flex;align-items:center;gap:6px; font-weight: bold   ;">
+                        <span>Kipa</span> <span><i class="fa-solid fa-angle-right"></i></span> <span id="breadcrumbLabel">Overview</span>
                     </div>
                 </div>
+                <div class="ta-header-right">
 
-                <div class="dashboard-card mt-4">
-                    <h3>Quick Guide</h3>
-                    <p>Welcome to your KIPA Photographer Dashboard. From here you can:</p>
-                    <ul>
-                        <li>Create photography events and set their status to published or unpublished.</li>
-                        <li>Add deactivation dates so events automatically expire and deactivate.</li>
-                        <li>Configure a **Download Limit** per photo. Photos are tracked by visitor sessions, and will hide automatically once downloaded.</li>
-                        <li>Add Assistant sub-users to assist with uploads, deletions, and event deactivation.</li>
-                    </ul>
+                    <span class="ta-header-badge photographer" style="height:40px; border-radius: 5px;"><i class="fa-solid fa-user"></i> Photographer</span>
+                    <a href="/logout" class="ta-logout-btn" style="height:40px; border-radius: 5px;">↩ Logout</a>
                 </div>
-            </div>
+            </header>
 
-            <!-- 2. Events Section -->
-            <div id="sec-events" class="dashboard-section">
-                <div class="section-title-wrapper">
-                    <h2>Manage Events</h2>
-                    <button class="btn btn-primary" onclick="openModal('modal-create-event')">＋ New Event</button>
+            <!-- Scrollable Main -->
+            <main class="ta-main">
+
+                <!-- ══ SECTION 1: Overview ══ -->
+                <div id="sec-overview" class="ta-section active">
+
+                    <div>
+                        <div class="ta-section-header">
+                            <div>
+                                <div class="ta-section-title">Overview &amp; Statistics</div>
+                                <div class="ta-section-sub">Your event performance at a glance</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stat Cards -->
+                    <div class="ta-stats-grid">
+                        <!-- <div class="ta-stat-card">
+                            <div class="ta-stat-icon blue">📅</div>
+                            <div class="ta-stat-body">
+                                <div class="ta-stat-label">Total Events</div>
+                                <div class="ta-stat-value">{{ stats['total_events'] }}</div>
+                            </div>
+                        </div> -->
+                        
+                       
+                      
+                        
+                        <div class="ta-stat-card">
+                            <div class="ta-stat-icon" style="background-color: #f3f4f8;"><i class="fa-regular fa-calendar" style="color: #252a30;"></i></div>
+                            <div class="ta-stat-body" style="margin-top: 20px;">
+                                <div class="ta-stat-label" style="font-size: 15px; font-weight: 700;">Total Events</div>
+                                <div class="ta-stat-value" style="font-size: 30px; font-weight: 900;">{{ stats['total_events'] }} +</div>
+                            </div>
+                        </div>
+                        <div class="ta-stat-card">
+                            <div class="ta-stat-icon" style="background-color: #f3f4f8;"><i class="fa-solid fa-toggle-on" style="color: #252a30;"></i>
+                           </div>
+                            <div class="ta-stat-body" style="margin-top: 20px;">
+                                <div class="ta-stat-label" style="font-size: 15px; font-weight: 700;">Active Events</div>
+                                <div class="ta-stat-value" style="font-size: 30px; font-weight: 900;">{{ stats['active_events'] }} +</div>
+                            </div>
+                        </div>
+                      
+                        <div class="ta-stat-card">
+                            <div class="ta-stat-icon" style="background-color: #f3f4f8;"><i class="fa-solid fa-images" style="color: #252a30;"></i></div>
+                            <div class="ta-stat-body" style="margin-top: 20px;">
+                                <div class="ta-stat-label" style="font-size: 15px; font-weight: 700;">Uploaded Photos</div>
+                                <div class="ta-stat-value" style="font-size: 30px; font-weight: 900;">{{ stats['total_images'] }} +</div>
+                            </div>
+                        </div>
+                        <div class="ta-stat-card">
+                            <div class="ta-stat-icon" style="background-color: #f3f4f8;"><i class="fa-solid fa-download" style="color: #252a30;"></i></div>
+                            <div class="ta-stat-body" style="margin-top: 20px;">
+                                <div class="ta-stat-label" style="font-size: 15px; font-weight: 700;">Downloads</div>
+                                <div class="ta-stat-value" style="font-size: 30px; font-weight: 900;">{{ stats['total_downloads'] }} +</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Guide -->
+                    <div class="ta-info-card">
+                        <h4>🚀 Quick Guide</h4>
+                        <p>Welcome to your KIPA Photographer Dashboard. Here's what you can do:</p>
+                        <ul>
+                            <li>Create photography events and set them to published or unpublished.</li>
+                            <li>Add deactivation dates so events automatically expire.</li>
+                            <li>Configure a Download Limit per photo — tracked per visitor session.</li>
+                            <li>Register Assistant sub-users to help with uploads and deletions.</li>
+                        </ul>
+                    </div>
                 </div>
 
-                <!-- Events Table -->
-                <div class="table-container">
-                    <table class="dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Event Name</th>
-                                <th>Status</th>
-                                <th>Deactivation Date</th>
-                                <th>Download Limit</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% if not events %}
-                            <tr>
-                                <td colspan="5" class="text-center text-muted">No events created yet. Click "New Event" to get started.</td>
-                            </tr>
-                            {% endif %}
-                            {% for event in events %}
-                            <tr id="event-row-{{ event.id }}">
-                                <td>
-                                    <strong>{{ event.name }}</strong>
-                                    <div class="text-muted small text-ellipsis" style="max-width: 250px;">{{ event.description }}</div>
-                                </td>
-                                <td>
-                                    {% if event.is_active %}
-                                        <span class="badge badge-active">Active</span>
-                                    {% else %}
-                                        <span class="badge badge-inactive">Inactive</span>
+                <!-- ══ SECTION 2: Events ══ -->
+                <div id="sec-events" class="ta-section">
+
+                    <div>
+                        <div class="ta-section-header">
+                            <div>
+                                <div class="ta-section-title">Manage Events</div>
+                                <div class="ta-section-sub">Create, configure and upload photos to your events</div>
+                            </div>
+                            <button class="ta-btn ta-btn-primary" onclick="openModal('modal-create-event')">
+                                ＋ New Event
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Events Table Card -->
+                    <div class="ta-table-card">
+                        <div class="ta-table-card-header">
+                            <h3>All Events</h3>
+                            <span class="ta-badge info">{{ events|length }} event(s)</span>
+                        </div>
+                        <div class="ta-table-scroll">
+                            <table class="ta-table">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Status</th>
+                                        <th>Expiry</th>
+                                        <th>DL Limit</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if not events %}
+                                    <tr>
+                                        <td colspan="5" style="text-align:center;padding:28px;color:#98A2B3;">
+                                            No events yet. Click <strong>＋ New Event</strong> to get started.
+                                        </td>
+                                    </tr>
                                     {% endif %}
-                                    <span class="badge badge-status">{{ event.status }}</span>
-                                </td>
-                                <td>{{ event.deactivation_date or 'No automatic expiry' }}</td>
-                                <td>{{ event.download_limit }} download(s)</td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn btn-sm btn-secondary" onclick="viewEventDetails({{ event.id }}, '{{ event.name|escape }}')">🖼️ Photos</button>
-                                        <button class="btn btn-sm btn-secondary" onclick="openEditEventModal({{ event.id }}, '{{ event.name|escape }}', '{{ event.description|escape }}', '{{ event.deactivation_date or '' }}', {{ event.download_limit }}, '{{ event.status }}')">⚙️ Settings</button>
-                                        <button class="btn btn-sm btn-secondary" onclick="openAssignAssistantModal({{ event.id }}, '{{ event.name|escape }}')">👥 Permissions</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Event Details Area (Dynamic) -->
-                <div id="event-details-panel" class="dashboard-card mt-4 hidden">
-                    <div class="panel-header">
-                        <h3 id="details-event-name">Event Photos</h3>
-                        <button class="btn-close" onclick="closeDetailsPanel()">✕</button>
-                    </div>
-
-                    <!-- Upload Form -->
-                    <div class="upload-zone mt-3" id="drop-zone">
-                        <div class="upload-zone-content">
-                            <span class="upload-icon">📤</span>
-                            <p>Drag &amp; drop photos here or <strong>browse files</strong></p>
-                            <span class="upload-hint">Supports JPG, PNG, WEBP (Max 50MB per upload)</span>
+                                    {% for event in events %}
+                                    <tr id="event-row-{{ event.id }}">
+                                        <td>
+                                            <div class="td-primary">{{ event.name }}</div>
+                                            <div class="td-muted"
+                                                style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                                {{ event.description }}</div>
+                                        </td>
+                                        <td>
+                                            {% if event.is_active %}
+                                            <span class="ta-badge success">● Active</span>
+                                            {% else %}
+                                            <span class="ta-badge danger">● Inactive</span>
+                                            {% endif %}
+                                            &nbsp;
+                                            {% if event.status == 'published' %}
+                                            <span class="ta-badge info">Published</span>
+                                            {% else %}
+                                            <span class="ta-badge gray">Unpublished</span>
+                                            {% endif %}
+                                        </td>
+                                        <td style="color:#475467;font-size:0.82rem;">
+                                            {{ event.deactivation_date or '—' }}
+                                        </td>
+                                        <td style="font-weight:600;color:#101828;">
+                                            {{ event.download_limit }}×
+                                        </td>
+                                        <td>
+                                            <div class="td-actions">
+                                                <button class="ta-btn ta-btn-secondary ta-btn-sm"
+                                                    onclick="viewEventDetails({{ event.id }}, '{{ event.name|escape }}')">
+                                                    🖼️ Photos
+                                                </button>
+                                                <button class="ta-btn ta-btn-secondary ta-btn-sm"
+                                                    onclick="openEditEventModal({{ event.id }}, '{{ event.name|escape }}', '{{ event.description|escape }}', '{{ event.deactivation_date or '' }}', {{ event.download_limit }}, '{{ event.status }}')">
+                                                    ⚙️ Settings
+                                                </button>
+                                                <button class="ta-btn ta-btn-secondary ta-btn-sm"
+                                                    onclick="openAssignAssistantModal({{ event.id }}, '{{ event.name|escape }}')">
+                                                    👥 Perms
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
-                        <input type="file" id="file-input" multiple accept="image/*" class="hidden">
                     </div>
 
-                    <div id="upload-progress-container" class="mt-3 hidden">
-                        <div class="progress-bar-wrapper">
-                            <div id="upload-progress-bar" class="progress-bar" style="width: 0%"></div>
+                    <!-- Event Photo Panel (dynamic) -->
+                    <div id="event-details-panel" class="ta-table-card" style="display:none;">
+                        <div class="ta-table-card-header">
+                            <h3 id="details-event-name">Event Photos</h3>
+                            <button class="ta-btn ta-btn-ghost ta-btn-sm" onclick="closeDetailsPanel()">✕ Close</button>
                         </div>
-                        <div id="upload-status-text" class="text-sm mt-1" style="font-weight: 700; color: var(--primary);">Uploading...</div>
+                        <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+
+                            <!-- Upload Zone -->
+                            <div class="ta-upload-zone" id="drop-zone">
+                                <div class="ta-upload-icon">📤</div>
+                                <div class="ta-upload-title">Drag &amp; drop photos here</div>
+                                <div class="ta-upload-hint">or click to browse — JPG, PNG, WEBP (Max 50 MB per upload)
+                                </div>
+                                <input type="file" id="file-input" multiple accept="image/*" style="display:none;">
+                            </div>
+
+                            <!-- Progress -->
+                            <div id="upload-progress-container" style="display:none;">
+                                <div class="ta-progress-wrap">
+                                    <div id="upload-progress-bar" class="ta-progress-bar" style="width:0%"></div>
+                                </div>
+                                <div id="upload-status-text" class="ta-progress-label">Uploading…</div>
+                            </div>
+
+                            <!-- Upload results -->
+                            <div id="upload-results"></div>
+
+                            <!-- Photos grid -->
+                            <div class="ta-photo-grid" id="photos-grid"></div>
+                        </div>
                     </div>
 
-                    <div id="upload-results" class="mt-3"></div>
+                </div>
 
-                    <!-- Images Grid -->
-                    <div class="event-photos-grid mt-4" id="photos-grid">
-                        <!-- Loaded dynamically via JS -->
+                <!-- ══ SECTION 3: Assistants ══ -->
+                <div id="sec-assistants" class="ta-section">
+
+                    <div>
+                        <div class="ta-section-header">
+                            <div>
+                                <div class="ta-section-title">Manage Assistants</div>
+                                <div class="ta-section-sub">Register sub-users and assign event permissions</div>
+                            </div>
+                            <button class="ta-btn ta-btn-primary" onclick="openModal('modal-create-assistant')">
+                                ＋ Register Assistant
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="ta-table-card">
+                        <div class="ta-table-card-header">
+                            <h3>Registered Assistants</h3>
+                            <span class="ta-badge purple">{{ assistants|length }} assistant(s)</span>
+                        </div>
+                        <div class="ta-table-scroll">
+                            <table class="ta-table">
+                                <thead>
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Registered At</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if not assistants %}
+                                    <tr>
+                                        <td colspan="2" style="text-align:center;padding:28px;color:#98A2B3;">
+                                            No assistants registered yet.
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% for assistant in assistants %}
+                                    <tr>
+                                        <td>
+                                            <div style="display:flex;align-items:center;gap:10px;">
+                                                <div
+                                                    style="width:30px;height:30px;border-radius:50%;background:var(--primary-light);color:var(--primary);font-size:0.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;">
+                                                    {{ assistant.username[0]|upper }}
+                                                </div>
+                                                <span class="td-primary">{{ assistant.username }}</span>
+                                            </div>
+                                        </td>
+                                        <td style="color:#667085;font-size:0.82rem;">{{ assistant.created_at }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 3. Assistants Section -->
-            <div id="sec-assistants" class="dashboard-section">
-                <div class="section-title-wrapper">
-                    <h2>Manage Assistants</h2>
-                    <button class="btn btn-primary" onclick="openModal('modal-create-assistant')">＋ Register Assistant</button>
+            </main>
+        </div><!-- end .ta-right-col -->
+    </div><!-- end .ta-wrapper -->
+
+
+    <!-- ═══ MODALS ═══ -->
+
+    <!-- Create Event -->
+    <div id="modal-create-event" class="ta-modal-overlay">
+        <div class="ta-modal">
+            <div class="ta-modal-header">
+                <div>
+                    <h3>Create New Event</h3>
+                    <p>Set up a new photography event for your guests</p>
                 </div>
-
-                <div class="table-container">
-                    <table class="dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Username</th>
-                                <th>Registered At</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% if not assistants %}
-                            <tr>
-                                <td colspan="2" class="text-center text-muted">No assistants registered yet.</td>
-                            </tr>
-                            {% endif %}
-                            {% for assistant in assistants %}
-                            <tr>
-                                <td><strong>{{ assistant.username }}</strong></td>
-                                <td>{{ assistant.created_at }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </section>
-    </main>
-
-    <!-- Modals -->
-
-    <!-- Create Event Modal -->
-    <div id="modal-create-event" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Create New Event</h3>
-                <button class="btn-close" onclick="closeModal('modal-create-event')">✕</button>
+                <button class="ta-modal-close" onclick="closeModal('modal-create-event')">✕</button>
             </div>
             <form id="form-create-event" onsubmit="submitCreateEvent(event)">
-                <div class="form-group">
-                    <label for="create-event-name">Event Name *</label>
-                    <input type="text" id="create-event-name" name="name" required placeholder="e.g., Summer Wedding 2026">
+                <div class="ta-modal-body">
+                    <div class="ta-form-group">
+                        <label class="ta-form-label" for="create-event-name">Event Name <span
+                                class="required">*</span></label>
+                        <input class="ta-form-input" type="text" id="create-event-name" name="name" required
+                            placeholder="e.g., Summer Wedding 2026">
+                    </div>
+                    <div class="ta-form-group">
+                        <label class="ta-form-label" for="create-event-desc">Description</label>
+                        <textarea class="ta-form-textarea" id="create-event-desc" name="description"
+                            placeholder="Describe the event…"></textarea>
+                    </div>
+                    <div class="ta-form-group">
+                        <label class="ta-form-label" for="create-event-date">Auto-Expiry Date</label>
+                        <input class="ta-form-input" type="date" id="create-event-date" name="deactivation_date">
+                    </div>
+                    <div class="ta-form-group">
+                        <label class="ta-form-label" for="create-event-limit">Download Limit per user <span
+                                class="required">*</span></label>
+                        <input class="ta-form-input" type="number" id="create-event-limit" name="download_limit"
+                            value="1" min="1" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="create-event-desc">Description</label>
-                    <textarea id="create-event-desc" name="description" rows="3" placeholder="Describe the event..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="create-event-date">Deactivation Date (Auto Expire)</label>
-                    <input type="date" id="create-event-date" name="deactivation_date">
-                </div>
-                <div class="form-group">
-                    <label for="create-event-limit">Download Limit (Times an image can be downloaded per user)</label>
-                    <input type="number" id="create-event-limit" name="download_limit" value="1" min="1" required>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-create-event')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Event</button>
+                <div class="ta-modal-footer">
+                    <button type="button" class="ta-btn ta-btn-secondary"
+                        onclick="closeModal('modal-create-event')">Cancel</button>
+                    <button type="submit" class="ta-btn ta-btn-primary">Create Event</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Edit Event Modal -->
-    <div id="modal-edit-event" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Edit Event Configuration</h3>
-                <button class="btn-close" onclick="closeModal('modal-edit-event')">✕</button>
+    <!-- Edit Event -->
+    <div id="modal-edit-event" class="ta-modal-overlay">
+        <div class="ta-modal">
+            <div class="ta-modal-header">
+                <div>
+                    <h3>Edit Event Configuration</h3>
+                    <p>Update event settings and publish status</p>
+                </div>
+                <button class="ta-modal-close" onclick="closeModal('modal-edit-event')">✕</button>
             </div>
             <form id="form-edit-event" onsubmit="submitEditEvent(event)">
-                <input type="hidden" id="edit-event-id" name="event_id">
-                <div class="form-group">
-                    <label for="edit-event-name">Event Name *</label>
-                    <input type="text" id="edit-event-name" name="name" required>
+                <div class="ta-modal-body">
+                    <input type="hidden" id="edit-event-id" name="event_id">
+                    <div class="ta-form-group">
+                        <label class="ta-form-label" for="edit-event-name">Event Name <span
+                                class="required">*</span></label>
+                        <input class="ta-form-input" type="text" id="edit-event-name" name="name" required>
+                    </div>
+                    <div class="ta-form-group">
+                        <label class="ta-form-label" for="edit-event-desc">Description</label>
+                        <textarea class="ta-form-textarea" id="edit-event-desc" name="description"></textarea>
+                    </div>
+                    <div class="ta-form-group">
+                        <label class="ta-form-label" for="edit-event-date">Auto-Expiry Date</label>
+                        <input class="ta-form-input" type="date" id="edit-event-date" name="deactivation_date">
+                    </div>
+                    <div class="ta-form-group">
+                        <label class="ta-form-label" for="edit-event-limit">Download Limit</label>
+                        <input class="ta-form-input" type="number" id="edit-event-limit" name="download_limit" min="1"
+                            required>
+                    </div>
+                    <div class="ta-form-group">
+                        <label class="ta-form-label" for="edit-event-status">Publish Status</label>
+                        <select class="ta-form-select" id="edit-event-status" name="status">
+                            <option value="unpublished">Unpublished</option>
+                            <option value="published">Published</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="edit-event-desc">Description</label>
-                    <textarea id="edit-event-desc" name="description" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="edit-event-date">Deactivation Date</label>
-                    <input type="date" id="edit-event-date" name="deactivation_date">
-                </div>
-                <div class="form-group">
-                    <label for="edit-event-limit">Download Limit</label>
-                    <input type="number" id="edit-event-limit" name="download_limit" min="1" required>
-                </div>
-                <div class="form-group">
-                    <label for="edit-event-status">Publish Status</label>
-                    <select id="edit-event-status" name="status">
-                        <option value="unpublished">Unpublished</option>
-                        <option value="published">Published</option>
-                    </select>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-edit-event')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                <div class="ta-modal-footer">
+                    <button type="button" class="ta-btn ta-btn-secondary"
+                        onclick="closeModal('modal-edit-event')">Cancel</button>
+                    <button type="submit" class="ta-btn ta-btn-primary">Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Create Assistant Modal -->
-    <div id="modal-create-assistant" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Register Assistant Sub-User</h3>
-                <button class="btn-close" onclick="closeModal('modal-create-assistant')">✕</button>
+    <!-- Create Assistant -->
+    <div id="modal-create-assistant" class="ta-modal-overlay">
+        <div class="ta-modal">
+            <div class="ta-modal-header">
+                <div>
+                    <h3>Register Assistant Sub-User</h3>
+                    <p>Create a new assistant account under your photographer</p>
+                </div>
+                <button class="ta-modal-close" onclick="closeModal('modal-create-assistant')">✕</button>
             </div>
             <form id="form-create-assistant" onsubmit="submitCreateAssistant(event)">
-                <div class="form-group">
-                    <label for="assistant-username">Username *</label>
-                    <input type="text" id="assistant-username" name="username" required placeholder="e.g., helper_john">
+                <div class="ta-modal-body">
+                    <div class="ta-form-group">
+                        <label class="ta-form-label" for="assistant-username">Username <span
+                                class="required">*</span></label>
+                        <input class="ta-form-input" type="text" id="assistant-username" name="username" required
+                            placeholder="e.g., helper_john">
+                    </div>
+                    <div class="ta-form-group">
+                        <label class="ta-form-label" for="assistant-password">Password <span
+                                class="required">*</span></label>
+                        <input class="ta-form-input" type="password" id="assistant-password" name="password" required
+                            placeholder="Choose a strong password">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="assistant-password">Password *</label>
-                    <input type="password" id="assistant-password" name="password" required placeholder="Choose password">
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-create-assistant')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Register Assistant</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Assign Assistant Permissions Modal -->
-    <div id="modal-assign-assistant" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Configure Assistant Permissions</h3>
-                <button class="btn-close" onclick="closeModal('modal-assign-assistant')">✕</button>
-            </div>
-            <div class="assigned-event-info">
-                Event: <strong id="assign-event-title"></strong>
-            </div>
-            <form id="form-assign-assistant" onsubmit="submitAssignAssistant(event)" class="mt-2">
-                <input type="hidden" id="assign-event-id" name="event_id">
-                
-                <div class="form-group">
-                    <label for="assign-user-id">Select Assistant</label>
-                    <select id="assign-user-id" name="user_id" required>
-                        <option value="">-- Choose Assistant --</option>
-                        {% for assistant in assistants %}
-                        <option value="{{ assistant.id }}">{{ assistant.username }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="permissions-list mt-3" style="display: flex; flex-direction: column; gap: 8px;">
-                    <label class="checkbox-container">
-                        <input type="checkbox" id="perm-upload" name="can_upload">
-                        <span class="checkmark"></span>
-                        Allow Assistant to Upload Images
-                    </label>
-                    
-                    <label class="checkbox-container">
-                        <input type="checkbox" id="perm-delete" name="can_delete">
-                        <span class="checkmark"></span>
-                        Allow Assistant to Delete Images
-                    </label>
-
-                    <label class="checkbox-container">
-                        <input type="checkbox" id="perm-deactivate" name="can_deactivate">
-                        <span class="checkmark"></span>
-                        Allow Assistant to Deactivate Event
-                    </label>
-                </div>
-
-                <div id="current-assignments" class="mt-3">
-                    <h4 style="font-size: 1rem; margin-bottom: 8px; color: var(--secondary);">Currently Assigned Assistants</h4>
-                    <ul id="assignment-list" class="assignment-ul">
-                        <!-- Loaded dynamically -->
-                    </ul>
-                </div>
-
-                <div class="form-actions mt-4">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-assign-assistant')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Permissions</button>
+                <div class="ta-modal-footer">
+                    <button type="button" class="ta-btn ta-btn-secondary"
+                        onclick="closeModal('modal-create-assistant')">Cancel</button>
+                    <button type="submit" class="ta-btn ta-btn-primary">Register Assistant</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <footer class="footer">
-        <p>© 2026 KIPA (किपा) · Photographer Management Portal</p>
-    </footer>
+    <!-- Assign Assistant Permissions -->
+    <div id="modal-assign-assistant" class="ta-modal-overlay">
+        <div class="ta-modal">
+            <div class="ta-modal-header">
+                <div>
+                    <h3>Configure Assistant Permissions</h3>
+                    <p>Assign an assistant and define their access rights</p>
+                </div>
+                <button class="ta-modal-close" onclick="closeModal('modal-assign-assistant')">✕</button>
+            </div>
+            <form id="form-assign-assistant" onsubmit="submitAssignAssistant(event)">
+                <div class="ta-modal-body">
+                    <div class="ta-event-info-banner">
+                        📅 Event: <strong id="assign-event-title"></strong>
+                    </div>
+                    <input type="hidden" id="assign-event-id" name="event_id">
 
-    <!-- Scripts -->
+                    <div class="ta-form-group">
+                        <label class="ta-form-label" for="assign-user-id">Select Assistant</label>
+                        <select class="ta-form-select" id="assign-user-id" name="user_id" required>
+                            <option value="">— Choose Assistant —</option>
+                            {% for assistant in assistants %}
+                            <option value="{{ assistant.id }}">{{ assistant.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                        <label class="ta-form-label">Permissions</label>
+                        <label class="ta-checkbox-row">
+                            <input type="checkbox" id="perm-upload" name="can_upload">
+                            <span class="check-label">Allow image uploads</span>
+                            <span class="check-desc">Upload</span>
+                        </label>
+                        <label class="ta-checkbox-row">
+                            <input type="checkbox" id="perm-delete" name="can_delete">
+                            <span class="check-label">Allow image deletions</span>
+                            <span class="check-desc">Delete</span>
+                        </label>
+                        <label class="ta-checkbox-row">
+                            <input type="checkbox" id="perm-deactivate" name="can_deactivate">
+                            <span class="check-label">Allow event deactivation</span>
+                            <span class="check-desc">Deactivate</span>
+                        </label>
+                    </div>
+
+                    <div id="current-assignments">
+                        <label class="ta-form-label">Currently Assigned Assistants</label>
+                        <ul id="assignment-list" class="ta-assignment-list">
+                            <li style="color:#98A2B3;font-size:0.84rem;padding:8px 0;">Loading…</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="ta-modal-footer">
+                    <button type="button" class="ta-btn ta-btn-secondary"
+                        onclick="closeModal('modal-assign-assistant')">Cancel</button>
+                    <button type="submit" class="ta-btn ta-btn-primary">Save Permissions</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ═══ SCRIPTS ═══ -->
     <script>
-        // Tab switching
-        function switchSection(section) {
-            document.querySelectorAll('.dashboard-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-            
+        // ── Sidebar Toggle ──────────────────────────────────────────────
+        function toggleSidebar() {
+            const sb = document.getElementById('taSidebar');
+            const ov = document.getElementById('sidebarOverlay');
+            sb.classList.toggle('open');
+            ov.style.display = sb.classList.contains('open') ? 'block' : 'none';
+        }
+
+        function closeSidebar() {
+            document.getElementById('taSidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').style.display = 'none';
+        }
+
+        // ── Section Switching ───────────────────────────────────────────
+        const sectionLabels = { overview: 'Overview', events: 'Events', assistants: 'Assistants' };
+
+        function switchSection(section, btn) {
+            document.querySelectorAll('.ta-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.ta-menu-item').forEach(el => el.classList.remove('active'));
             document.getElementById(`sec-${section}`).classList.add('active');
-            
-            // Highlight sidebar item
-            event.target.classList.add('active');
+            if (btn) btn.classList.add('active');
+            document.getElementById('breadcrumbLabel').textContent = sectionLabels[section] || section;
             closeDetailsPanel();
+            closeSidebar();
         }
 
-        // Modal Helpers
-        function openModal(id) {
-            document.getElementById(id).classList.add('active');
-        }
+        // ── Modal Helpers ───────────────────────────────────────────────
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
+        // Close modal on backdrop click
+        document.querySelectorAll('.ta-modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function (e) {
+                if (e.target === this) this.classList.remove('active');
+            });
+        });
 
-        // Event CRUD submissions
+        // ── Event CRUD ──────────────────────────────────────────────────
         async function submitCreateEvent(e) {
             e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);
-
             try {
-                const response = await fetch('/api/event/create', {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await fetch('/api/event/create', { method: 'POST', body: formData });
                 const res = await response.json();
-                if (res.success) {
-                    window.location.reload();
-                } else {
-                    alert(res.message);
-                }
-            } catch (err) {
-                alert("Server connection failed.");
-            }
+                if (res.success) { window.location.reload(); } else { alert(res.message); }
+            } catch (err) { alert("Server connection failed."); }
         }
 
         function openEditEventModal(id, name, desc, deactDate, limit, status) {
@@ -433,80 +602,58 @@
             const form = e.target;
             const eventId = document.getElementById('edit-event-id').value;
             const formData = new FormData(form);
-
             try {
-                const response = await fetch(`/api/event/${eventId}/update`, {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await fetch(`/api/event/${eventId}/update`, { method: 'POST', body: formData });
                 const res = await response.json();
-                if (res.success) {
-                    window.location.reload();
-                } else {
-                    alert(res.message);
-                }
-            } catch (err) {
-                alert("Server connection failed.");
-            }
+                if (res.success) { window.location.reload(); } else { alert(res.message); }
+            } catch (err) { alert("Server connection failed."); }
         }
 
-        // Assistant CRUD submissions
+        // ── Assistant CRUD ──────────────────────────────────────────────
         async function submitCreateAssistant(e) {
             e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);
-
             try {
-                const response = await fetch('/api/assistant/create', {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await fetch('/api/assistant/create', { method: 'POST', body: formData });
                 const res = await response.json();
-                if (res.success) {
-                    window.location.reload();
-                } else {
-                    alert(res.message);
-                }
-            } catch (err) {
-                alert("Server connection failed.");
-            }
+                if (res.success) { window.location.reload(); } else { alert(res.message); }
+            } catch (err) { alert("Server connection failed."); }
         }
 
-        // Assignment Configuration
+        // ── Assignment Configuration ────────────────────────────────────
         async function openAssignAssistantModal(eventId, name) {
             document.getElementById('assign-event-id').value = eventId;
             document.getElementById('assign-event-title').textContent = name;
-            
-            // Fetch and load assignments
             await loadAssignments(eventId);
             openModal('modal-assign-assistant');
         }
 
         async function loadAssignments(eventId) {
             const listEl = document.getElementById('assignment-list');
-            listEl.innerHTML = '<li class="text-muted">Loading assignments...</li>';
-            
+            listEl.innerHTML = '<li style="color:#98A2B3;font-size:0.84rem;padding:8px 0;">Loading assignments…</li>';
             try {
                 const res = await fetch(`/api/event/${eventId}/assignments`);
                 const data = await res.json();
-                
                 listEl.innerHTML = '';
                 if (!data.assignments || data.assignments.length === 0) {
-                    listEl.innerHTML = '<li class="text-muted text-sm">No assistants assigned yet.</li>';
+                    listEl.innerHTML = '<li style="color:#98A2B3;font-size:0.84rem;padding:8px 0;">No assistants assigned yet.</li>';
                     return;
                 }
-
                 data.assignments.forEach(asgn => {
                     const li = document.createElement('li');
-                    li.className = 'assignment-li-item';
+                    li.className = 'ta-assignment-item';
                     li.innerHTML = `
-                        <span><strong>${asgn.username}</strong> (Upload: ${asgn.can_upload ? 'Yes' : 'No'}, Delete: ${asgn.can_delete ? 'Yes' : 'No'}, Deactivate: ${asgn.can_deactivate ? 'Yes' : 'No'})</span>
-                        <button type="button" class="btn-danger-link" onclick="removeAssignment(${eventId}, ${asgn.user_id})">Remove</button>
-                    `;
+                    <div>
+                        <strong>${asgn.username}</strong>
+                        <div class="perms">Upload: ${asgn.can_upload ? '✅' : '—'} · Delete: ${asgn.can_delete ? '✅' : '—'} · Deactivate: ${asgn.can_deactivate ? '✅' : '—'}</div>
+                    </div>
+                    <button type="button" class="ta-btn ta-btn-danger ta-btn-sm" onclick="removeAssignment(${eventId}, ${asgn.user_id})">Remove</button>
+                `;
                     listEl.appendChild(li);
                 });
             } catch (err) {
-                listEl.innerHTML = '<li class="text-danger">Failed to load assignments.</li>';
+                listEl.innerHTML = '<li style="color:#B42318;font-size:0.84rem;padding:8px 0;">Failed to load assignments.</li>';
             }
         }
 
@@ -514,25 +661,16 @@
             e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);
-
             try {
-                const response = await fetch('/api/event/assign-assistant', {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await fetch('/api/event/assign-assistant', { method: 'POST', body: formData });
                 const res = await response.json();
                 if (res.success) {
-                    // Refresh current assignments list
                     const eventId = document.getElementById('assign-event-id').value;
                     await loadAssignments(eventId);
                     form.reset();
                     document.getElementById('assign-event-id').value = eventId;
-                } else {
-                    alert(res.message);
-                }
-            } catch (err) {
-                alert("Server connection failed.");
-            }
+                } else { alert(res.message); }
+            } catch (err) { alert("Server connection failed."); }
         }
 
         async function removeAssignment(eventId, userId) {
@@ -540,191 +678,126 @@
             const formData = new FormData();
             formData.append('event_id', eventId);
             formData.append('user_id', userId);
-
             try {
-                const response = await fetch('/api/event/remove-assistant', {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await fetch('/api/event/remove-assistant', { method: 'POST', body: formData });
                 const res = await response.json();
-                if (res.success) {
-                    await loadAssignments(eventId);
-                } else {
-                    alert(res.message);
-                }
-            } catch (err) {
-                alert("Server connection failed.");
-            }
+                if (res.success) { await loadAssignments(eventId); } else { alert(res.message); }
+            } catch (err) { alert("Server connection failed."); }
         }
 
-        // Event Photos Panel Handling
+        // ── Event Photos Panel ──────────────────────────────────────────
         let activeEventId = null;
 
         async function viewEventDetails(eventId, name) {
             activeEventId = eventId;
-            document.getElementById('details-event-name').textContent = `Photos for: ${name}`;
-            document.getElementById('event-details-panel').classList.remove('hidden');
-            
-            // Scroll to details panel
+            document.getElementById('details-event-name').textContent = `Photos: ${name}`;
+            document.getElementById('event-details-panel').style.display = 'block';
             document.getElementById('event-details-panel').scrollIntoView({ behavior: 'smooth' });
-
             await loadEventPhotos();
         }
 
         function closeDetailsPanel() {
-            document.getElementById('event-details-panel').classList.add('hidden');
+            document.getElementById('event-details-panel').style.display = 'none';
             activeEventId = null;
         }
 
         async function loadEventPhotos() {
             const grid = document.getElementById('photos-grid');
-            grid.innerHTML = '<div class="text-center text-muted col-span-full">Loading photos...</div>';
-
+            grid.innerHTML = '<div style="color:#98A2B3;font-size:0.875rem;padding:16px 0;">Loading photos…</div>';
             try {
                 const response = await fetch(`/api/event/${activeEventId}/photos`);
                 const res = await response.json();
-                
                 grid.innerHTML = '';
                 if (!res.images || res.images.length === 0) {
-                    grid.innerHTML = '<div class="text-center text-muted col-span-full mt-4">No photos in this event yet. Drag and drop to upload.</div>';
+                    grid.innerHTML = '<div style="color:#98A2B3;font-size:0.875rem;padding:16px 0;">No photos yet. Drag and drop above to upload.</div>';
                     return;
                 }
-
                 res.images.forEach(img => {
-                    const container = document.createElement('div');
-                    container.className = 'photo-container-dashboard';
-                    
-                    const imageEl = document.createElement('img');
-                    imageEl.src = '/' + img.image_path;
-                    imageEl.className = 'photo-dashboard-img';
-                    imageEl.loading = 'lazy';
-                    
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'photo-delete-btn';
-                    deleteBtn.innerHTML = '🗑️';
-                    deleteBtn.title = 'Delete Photo';
-                    deleteBtn.onclick = () => deletePhoto(img.id);
-
-                    container.appendChild(imageEl);
-                    container.appendChild(deleteBtn);
-                    grid.appendChild(container);
+                    const wrap = document.createElement('div');
+                    wrap.className = 'ta-photo-item';
+                    wrap.innerHTML = `
+                    <img src="/${img.image_path}" loading="lazy" alt="Event photo">
+                    <button class="ta-photo-del" onclick="deletePhoto(${img.id})" title="Delete">🗑️</button>
+                `;
+                    grid.appendChild(wrap);
                 });
             } catch (err) {
-                grid.innerHTML = '<div class="text-center text-danger col-span-full">Failed to load photos.</div>';
+                grid.innerHTML = '<div style="color:#B42318;font-size:0.875rem;padding:16px 0;">Failed to load photos.</div>';
             }
         }
 
         async function deletePhoto(imageId) {
-            if (!confirm("Are you sure you want to delete this photo? Face encodings will be removed as well.")) return;
-
+            if (!confirm("Delete this photo? Face encodings will also be removed.")) return;
             try {
-                const response = await fetch(`/api/event/${activeEventId}/image/${imageId}`, {
-                    method: 'DELETE'
-                });
+                const response = await fetch(`/api/event/${activeEventId}/image/${imageId}`, { method: 'DELETE' });
                 const res = await response.json();
-                if (res.success) {
-                    await loadEventPhotos();
-                } else {
-                    alert(res.message);
-                }
-            } catch (err) {
-                alert("Server connection failed.");
-            }
+                if (res.success) { await loadEventPhotos(); } else { alert(res.message); }
+            } catch (err) { alert("Server connection failed."); }
         }
 
-        // Drag & Drop / Upload Setup
+        // ── Drag & Drop / Upload ────────────────────────────────────────
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
 
         dropZone.addEventListener('click', () => fileInput.click());
-
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        });
-
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('dragover');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => {
             e.preventDefault();
             dropZone.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                uploadFiles(files);
-            }
+            if (e.dataTransfer.files.length > 0) uploadFiles(e.dataTransfer.files);
         });
-
-        fileInput.addEventListener('change', () => {
-            const files = fileInput.files;
-            if (files.length > 0) {
-                uploadFiles(files);
-            }
-        });
+        fileInput.addEventListener('change', () => { if (fileInput.files.length > 0) uploadFiles(fileInput.files); });
 
         async function uploadFiles(files) {
             if (!activeEventId) return;
-
             const progressContainer = document.getElementById('upload-progress-container');
             const progressBar = document.getElementById('upload-progress-bar');
             const statusText = document.getElementById('upload-status-text');
             const resultsDiv = document.getElementById('upload-results');
 
-            progressContainer.classList.remove('hidden');
+            progressContainer.style.display = 'block';
             progressBar.style.width = '0%';
-            statusText.textContent = `Preparing upload for ${files.length} images...`;
+            statusText.textContent = `Preparing ${files.length} image(s)…`;
             resultsDiv.innerHTML = '';
 
             const total = files.length;
             let successCount = 0;
-            let summaryHTML = '<ul class="upload-summary-ul">';
+            let summaryHTML = '<ul class="ta-upload-summary">';
 
             for (let i = 0; i < total; i++) {
                 const file = files[i];
-                const progressPct = Math.round((i / total) * 100);
-                progressBar.style.width = `${progressPct}%`;
-                statusText.textContent = `Processing image ${i + 1} of ${total}: ${file.name}...`;
+                progressBar.style.width = `${Math.round((i / total) * 100)}%`;
+                statusText.textContent = `Processing ${i + 1} / ${total}: ${file.name}…`;
 
                 const formData = new FormData();
                 formData.append('images', file);
-
                 try {
-                    const response = await fetch(`/api/event/${activeEventId}/upload`, {
-                        method: 'POST',
-                        body: formData
-                    });
+                    const response = await fetch(`/api/event/${activeEventId}/upload`, { method: 'POST', body: formData });
                     const res = await response.json();
-
                     if (response.ok && res.success && res.results && res.results.length > 0) {
                         const fileRes = res.results[0];
                         if (fileRes.status === 'success') {
-                            summaryHTML += `<li>🟢 <strong>${file.name}</strong>: Detected ${fileRes.faces} face(s)</li>`;
+                            summaryHTML += `<li>✅ <strong>${file.name}</strong> — ${fileRes.faces} face(s) detected</li>`;
                             successCount++;
                         } else {
-                            summaryHTML += `<li>🔴 <strong>${file.name}</strong>: Skipped (${fileRes.status})</li>`;
+                            summaryHTML += `<li>⚠️ <strong>${file.name}</strong> — Skipped (${fileRes.status})</li>`;
                         }
                     } else {
-                        summaryHTML += `<li>🔴 <strong>${file.name}</strong>: Failed (${res.message || 'Unknown error'})</li>`;
+                        summaryHTML += `<li>❌ <strong>${file.name}</strong> — Failed (${res.message || 'Unknown error'})</li>`;
                     }
                 } catch (err) {
-                    summaryHTML += `<li>🔴 <strong>${file.name}</strong>: Connection or server error</li>`;
+                    summaryHTML += `<li>❌ <strong>${file.name}</strong> — Connection error</li>`;
                 }
-
-                // Update results text in real-time
                 resultsDiv.innerHTML = summaryHTML + '</ul>';
-
-                // Load photos in real time so the photographer sees them appear one by one!
                 await loadEventPhotos();
             }
 
             progressBar.style.width = '100%';
-            statusText.textContent = `Upload finished. Successfully processed ${successCount} of ${total} images.`;
-
-            setTimeout(() => {
-                progressContainer.classList.add('hidden');
-            }, 6000);
+            statusText.textContent = `Done! ${successCount} of ${total} images uploaded.`;
+            setTimeout(() => { progressContainer.style.display = 'none'; }, 6000);
         }
     </script>
 </body>
+
 </html>
