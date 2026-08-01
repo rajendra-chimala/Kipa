@@ -51,7 +51,10 @@ from database import (
     get_photographer_daily_downloads,
     get_photographer_event_chart_data,
     get_all_users_with_creators,
-    update_user_profile
+    update_user_profile,
+    update_user_profile_pic,
+    update_user,
+    delete_user
 )
 
 # ─── App Configuration ───────────────────────────────────────────────────────
@@ -59,14 +62,16 @@ app = Flask(__name__)
 app.secret_key = 'super-secret-key-for-photographer-app-12345'
 
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
+PROFILE_PIC_FOLDER = os.path.join(UPLOAD_FOLDER, 'profile_pics')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50 MB max upload size
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 
-# Ensure upload folder exists
+# Ensure upload folders exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(PROFILE_PIC_FOLDER, exist_ok=True)
 
 # Initialize the SQLite database on startup
 init_db()
@@ -265,6 +270,62 @@ def api_update_user_profile():
     return jsonify(res)
 
 
+# ─── Profile Picture API ──────────────────────────────────────────────────────
+
+def _remove_old_profile_pic(profile_pic_path):
+    """Best-effort removal of a previously stored profile picture file."""
+    if profile_pic_path and profile_pic_path.startswith('static/uploads/profile_pics/') and os.path.exists(profile_pic_path):
+        try:
+            os.remove(profile_pic_path)
+        except OSError:
+            pass
+
+
+@app.route('/api/user/profile-pic', methods=['POST', 'DELETE'])
+@login_required
+def api_profile_pic():
+    """Upload, replace or remove the logged-in user's profile picture."""
+    if not session.get('user'):
+        return jsonify({'success': False, 'message': 'Unauthorized. Please sign in.'}), 401
+
+    user_id = session['user']['id']
+    u_info = get_user_by_id(user_id) or {}
+    old_path = u_info.get('profile_pic') or ''
+
+    if request.method == 'DELETE':
+        _remove_old_profile_pic(old_path)
+        update_user_profile_pic(user_id, '')
+        session['user']['profile_pic'] = ''
+        session.modified = True
+        return jsonify({'success': True, 'message': 'Profile picture removed.'})
+
+    # POST: upload / replace
+    if 'profile_pic' not in request.files:
+        return jsonify({'success': False, 'message': 'No image provided.'}), 400
+
+    file = request.files['profile_pic']
+    if not file or file.filename == '':
+        return jsonify({'success': False, 'message': 'No image selected.'}), 400
+    if not allowed_file(file.filename):
+        return jsonify({'success': False, 'message': 'Unsupported format. Use JPG, PNG or WEBP.'}), 400
+
+    os.makedirs(PROFILE_PIC_FOLDER, exist_ok=True)
+
+    fname = f"user_{user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}_{secure_filename(file.filename)}"
+    save_path = os.path.join(PROFILE_PIC_FOLDER, fname)
+    file.save(save_path)
+
+    relative_path = save_path.replace('\\', '/')
+
+    res = update_user_profile_pic(user_id, relative_path)
+    if res['success']:
+        _remove_old_profile_pic(old_path)
+        session['user']['profile_pic'] = relative_path
+        session.modified = True
+        return jsonify({'success': True, 'message': 'Profile picture updated.', 'profile_pic': relative_path})
+    return jsonify(res), 400
+
+
 # ─── Dashboards ──────────────────────────────────────────────────────────────
 
 @app.route('/dashboard')
@@ -277,6 +338,7 @@ def photographer_dashboard():
         session['user']['name'] = u_info.get('name', '')
         session['user']['email'] = u_info.get('email', '')
         session['user']['username'] = u_info.get('username', '')
+        session['user']['profile_pic'] = u_info.get('profile_pic', '')
         session.modified = True
 
     events = get_events_by_photographer(p_id)
@@ -321,6 +383,7 @@ def assistant_dashboard():
         session['user']['name'] = u_info.get('name', '')
         session['user']['email'] = u_info.get('email', '')
         session['user']['username'] = u_info.get('username', '')
+        session['user']['profile_pic'] = u_info.get('profile_pic', '')
         session.modified = True
 
     assigned_events = get_assigned_events_for_assistant(a_id)
@@ -337,12 +400,101 @@ def super_admin_dashboard():
         session['user']['name'] = u_info.get('name', '')
         session['user']['email'] = u_info.get('email', '')
         session['user']['username'] = u_info.get('username', '')
+        session['user']['profile_pic'] = u_info.get('profile_pic', '')
         session.modified = True
 
     stats = get_global_stats()
     users = get_all_users_with_creators()
     events = get_all_events_with_creators()
     return render_template('super_admin/super_admin.html', stats=stats, users=users, events=events)
+
+
+# ─── Super Admin User Management API ─────────────────────────────────────────
+
+@app.route('/api/admin/user/create', methods=['POST'])
+@role_required('super_admin')
+def api_admin_create_user():
+    """Create a new photographer or assistant account from the super admin portal."""
+    data = request.form
+    username = data.get('username')
+    password = data.get('password')
+    role = data.get('role')
+
+    if not username or not password or role not in ('photographer', 'assistant'):
+        return jsonify({'success': False, 'message': 'Username, password and a valid role are required.'}), 400
+
+    res = create_user(username, password, role, created_by=session['user']['id'])
+    if res['success']:
+        return jsonify({'success': True, 'message': f'{role.title()} account created successfully.'})
+    return jsonify(res), 400
+
+
+@app.route('/api/admin/user/update', methods=['POST'])
+@role_required('super_admin')
+def api_admin_update_user():
+    """Update user details from the super admin portal."""
+    data = request.form
+    try:
+        user_id = int(data.get('user_id'))
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Invalid user.'}), 400
+
+    target = get_user_by_id(user_id)
+    if not target:
+        return jsonify({'success': False, 'message': 'User account not found.'}), 404
+
+    # Never allow changing your own role or demoting the last super admin
+    role = data.get('role')
+    if user_id == session['user']['id']:
+        role = None
+    elif target['role'] == 'super_admin' and role and role != 'super_admin':
+        conn = get_connection()
+        count = conn.execute("SELECT COUNT(*) FROM users WHERE role = 'super_admin'").fetchone()[0]
+        conn.close()
+        if count <= 1:
+            return jsonify({'success': False, 'message': 'Cannot demote the last super admin account.'}), 400
+
+    res = update_user(
+        user_id,
+        name=data.get('name'),
+        email=data.get('email'),
+        username=data.get('username'),
+        role=role,
+        new_password=data.get('new_password')
+    )
+    if res['success']:
+        return jsonify(res)
+    return jsonify(res), 400
+
+
+@app.route('/api/admin/user/delete', methods=['POST'])
+@role_required('super_admin')
+def api_admin_delete_user():
+    """Delete a user account."""
+    data = request.form
+    try:
+        user_id = int(data.get('user_id'))
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Invalid user.'}), 400
+
+    if user_id == session['user']['id']:
+        return jsonify({'success': False, 'message': 'You cannot delete your own account.'}), 400
+
+    target = get_user_by_id(user_id)
+    if not target:
+        return jsonify({'success': False, 'message': 'User account not found.'}), 404
+
+    if target['role'] == 'super_admin':
+        conn = get_connection()
+        count = conn.execute("SELECT COUNT(*) FROM users WHERE role = 'super_admin'").fetchone()[0]
+        conn.close()
+        if count <= 1:
+            return jsonify({'success': False, 'message': 'Cannot delete the last super admin account.'}), 400
+
+    res = delete_user(user_id)
+    if res['success']:
+        return jsonify(res)
+    return jsonify(res), 400
 
 
 # ─── Event Management API ────────────────────────────────────────────────────

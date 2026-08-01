@@ -37,6 +37,9 @@ def init_db():
         if u_cols and 'email' not in u_cols:
             conn.execute("ALTER TABLE users ADD COLUMN email TEXT DEFAULT ''")
             print("[DB] Migrated 'email' column into users table.")
+        if u_cols and 'profile_pic' not in u_cols:
+            conn.execute("ALTER TABLE users ADD COLUMN profile_pic TEXT DEFAULT ''")
+            print("[DB] Migrated 'profile_pic' column into users table.")
 
     with conn:
         # 1. Users Table
@@ -46,6 +49,7 @@ def init_db():
                 username      TEXT    UNIQUE NOT NULL,
                 name          TEXT    DEFAULT '',
                 email         TEXT    DEFAULT '',
+                profile_pic   TEXT    DEFAULT '',
                 password_hash TEXT    NOT NULL,
                 role          TEXT    NOT NULL, -- 'super_admin', 'photographer', 'assistant'
                 created_by    INTEGER DEFAULT NULL, -- referencing users(id) for assistants
@@ -163,7 +167,7 @@ def verify_user(username, password):
     """Verify credentials and return user dict if correct, else None."""
     conn = get_connection()
     row = conn.execute(
-        'SELECT id, username, name, email, password_hash, role FROM users WHERE username = ?',
+        'SELECT id, username, name, email, profile_pic, password_hash, role FROM users WHERE username = ?',
         (username,)
     ).fetchone()
     conn.close()
@@ -174,6 +178,7 @@ def verify_user(username, password):
             'username': row['username'],
             'name': row['name'] if row['name'] is not None else '',
             'email': row['email'] if row['email'] is not None else '',
+            'profile_pic': row['profile_pic'] if row['profile_pic'] is not None else '',
             'role': row['role']
         }
     return None
@@ -183,7 +188,7 @@ def get_user_by_id(user_id):
     """Fetch user by primary key."""
     conn = get_connection()
     row = conn.execute(
-        'SELECT id, username, name, email, role, created_by, created_at FROM users WHERE id = ?',
+        'SELECT id, username, name, email, profile_pic, role, created_by, created_at FROM users WHERE id = ?',
         (user_id,)
     ).fetchone()
     conn.close()
@@ -238,7 +243,7 @@ def update_user_profile(user_id, name=None, email=None, username=None, current_p
         with conn:
             conn.execute(f"UPDATE users SET {', '.join(updates)} WHERE id = ?", params)
         
-        updated = conn.execute('SELECT id, username, name, email, role FROM users WHERE id = ?', (user_id,)).fetchone()
+        updated = conn.execute('SELECT id, username, name, email, profile_pic, role FROM users WHERE id = ?', (user_id,)).fetchone()
         conn.close()
         return {
             'success': True,
@@ -248,6 +253,15 @@ def update_user_profile(user_id, name=None, email=None, username=None, current_p
     except Exception as e:
         conn.close()
         return {'success': False, 'message': f'Failed to update profile: {str(e)}'}
+
+
+def update_user_profile_pic(user_id, profile_pic_path):
+    """Save or clear a user's profile picture path."""
+    conn = get_connection()
+    with conn:
+        conn.execute('UPDATE users SET profile_pic = ? WHERE id = ?', (profile_pic_path or '', user_id))
+    conn.close()
+    return {'success': True, 'message': 'Profile picture updated.'}
 
 
 def get_assistants_by_photographer(photographer_id):
@@ -778,10 +792,75 @@ def get_all_users_with_creators():
     """Retrieve all users with their creator names (if any)."""
     conn = get_connection()
     rows = conn.execute('''
-        SELECT u.id, u.username, u.role, u.created_at, creator.username as creator_name
+        SELECT u.id, u.username, u.name, u.email, u.profile_pic, u.role, u.created_at, creator.username as creator_name
         FROM users u
         LEFT JOIN users creator ON u.created_by = creator.id
         ORDER BY u.role, u.username
     ''').fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+def update_user(user_id, name=None, email=None, username=None, role=None, new_password=None):
+    """Update user details (name, email, username, role, password) for admin management."""
+    conn = get_connection()
+    row = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    if not row:
+        conn.close()
+        return {'success': False, 'message': 'User account not found.'}
+
+    # If username is changing, check uniqueness
+    if username and username.strip() and username.strip() != row['username']:
+        existing = conn.execute(
+            'SELECT id FROM users WHERE username = ? AND id != ?',
+            (username.strip(), user_id)
+        ).fetchone()
+        if existing:
+            conn.close()
+            return {'success': False, 'message': 'Username is already taken by another account.'}
+
+    updates = []
+    params = []
+
+    if name is not None:
+        updates.append("name = ?")
+        params.append(name.strip())
+    if email is not None:
+        updates.append("email = ?")
+        params.append(email.strip())
+    if username is not None and username.strip():
+        updates.append("username = ?")
+        params.append(username.strip())
+    if role is not None and role in ('super_admin', 'photographer', 'assistant'):
+        updates.append("role = ?")
+        params.append(role)
+    if new_password and new_password.strip():
+        updates.append("password_hash = ?")
+        params.append(generate_password_hash(new_password.strip()))
+
+    if not updates:
+        conn.close()
+        return {'success': True, 'message': 'No changes detected.'}
+
+    params.append(user_id)
+    try:
+        with conn:
+            conn.execute(f"UPDATE users SET {', '.join(updates)} WHERE id = ?", params)
+        conn.close()
+        return {'success': True, 'message': 'User updated successfully!'}
+    except Exception as e:
+        conn.close()
+        return {'success': False, 'message': f'Failed to update user: {str(e)}'}
+
+
+def delete_user(user_id):
+    """Delete a user account (cascades to their events, assignments, images and downloads)."""
+    conn = get_connection()
+    try:
+        with conn:
+            conn.execute('DELETE FROM users WHERE id = ?', (user_id,))
+        conn.close()
+        return {'success': True, 'message': 'User deleted successfully.'}
+    except Exception as e:
+        conn.close()
+        return {'success': False, 'message': f'Failed to delete user: {str(e)}'}

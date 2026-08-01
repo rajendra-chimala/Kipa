@@ -40,7 +40,11 @@
 
         <div class="ta-sidebar-footer">
             <div class="ta-sidebar-user">
+                {% if session['user'].get('profile_pic') %}
+                <div class="user-avatar"><img src="/{{ session['user']['profile_pic'] }}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>
+                {% else %}
                 <div class="user-avatar">{{ session['user']['username'][0]|upper }}</div>
+                {% endif %}
                 <div class="user-info">
                     <div class="user-name">{{ session['user']['username'] }}</div>
                     <div class="user-role">Assistant</div>
@@ -62,7 +66,7 @@
             <div class="ta-header-left">
                 <button class="ta-hamburger" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
                 <div class="ta-page-breadcrumb">
-                    KIPA &rsaquo; <span>Assigned Events</span>
+                    KIPA &rsaquo; <span id="breadcrumbLabel">Assigned Events</span>
                 </div>
             </div>
             <div class="ta-header-right">
@@ -205,6 +209,30 @@
                         <div id="settings-alert-success" class="ta-event-info-banner hidden" style="background:#ECFDF5; border-color:#A7F3D0; color:#065F46; margin-bottom:16px;"></div>
                         <div id="settings-alert-error" class="ta-event-info-banner hidden" style="background:#FEF2F2; border-color:#FECDD3; color:#991B1B; margin-bottom:16px;"></div>
 
+                        <!-- Profile Picture -->
+                        <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px;flex-wrap:wrap;">
+                            <div id="settings-avatar-preview" style="width:84px;height:84px;border-radius:50%;background:#F4F3FF;color:#6941C6;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;overflow:hidden;flex-shrink:0;border:2px solid #E4E7EC;">
+                                {% if session['user'].get('profile_pic') %}
+                                <img src="/{{ session['user']['profile_pic'] }}" alt="Profile picture" style="width:100%;height:100%;object-fit:cover;">
+                                {% else %}
+                                {{ session['user']['username'][0]|upper }}
+                                {% endif %}
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:8px;min-width:200px;">
+                                <div style="font-size:0.95rem;font-weight:700;color:#101828;">Profile Picture</div>
+                                <div style="font-size:0.8rem;color:#667085;">Upload a photo to personalise your account.</div>
+                                <div style="display:flex;gap:8px;margin-top:4px;">
+                                    <button type="button" class="ta-btn ta-btn-secondary ta-btn-sm" onclick="document.getElementById('profile-pic-input').click()"><i class="fa-solid fa-camera" style="margin-right:4px;"></i> Upload Photo</button>
+                                    {% if session['user'].get('profile_pic') %}
+                                    <button type="button" class="ta-btn ta-btn-danger ta-btn-sm" onclick="removeProfilePic()"><i class="fa-regular fa-trash-can" style="margin-right:4px;"></i> Remove</button>
+                                    {% endif %}
+                                </div>
+                                <input type="file" id="profile-pic-input" accept="image/*" style="display:none;" onchange="uploadProfilePic(this)">
+                                <div id="profile-pic-status" class="ta-event-info-banner hidden" style="margin-top:4px;"></div>
+                            </div>
+                        </div>
+                        <hr style="border:0; border-top:1px solid #E4E7EC; margin:0 0 24px;">
+
                         <div class="ta-form-group" style="margin-bottom:16px;">
                             <label class="ta-form-label">Full Name</label>
                             <input type="text" name="name" class="ta-form-input" placeholder="e.g. Jane Doe" value="{{ session['user'].get('name', '') }}">
@@ -261,22 +289,46 @@
     }
 
     // ── Section Switching ───────────────────────────────────────────
-    const sectionLabels = { events: 'Assigned Events', settings: 'Settings' };
+    const sections = {
+        'events':   { id: 'events',   label: 'Assigned Events' },
+        'settings': { id: 'settings', label: 'Settings' }
+    };
 
-    function switchSection(section, btn) {
+    function switchSection(name, btn) {
+        const cfg = sections[name];
+        if (!cfg) return;
+
         document.querySelectorAll('.ta-section').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.ta-menu-item').forEach(el => el.classList.remove('active'));
-        
-        const targetSec = document.getElementById(`sec-${section}`);
+
+        const targetSec = document.getElementById(`sec-${cfg.id}`);
         if (targetSec) targetSec.classList.add('active');
-        
-        const targetBtn = btn || document.getElementById(`mi-${section}`);
+
+        const targetBtn = btn || document.getElementById(`mi-${name}`);
         if (targetBtn) targetBtn.classList.add('active');
-        
-        const labelEl = document.querySelector('.ta-page-breadcrumb span');
-        if (labelEl) labelEl.textContent = sectionLabels[section] || section;
+
+        const labelEl = document.getElementById('breadcrumbLabel');
+        if (labelEl) labelEl.textContent = cfg.label;
+
+        // Set URL hash so refreshes stay on the same section tab
+        if (history.replaceState) {
+            history.replaceState(null, null, '#' + name);
+        } else {
+            window.location.hash = name;
+        }
+
         closeSidebar();
     }
+
+    // On refresh/load, auto-select tab matching URL hash
+    document.addEventListener('DOMContentLoaded', function() {
+        const hash = window.location.hash.replace('#', '');
+        if (hash && sections[hash]) {
+            switchSection(hash);
+        } else {
+            switchSection('events');
+        }
+    });
 
     // ── Settings Update Handler ──────────────────────────────────────
     async function handleSettingsUpdate(event) {
@@ -320,6 +372,69 @@
         } finally {
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Profile Changes';
+        }
+    }
+
+    // ── Profile Picture ─────────────────────────────────────────────
+    function _setProfilePicStatus(msg, isSuccess) {
+        const status = document.getElementById('profile-pic-status');
+        status.classList.remove('hidden');
+        status.style.background = isSuccess ? '#ECFDF5' : '#FEF2F2';
+        status.style.borderColor = isSuccess ? '#A7F3D0' : '#FECDD3';
+        status.style.color = isSuccess ? '#065F46' : '#991B1B';
+        status.textContent = msg;
+    }
+
+    function _refreshProfilePicPreview(path) {
+        const preview = document.getElementById('settings-avatar-preview');
+        preview.innerHTML = `<img src="/${path}?t=${Date.now()}" alt="Profile picture" style="width:100%;height:100%;object-fit:cover;">`;
+        const sidebarAvatar = document.querySelector('.ta-sidebar-user .user-avatar');
+        if (sidebarAvatar) {
+            sidebarAvatar.innerHTML = `<img src="/${path}?t=${Date.now()}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        }
+    }
+
+    async function uploadProfilePic(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const status = document.getElementById('profile-pic-status');
+        status.classList.add('hidden');
+
+        const formData = new FormData();
+        formData.append('profile_pic', file);
+
+        try {
+            const response = await fetch('/api/user/profile-pic', { method: 'POST', body: formData });
+            const res = await response.json();
+            if (res.success) {
+                _refreshProfilePicPreview(res.profile_pic);
+                _setProfilePicStatus(res.message || 'Profile picture updated!', true);
+                setTimeout(() => window.location.reload(), 700);
+            } else {
+                _setProfilePicStatus(res.message || 'Failed to upload photo.', false);
+            }
+        } catch (err) {
+            _setProfilePicStatus('Server connection failed. Please try again.', false);
+        } finally {
+            input.value = '';
+        }
+    }
+
+    async function removeProfilePic() {
+        if (!confirm('Remove your profile picture?')) return;
+        const status = document.getElementById('profile-pic-status');
+        status.classList.add('hidden');
+
+        try {
+            const response = await fetch('/api/user/profile-pic', { method: 'DELETE' });
+            const res = await response.json();
+            if (res.success) {
+                window.location.reload();
+            } else {
+                _setProfilePicStatus(res.message || 'Failed to remove photo.', false);
+            }
+        } catch (err) {
+            _setProfilePicStatus('Server connection failed. Please try again.', false);
         }
     }
 
