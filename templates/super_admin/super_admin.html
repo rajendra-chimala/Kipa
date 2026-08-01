@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
 <body style="margin:0;padding:0;background:#F9FAFB;">
 
@@ -16,35 +17,31 @@
     <!-- ═══ LEFT SIDEBAR ═══ -->
     <aside class="ta-sidebar" id="taSidebar">
 
-        <a href="/" class="ta-sidebar-logo">
-            <div class="logo-mark">📸</div>
-            <div class="logo-text">
-                KIPA (किपा)
-                <small>Super Admin</small>
-            </div>
+        <a href="/" class="ta-sidebar-logo" style="display:flex;align-items:center;gap:8px;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="KIPA Logo" style="height:38px;">
         </a>
 
         <nav class="ta-sidebar-nav">
             <div class="ta-menu-group-label">MONITORING</div>
 
             <button class="ta-menu-item active" id="mi-overview" onclick="switchSection('system-overview', this)">
-                <span class="ta-mi-icon">📊</span>
+                <span class="ta-mi-icon"><i class="fa-solid fa-chart-column"></i></span>
                 Global Stats
             </button>
 
             <button class="ta-menu-item" id="mi-users" onclick="switchSection('system-users', this)">
-                <span class="ta-mi-icon">👥</span>
+                <span class="ta-mi-icon"><i class="fa-solid fa-users"></i></span>
                 User Accounts
             </button>
 
             <button class="ta-menu-item" id="mi-events" onclick="switchSection('system-events', this)">
-                <span class="ta-mi-icon">📅</span>
+                <span class="ta-mi-icon"><i class="fa-solid fa-ticket"></i></span>
                 All Events
             </button>
 
             <div class="ta-menu-group-label">SITE</div>
             <a class="ta-menu-item" href="/">
-                <span class="ta-mi-icon">🌐</span>
+                <span class="ta-mi-icon"><i class="fa-solid fa-globe"></i></span>
                 View Site
             </a>
         </nav>
@@ -58,7 +55,7 @@
                 </div>
             </div>
             <a href="/logout" class="ta-sidebar-logout-btn">
-                ↩ Logout
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
             </a>
         </div>
     </aside>
@@ -77,8 +74,8 @@
                 </div>
             </div>
             <div class="ta-header-right">
-                <span class="ta-header-badge admin">🛡️ Super Admin</span>
-                <a href="/logout" class="ta-logout-btn">↩ Logout</a>
+                <span class="ta-header-badge admin" style="height:40px; border-radius:5px;"><i class="fa-solid fa-user-shield"></i> Super Admin</span>
+                <a href="/logout" class="ta-logout-btn" style="height:40px; border-radius:5px;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
             </div>
         </header>
 
@@ -99,42 +96,42 @@
 
                 <div class="ta-stats-grid">
                     <div class="ta-stat-card">
-                        <div class="ta-stat-icon purple">👥</div>
+                        <div class="ta-stat-icon purple"><i class="fa-solid fa-users" style="color:#6941C6;"></i></div>
                         <div class="ta-stat-body">
                             <div class="ta-stat-label">Total Users</div>
                             <div class="ta-stat-value purple">{{ stats['total_users'] }}</div>
                         </div>
                     </div>
                     <div class="ta-stat-card">
-                        <div class="ta-stat-icon blue">📅</div>
+                        <div class="ta-stat-icon blue"><i class="fa-solid fa-ticket" style="color:#1570EF;"></i></div>
                         <div class="ta-stat-body">
                             <div class="ta-stat-label">Total Events</div>
                             <div class="ta-stat-value">{{ stats['total_events'] }}</div>
                         </div>
                     </div>
                     <div class="ta-stat-card">
-                        <div class="ta-stat-icon green">🟢</div>
+                        <div class="ta-stat-icon green"><i class="fa-solid fa-circle-check" style="color:#039855;"></i></div>
                         <div class="ta-stat-body">
                             <div class="ta-stat-label">Active Events</div>
                             <div class="ta-stat-value green">{{ stats['active_events'] }}</div>
                         </div>
                     </div>
                     <div class="ta-stat-card">
-                        <div class="ta-stat-icon red">🔴</div>
+                        <div class="ta-stat-icon red"><i class="fa-solid fa-circle-xmark" style="color:#E5093A;"></i></div>
                         <div class="ta-stat-body">
                             <div class="ta-stat-label">Inactive Events</div>
                             <div class="ta-stat-value red">{{ stats['inactive_events'] }}</div>
                         </div>
                     </div>
                     <div class="ta-stat-card">
-                        <div class="ta-stat-icon orange">📤</div>
+                        <div class="ta-stat-icon orange"><i class="fa-solid fa-cloud-arrow-up" style="color:#B54708;"></i></div>
                         <div class="ta-stat-body">
                             <div class="ta-stat-label">Images Uploaded</div>
                             <div class="ta-stat-value">{{ stats['total_images'] }}</div>
                         </div>
                     </div>
                     <div class="ta-stat-card">
-                        <div class="ta-stat-icon blue">💾</div>
+                        <div class="ta-stat-icon blue"><i class="fa-solid fa-cloud-arrow-down" style="color:#1570EF;"></i></div>
                         <div class="ta-stat-body">
                             <div class="ta-stat-label">Images Downloaded</div>
                             <div class="ta-stat-value blue">{{ stats['total_downloads'] }}</div>
@@ -143,7 +140,7 @@
                 </div>
 
                 <div class="ta-info-card">
-                    <h4>🛡️ Super Admin Overview</h4>
+                    <h4><i class="fa-solid fa-shield-halved" style="color:var(--primary); margin-right:6px;"></i> Super Admin Overview</h4>
                     <p>You have full platform visibility. Switch to the sidebar tabs to manage User Accounts and inspect All Events across all photographers.</p>
                 </div>
             </div>
@@ -188,11 +185,11 @@
                                     </td>
                                     <td>
                                         {% if user.role == 'super_admin' %}
-                                            <span class="ta-badge purple">🛡️ Super Admin</span>
+                                            <span class="ta-badge purple"><i class="fa-solid fa-user-shield"></i> Super Admin</span>
                                         {% elif user.role == 'photographer' %}
-                                            <span class="ta-badge info">📷 Photographer</span>
+                                            <span class="ta-badge info"><i class="fa-solid fa-camera"></i> Photographer</span>
                                         {% else %}
-                                            <span class="ta-badge warning">🤝 Assistant</span>
+                                            <span class="ta-badge warning"><i class="fa-solid fa-user-group"></i> Assistant</span>
                                         {% endif %}
                                     </td>
                                     <td style="color:#667085;font-size:0.84rem;">{{ user.creator_name or 'System / Self' }}</td>

@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
 <body style="margin:0;padding:0;background:#F9FAFB;">
 
@@ -16,23 +17,19 @@
     <!-- ═══ LEFT SIDEBAR ═══ -->
     <aside class="ta-sidebar" id="taSidebar">
 
-        <a href="/" class="ta-sidebar-logo">
-            <div class="logo-mark">📸</div>
-            <div class="logo-text">
-                KIPA (किपा)
-                <small>Assistant Portal</small>
-            </div>
+        <a href="/" class="ta-sidebar-logo" style="display:flex;align-items:center;gap:8px;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="KIPA Logo" style="height:38px;">
         </a>
 
         <nav class="ta-sidebar-nav">
             <div class="ta-menu-group-label">MENU</div>
             <button class="ta-menu-item active">
-                <span class="ta-mi-icon">📅</span>
+                <span class="ta-mi-icon"><i class="fa-solid fa-ticket"></i></span>
                 Assigned Events
             </button>
             <div class="ta-menu-group-label">SITE</div>
             <a class="ta-menu-item" href="/">
-                <span class="ta-mi-icon">🌐</span>
+                <span class="ta-mi-icon"><i class="fa-solid fa-globe"></i></span>
                 View Site
             </a>
         </nav>
@@ -46,7 +43,7 @@
                 </div>
             </div>
             <a href="/logout" class="ta-sidebar-logout-btn">
-                ↩ Logout
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
             </a>
         </div>
     </aside>
@@ -65,8 +62,8 @@
                 </div>
             </div>
             <div class="ta-header-right">
-                <span class="ta-header-badge assistant">🤝 Assistant</span>
-                <a href="/logout" class="ta-logout-btn">↩ Logout</a>
+                <span class="ta-header-badge assistant" style="height:40px; border-radius: 5px;"><i class="fa-solid fa-user-group"></i> Assistant</span>
+                <a href="/logout" class="ta-logout-btn" style="height:40px; border-radius: 5px;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
             </div>
         </header>
 
