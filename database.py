@@ -42,6 +42,13 @@ def init_db():
             print("[DB] Migrated 'profile_pic' column into users table.")
 
     with conn:
+        cursor = conn.execute("PRAGMA table_info(events)")
+        e_cols = [row['name'] for row in cursor.fetchall()]
+        if e_cols and 'cover_image' not in e_cols:
+            conn.execute("ALTER TABLE events ADD COLUMN cover_image TEXT DEFAULT NULL")
+            print("[DB] Migrated 'cover_image' column into events table.")
+
+    with conn:
         # 1. Users Table
         conn.execute('''
             CREATE TABLE IF NOT EXISTS users (
@@ -68,6 +75,7 @@ def init_db():
                 status            TEXT    DEFAULT 'unpublished', -- 'published', 'unpublished'
                 deactivation_date TEXT    DEFAULT NULL, -- YYYY-MM-DD
                 download_limit    INTEGER DEFAULT 1,
+                cover_image       TEXT    DEFAULT NULL, -- uploaded cover photo path
                 created_at        TEXT    DEFAULT (datetime('now')),
                 FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE CASCADE
             )
@@ -277,22 +285,25 @@ def get_assistants_by_photographer(photographer_id):
 
 # ─── Event Helper Functions ──────────────────────────────────────────────────
 
-def create_event(name, description, created_by, status='unpublished', deactivation_date=None, download_limit=1):
+def create_event(name, description, created_by, status='unpublished', deactivation_date=None, download_limit=1, cover_image=None):
     """Create a new event."""
     conn = get_connection()
     with conn:
         cursor = conn.execute(
-            '''INSERT INTO events (name, description, created_by, status, deactivation_date, download_limit)
-               VALUES (?, ?, ?, ?, ?, ?)''',
-            (name, description, created_by, status, deactivation_date, download_limit)
+            '''INSERT INTO events (name, description, created_by, status, deactivation_date, download_limit, cover_image)
+               VALUES (?, ?, ?, ?, ?, ?, ?)''',
+            (name, description, created_by, status, deactivation_date, download_limit, cover_image)
         )
         event_id = cursor.lastrowid
     conn.close()
     return event_id
 
 
-def update_event(event_id, name=None, description=None, status=None, deactivation_date=None, download_limit=None):
-    """Update event properties dynamically."""
+def update_event(event_id, name=None, description=None, status=None, deactivation_date=None, download_limit=None, cover_image=None):
+    """Update event properties dynamically.
+
+    cover_image: a new relative path to store, None = leave unchanged, '' = clear it.
+    """
     conn = get_connection()
     updates = []
     params = []
@@ -314,6 +325,11 @@ def update_event(event_id, name=None, description=None, status=None, deactivatio
     if download_limit is not None:
         updates.append("download_limit = ?")
         params.append(int(download_limit))
+    if cover_image is not None:
+        # Empty string means clear the cover
+        val = cover_image if cover_image else None
+        updates.append("cover_image = ?")
+        params.append(val)
 
     if not updates:
         conn.close()

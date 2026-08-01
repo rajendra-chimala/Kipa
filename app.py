@@ -116,6 +116,39 @@ def unique_filename(filename):
     return f"{timestamp}_{secure_filename(filename)}"
 
 
+def _remove_cover_file(path):
+    """Best-effort delete of a stored cover image from disk."""
+    if path and path.startswith('static/') and os.path.exists(path):
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+
+def _save_event_cover(cover_file, event_id, old_path=None):
+    """Persist an uploaded cover image for an event.
+
+    Returns the normalized web path (relative, forward-slash). Raises ValueError
+    if a file was provided but is not a supported image type.
+    """
+    if cover_file is None or cover_file.filename == '':
+        return None
+    if not allowed_file(cover_file.filename):
+        raise ValueError('Cover image must be JPG, PNG or WEBP.')
+
+    event_upload_dir = os.path.join(app.config['UPLOAD_FOLDER'], str(event_id))
+    os.makedirs(event_upload_dir, exist_ok=True)
+    ext = os.path.splitext(cover_file.filename)[1].lower()
+    fname = f"cover_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}{ext}"
+    save_path = os.path.join(event_upload_dir, fname)
+    cover_file.save(save_path)
+
+    relative_path = save_path.replace('\\', '/')
+    if old_path and old_path != relative_path:
+        _remove_cover_file(old_path)
+    return relative_path
+
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -552,6 +585,10 @@ def api_create_event():
     if not name:
         return jsonify({'success': False, 'message': 'Event name is required.'}), 400
 
+    cover_file = request.files.get('cover_image')
+    if cover_file and cover_file.filename and not allowed_file(cover_file.filename):
+        return jsonify({'success': False, 'message': 'Cover image must be JPG, PNG or WEBP.'}), 400
+
     role = session['user']['role']
     created_by = session['user']['id']
 
@@ -581,6 +618,15 @@ def api_create_event():
         )
     except Exception as e:
         return jsonify({'success': False, 'message': f'Failed to create event: {str(e)}'}), 500
+
+    # Save cover image (if any) after event exists so we can store under <event_id>/
+    if cover_file and cover_file.filename:
+        try:
+            cover_path = _save_event_cover(cover_file, event_id)
+            if cover_path:
+                update_event(event_id, cover_image=cover_path)
+        except ValueError as e:
+            return jsonify({'success': False, 'message': str(e)}), 400
 
     flash(f"Event '{name}' created successfully as unpublished.", "success")
     return jsonify({'success': True, 'event_id': event_id})
@@ -628,13 +674,25 @@ def api_update_event(event_id):
         return jsonify({'success': True, 'message': 'Event status updated successfully.'})
 
     # Photographers and Admin can update everything
+    cover_file = request.files.get('cover_image')
+    if cover_file and cover_file.filename and not allowed_file(cover_file.filename):
+        return jsonify({'success': False, 'message': 'Cover image must be JPG, PNG or WEBP.'}), 400
+
+    cover_path = None  # None = leave unchanged
+    if cover_file and cover_file.filename:
+        cover_path = _save_event_cover(cover_file, event_id, event.get('cover_image'))
+    elif data.get('remove_cover') in ('1', 'true', 'on'):
+        _remove_cover_file(event.get('cover_image'))
+        cover_path = ''  # clear it
+
     update_event(
         event_id,
         name=name,
         description=description,
         status=status,
         deactivation_date=deactivation_date,
-        download_limit=download_limit
+        download_limit=download_limit,
+        cover_image=cover_path
     )
     return jsonify({'success': True, 'message': 'Event updated successfully.'})
 
@@ -657,6 +715,7 @@ def api_delete_event(event_id):
         return jsonify({'success': False, 'message': 'Unauthorized.'}), 403
 
     # Remove uploaded files from disk first
+    _remove_cover_file(event.get('cover_image'))
     images = get_images_by_event(event_id)
     for img in images:
         path = img['image_path']

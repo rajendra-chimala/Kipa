@@ -397,12 +397,16 @@
                                                     <i class="fa-regular fa-images" style="margin-right:4px;"></i> Photos
                                                 </button>
                                                 <button class="ta-btn ta-btn-secondary ta-btn-sm"
-                                                    onclick="openEditEventModal({{ event.id }}, '{{ event.name|escape }}', '{{ event.description|escape }}', '{{ event.deactivation_date or '' }}', {{ event.download_limit }}, '{{ event.status }}')">
+                                                    onclick="openEditEventModal({{ event.id }}, '{{ event.name|escape }}', '{{ event.description|escape }}', '{{ event.deactivation_date or '' }}', {{ event.download_limit }}, '{{ event.status }}', '{{ event.cover_image or '' }}')">
                                                     <i class="fa-solid fa-gear" style="margin-right:4px;"></i> Settings
                                                 </button>
                                                 <button class="ta-btn ta-btn-secondary ta-btn-sm"
                                                     onclick="openAssignAssistantModal({{ event.id }}, '{{ event.name|escape }}')">
                                                     <i class="fa-solid fa-user-shield" style="margin-right:4px;"></i> Perms
+                                                </button>
+                                                <button class="ta-btn ta-btn-danger ta-btn-sm"
+                                                    onclick="deleteEvent({{ event.id }}, '{{ event.name|escape }}')">
+                                                    <i class="fa-regular fa-trash-can" style="margin-right:4px;"></i> Delete
                                                 </button>
                                             </div>
                                         </td>
@@ -816,6 +820,14 @@
                         <input class="ta-form-input" type="number" id="create-event-limit" name="download_limit"
                             value="1" min="1" required>
                     </div>
+                    <div class="ta-form-group">
+                        <label class="ta-form-label" for="create-event-cover">Cover Image</label>
+                        <input class="ta-form-input" type="file" id="create-event-cover" name="cover_image"
+                            accept="image/*" onchange="previewCover(this, 'create-cover-preview', 'create-cover-preview-wrap', null)">
+                        <div class="ta-cover-preview-wrap" id="create-cover-preview-wrap" style="display:none;">
+                            <img id="create-cover-preview" alt="Cover preview">
+                        </div>
+                    </div>
                 </div>
                 <div class="ta-modal-footer">
                     <button type="button" class="ta-btn ta-btn-secondary"
@@ -856,6 +868,18 @@
                         <label class="ta-form-label" for="edit-event-limit">Download Limit</label>
                         <input class="ta-form-input" type="number" id="edit-event-limit" name="download_limit" min="1"
                             required>
+                    </div>
+                    <div class="ta-form-group">
+                        <label class="ta-form-label" for="edit-event-cover">Cover Image</label>
+                        <input class="ta-form-input" type="file" id="edit-event-cover" name="cover_image"
+                            accept="image/*" onchange="previewCover(this, 'edit-cover-preview', 'edit-cover-current', 'edit-remove-cover')">
+                        <input type="hidden" id="edit-remove-cover" name="remove_cover" value="">
+                        <div class="ta-cover-preview-wrap" id="edit-cover-current" style="display:none;">
+                            <img id="edit-cover-preview" alt="Current cover">
+                            <button type="button" class="ta-btn ta-btn-danger ta-btn-sm" onclick="removeEditCover()">
+                                <i class="fa-regular fa-trash-can" style="margin-right:4px;"></i> Remove Cover
+                            </button>
+                        </div>
                     </div>
                     <div class="ta-form-group">
                         <label class="ta-form-label" for="edit-event-status">Publish Status</label>
@@ -1195,13 +1219,22 @@
             } catch (err) { alert("Server connection failed."); }
         }
 
-        function openEditEventModal(id, name, desc, deactDate, limit, status) {
+        function openEditEventModal(id, name, desc, deactDate, limit, status, cover) {
             document.getElementById('edit-event-id').value = id;
             document.getElementById('edit-event-name').value = name;
             document.getElementById('edit-event-desc').value = desc;
             document.getElementById('edit-event-date').value = deactDate;
             document.getElementById('edit-event-limit').value = limit;
             document.getElementById('edit-event-status').value = status;
+            document.getElementById('edit-event-cover').value = '';
+            document.getElementById('edit-remove-cover').value = '';
+            const wrap = document.getElementById('edit-cover-current');
+            if (cover) {
+                document.getElementById('edit-cover-preview').src = '/' + cover;
+                wrap.style.display = 'block';
+            } else {
+                wrap.style.display = 'none';
+            }
             openModal('modal-edit-event');
         }
 
@@ -1215,6 +1248,33 @@
                 const res = await response.json();
                 if (res.success) { window.location.reload(); } else { alert(res.message); }
             } catch (err) { alert("Server connection failed."); }
+        }
+
+        async function deleteEvent(eventId, name) {
+            if (!confirm(`Are you sure you want to delete the event "${name}"?\n\nThis will permanently remove the event and all of its uploaded photos.`)) return;
+            try {
+                const response = await fetch(`/api/event/${eventId}/delete`, { method: 'POST', body: new FormData() });
+                const res = await response.json();
+                if (res.success) { window.location.reload(); } else { alert(res.message || 'Failed to delete event.'); }
+            } catch (err) { alert("Server connection failed."); }
+        }
+
+        function previewCover(input, imgId, wrapId, removeId) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById(imgId).src = e.target.result;
+                document.getElementById(wrapId).style.display = 'block';
+                if (removeId) document.getElementById(removeId).value = '';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeEditCover() {
+            document.getElementById('edit-cover-current').style.display = 'none';
+            document.getElementById('edit-remove-cover').value = '1';
+            document.getElementById('edit-event-cover').value = '';
         }
 
         // ── Assistant CRUD ──────────────────────────────────────────────

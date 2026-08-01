@@ -341,7 +341,7 @@
                                     <td>
                                         <div class="td-actions">
                                             <button class="ta-btn ta-btn-secondary ta-btn-sm"
-                                                onclick="openEditEventModal({{ event.id }}, '{{ event.name|e }}', '{{ event.description|e }}', '{{ event.deactivation_date or '' }}', '{{ event.status }}')">
+                                                onclick="openEditEventModal({{ event.id }}, '{{ event.name|e }}', '{{ event.description|e }}', '{{ event.deactivation_date or '' }}', '{{ event.status }}', '{{ event.cover_image or '' }}')">
                                                 <i class="fa-solid fa-pen" style="margin-right:4px;"></i> Edit
                                             </button>
                                             <button class="ta-btn ta-btn-danger ta-btn-sm"
@@ -643,6 +643,14 @@
                     <input class="ta-form-input" type="number" id="create-event-limit" name="download_limit"
                         value="1" min="1" required>
                 </div>
+                <div class="ta-form-group">
+                    <label class="ta-form-label" for="create-event-cover">Cover Image</label>
+                    <input class="ta-form-input" type="file" id="create-event-cover" name="cover_image"
+                        accept="image/*" onchange="previewCover(this, 'create-cover-preview', 'create-cover-preview-wrap', null)">
+                    <div class="ta-cover-preview-wrap" id="create-cover-preview-wrap" style="display:none;">
+                        <img id="create-cover-preview" alt="Cover preview">
+                    </div>
+                </div>
             </div>
             <div class="ta-modal-footer">
                 <button type="button" class="ta-btn ta-btn-secondary"
@@ -684,6 +692,18 @@
                     <label class="ta-form-label" for="edit-event-limit">Download Limit</label>
                     <input class="ta-form-input" type="number" id="edit-event-limit" name="download_limit" min="1"
                         required>
+                </div>
+                <div class="ta-form-group">
+                    <label class="ta-form-label" for="edit-event-cover">Cover Image</label>
+                    <input class="ta-form-input" type="file" id="edit-event-cover" name="cover_image"
+                        accept="image/*" onchange="previewCover(this, 'edit-cover-preview', 'edit-cover-current', 'edit-remove-cover')">
+                    <input type="hidden" id="edit-remove-cover" name="remove_cover" value="">
+                    <div class="ta-cover-preview-wrap" id="edit-cover-current" style="display:none;">
+                        <img id="edit-cover-preview" alt="Current cover">
+                        <button type="button" class="ta-btn ta-btn-danger ta-btn-sm" onclick="removeEditCover()">
+                            <i class="fa-regular fa-trash-can" style="margin-right:4px;"></i> Remove Cover
+                        </button>
+                    </div>
                 </div>
                 <div class="ta-form-group">
                     <label class="ta-form-label" for="edit-event-status">Publish Status</label>
@@ -1019,14 +1039,41 @@
         }
     }
 
-    function openEditEventModal(id, name, desc, deactDate, status) {
+    function openEditEventModal(id, name, desc, deactDate, status, cover) {
         document.getElementById('edit-event-id').value = id;
         document.getElementById('edit-event-name').value = name;
         document.getElementById('edit-event-desc').value = desc;
         document.getElementById('edit-event-date').value = deactDate;
         document.getElementById('edit-event-status').value = status;
+        document.getElementById('edit-event-cover').value = '';
+        document.getElementById('edit-remove-cover').value = '';
+        const wrap = document.getElementById('edit-cover-current');
+        if (cover) {
+            document.getElementById('edit-cover-preview').src = '/' + cover;
+            wrap.style.display = 'block';
+        } else {
+            wrap.style.display = 'none';
+        }
         document.getElementById('edit-event-alert-error').classList.add('hidden');
         openModal('modal-edit-event');
+    }
+
+    function previewCover(input, imgId, wrapId, removeId) {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            document.getElementById(imgId).src = e.target.result;
+            document.getElementById(wrapId).style.display = 'block';
+            if (removeId) document.getElementById(removeId).value = '';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeEditCover() {
+        document.getElementById('edit-cover-current').style.display = 'none';
+        document.getElementById('edit-remove-cover').value = '1';
+        document.getElementById('edit-event-cover').value = '';
     }
 
     async function submitEditEvent(e) {

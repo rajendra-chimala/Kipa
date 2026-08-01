@@ -34,17 +34,32 @@
             {% else %}
                 {% for event in events %}
                 <div class="event-public-card" onclick="window.location.href='/event/{{ event.id }}'">
-                    <div class="event-card-header">
-                        <span class="badge badge-active"><i class="fa-solid fa-circle" style="font-size:0.5rem; color:#12B76A;"></i> Active</span>
-                        <span class="event-creator">By {{ event.creator_name }}</span>
+                    <div class="event-card-cover">
+                        {% if event.cover_image %}
+                        <img src="/{{ event.cover_image }}" alt="{{ event.name }}" class="event-cover-img">
+                        {% else %}
+                        <div class="event-cover-placeholder"><i class="fa-solid fa-images"></i></div>
+                        {% endif %}
+                        <span class="event-active-badge"><span class="event-active-dot"></span> Active</span>
                     </div>
-                    <h3 class="event-card-title">{{ event.name }}</h3>
-                    <p class="event-card-desc">{{ event.description or 'No description provided.' }}</p>
-                    {% if event.deactivation_date %}
-                    <div class="event-card-expiry"><i class="fa-solid fa-clock"></i> Expires: {{ event.deactivation_date }}</div>
-                    {% endif %}
-                    <div class="event-card-action">
-                        <span class="btn btn-primary btn-sm btn-block"><i class="fa-solid fa-face-viewfinder"></i> Scan Face &amp; Find Photos</span>
+                    <div class="event-card-body">
+                        <div class="event-card-head">
+                            <h3 class="event-card-title">{{ event.name }}</h3>
+                            <div class="event-creator">
+                                <span class="event-creator-avatar">{{ event.creator_name.split()[0][0] | upper if event.creator_name and event.creator_name.split() else 'U' }}{{ event.creator_name.split()[-1][0] | upper if event.creator_name and event.creator_name.split()|length > 1 else '' }}</span>
+                                <span>By {{ event.creator_name }}</span>
+                            </div>
+                        </div>
+                        <p class="event-card-desc">{{ event.description or 'No description provided.' }}</p>
+                        {% if event.deactivation_date %}
+                        <div class="event-card-expiry">
+                            <span class="event-expiry-icon"><i class="fa-solid fa-calendar-days"></i></span>
+                            <span>Expires: {{ event.deactivation_date }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="event-card-action">
+                            <span class="btn btn-primary btn-sm btn-block"><i class="fa-solid fa-camera"></i> Scan Face &amp; Find Photos</span>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}

@@ -19,6 +19,11 @@
     <!-- Page Header -->
     <header class="event-header container">
         <div class="event-meta-card">
+            {% if event.cover_image %}
+            <div class="event-cover-hero">
+                <img src="/{{ event.cover_image }}" alt="{{ event.name }}">
+            </div>
+            {% endif %}
             <div class="event-meta-header">
                 <span class="badge badge-active"><i class="fa-solid fa-circle"></i> Active Event</span>
                 <span class="event-date">Published by <strong>{{ event.creator_name }}</strong></span>
