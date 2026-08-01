@@ -18,7 +18,22 @@
         <div class="nav-links">
             <a href="/" class="nav-link">Home</a>
         </div>
+        <button class="nav-hamburger" id="navHamburger" aria-label="Open menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
     </nav>
+
+    <!-- Mobile Nav Drawer -->
+    <div class="mobile-nav-drawer" id="mobileNavDrawer">
+        <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
+        <div class="mobile-nav-panel">
+            <div class="mobile-nav-header">
+                <span class="brand-name">KIPA (किपा)</span>
+                <button class="mobile-nav-close" id="mobileNavClose">✕</button>
+            </div>
+            <a href="/" class="mobile-nav-link">🏠 Home</a>
+        </div>
+    </div>
 
     <main class="auth-container">
         <div class="auth-card">
@@ -114,16 +129,12 @@
 
                 if (response.ok && result.success) {
                     if (endpoint.includes('login')) {
-                        // Redirect to appropriate dashboard
                         window.location.href = result.redirect;
                     } else {
-                        // Sign up success
                         successDiv.textContent = "Registration successful! You can now sign in.";
                         successDiv.classList.remove('hidden');
                         form.reset();
-                        setTimeout(() => {
-                            switchTab('login');
-                        }, 1500);
+                        setTimeout(() => { switchTab('login'); }, 1500);
                     }
                 } else {
                     errorDiv.textContent = result.message || "An error occurred. Please try again.";
@@ -135,6 +146,18 @@
                 errorDiv.classList.remove('hidden');
             }
         }
+
+        // Mobile navigation
+        const hamburger = document.getElementById('navHamburger');
+        const mobileDrawer = document.getElementById('mobileNavDrawer');
+        const mobileClose = document.getElementById('mobileNavClose');
+        const mobileBackdrop = document.getElementById('mobileNavBackdrop');
+        function openMobileNav() { mobileDrawer.classList.add('open'); hamburger.classList.add('open'); document.body.style.overflow = 'hidden'; }
+        function closeMobileNav() { mobileDrawer.classList.remove('open'); hamburger.classList.remove('open'); document.body.style.overflow = ''; }
+        hamburger.addEventListener('click', openMobileNav);
+        mobileClose.addEventListener('click', closeMobileNav);
+        mobileBackdrop.addEventListener('click', closeMobileNav);
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileNav(); });
     </script>
 </body>
 </html>
