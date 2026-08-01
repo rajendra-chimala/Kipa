@@ -28,9 +28,15 @@ def init_db():
     with conn:
         cursor = conn.execute("PRAGMA table_info(face_encodings)")
         cols = [row['name'] for row in cursor.fetchall()]
-        if cols and 'image_path' in cols:
-            conn.execute("DROP TABLE IF EXISTS face_encodings")
-            print("[DB] Dropped old face_encodings table to migrate to new layout.")
+    with conn:
+        cursor = conn.execute("PRAGMA table_info(users)")
+        u_cols = [row['name'] for row in cursor.fetchall()]
+        if u_cols and 'name' not in u_cols:
+            conn.execute("ALTER TABLE users ADD COLUMN name TEXT DEFAULT ''")
+            print("[DB] Migrated 'name' column into users table.")
+        if u_cols and 'email' not in u_cols:
+            conn.execute("ALTER TABLE users ADD COLUMN email TEXT DEFAULT ''")
+            print("[DB] Migrated 'email' column into users table.")
 
     with conn:
         # 1. Users Table
@@ -38,6 +44,8 @@ def init_db():
             CREATE TABLE IF NOT EXISTS users (
                 id            INTEGER PRIMARY KEY AUTOINCREMENT,
                 username      TEXT    UNIQUE NOT NULL,
+                name          TEXT    DEFAULT '',
+                email         TEXT    DEFAULT '',
                 password_hash TEXT    NOT NULL,
                 role          TEXT    NOT NULL, -- 'super_admin', 'photographer', 'assistant'
                 created_by    INTEGER DEFAULT NULL, -- referencing users(id) for assistants
@@ -155,7 +163,7 @@ def verify_user(username, password):
     """Verify credentials and return user dict if correct, else None."""
     conn = get_connection()
     row = conn.execute(
-        'SELECT id, username, password_hash, role FROM users WHERE username = ?',
+        'SELECT id, username, name, email, password_hash, role FROM users WHERE username = ?',
         (username,)
     ).fetchone()
     conn.close()
@@ -164,6 +172,8 @@ def verify_user(username, password):
         return {
             'id': row['id'],
             'username': row['username'],
+            'name': row['name'] if row['name'] is not None else '',
+            'email': row['email'] if row['email'] is not None else '',
             'role': row['role']
         }
     return None
@@ -173,13 +183,71 @@ def get_user_by_id(user_id):
     """Fetch user by primary key."""
     conn = get_connection()
     row = conn.execute(
-        'SELECT id, username, role, created_by, created_at FROM users WHERE id = ?',
+        'SELECT id, username, name, email, role, created_by, created_at FROM users WHERE id = ?',
         (user_id,)
     ).fetchone()
     conn.close()
     if row:
         return dict(row)
     return None
+
+
+def update_user_profile(user_id, name=None, email=None, username=None, current_password=None, new_password=None):
+    """Update profile details (name, email, username, password) for a user."""
+    conn = get_connection()
+    row = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    if not row:
+        conn.close()
+        return {'success': False, 'message': 'User account not found.'}
+
+    # If password update requested, verify current password
+    if new_password and new_password.strip():
+        if not current_password or not check_password_hash(row['password_hash'], current_password):
+            conn.close()
+            return {'success': False, 'message': 'Current password is incorrect.'}
+
+    # If username is changing, check uniqueness
+    if username and username.strip() and username.strip() != row['username']:
+        existing = conn.execute('SELECT id FROM users WHERE username = ? AND id != ?', (username.strip(), user_id)).fetchone()
+        if existing:
+            conn.close()
+            return {'success': False, 'message': 'Username is already taken by another account.'}
+
+    updates = []
+    params = []
+
+    if name is not None:
+        updates.append("name = ?")
+        params.append(name.strip())
+    if email is not None:
+        updates.append("email = ?")
+        params.append(email.strip())
+    if username is not None and username.strip():
+        updates.append("username = ?")
+        params.append(username.strip())
+    if new_password and new_password.strip():
+        updates.append("password_hash = ?")
+        params.append(generate_password_hash(new_password.strip()))
+
+    if not updates:
+        conn.close()
+        return {'success': True, 'message': 'No changes detected.'}
+
+    params.append(user_id)
+    try:
+        with conn:
+            conn.execute(f"UPDATE users SET {', '.join(updates)} WHERE id = ?", params)
+        
+        updated = conn.execute('SELECT id, username, name, email, role FROM users WHERE id = ?', (user_id,)).fetchone()
+        conn.close()
+        return {
+            'success': True,
+            'message': 'Profile updated successfully!',
+            'user': dict(updated)
+        }
+    except Exception as e:
+        conn.close()
+        return {'success': False, 'message': f'Failed to update profile: {str(e)}'}
 
 
 def get_assistants_by_photographer(photographer_id):

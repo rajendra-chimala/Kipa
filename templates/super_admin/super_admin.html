@@ -39,6 +39,11 @@
                 All Events
             </button>
 
+            <button class="ta-menu-item" id="mi-settings" onclick="switchSection('settings', this)">
+                <span class="ta-mi-icon"><i class="fa-solid fa-gear"></i></span>
+                Settings
+            </button>
+
             <div class="ta-menu-group-label">SITE</div>
             <a class="ta-menu-item" href="/">
                 <span class="ta-mi-icon"><i class="fa-solid fa-globe"></i></span>
@@ -256,6 +261,58 @@
                         </table>
                     </div>
                 </div>
+            </div><!-- end #sec-system-events -->
+
+            <!-- ══ SECTION 4: Settings ══ -->
+            <div id="sec-settings" class="ta-section">
+                <div>
+                    <div class="ta-section-header">
+                        <div>
+                            <div class="ta-section-title">Account Settings</div>
+                            <div class="ta-section-sub">Update your display name, email, username and password</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ta-info-card" style="max-width:640px;">
+                    <form id="form-settings" onsubmit="handleSettingsUpdate(event)">
+                        <div id="settings-alert-success" class="ta-event-info-banner hidden" style="background:#ECFDF5; border-color:#A7F3D0; color:#065F46; margin-bottom:16px;"></div>
+                        <div id="settings-alert-error" class="ta-event-info-banner hidden" style="background:#FEF2F2; border-color:#FECDD3; color:#991B1B; margin-bottom:16px;"></div>
+
+                        <div class="ta-form-group" style="margin-bottom:16px;">
+                            <label class="ta-form-label">Full Name</label>
+                            <input type="text" name="name" class="ta-form-input" placeholder="e.g. Super Admin" value="{{ session['user'].get('name', '') }}">
+                        </div>
+
+                        <div class="ta-form-group" style="margin-bottom:16px;">
+                            <label class="ta-form-label">Email Address</label>
+                            <input type="email" name="email" class="ta-form-input" placeholder="e.g. admin@example.com" value="{{ session['user'].get('email', '') }}">
+                        </div>
+
+                        <div class="ta-form-group" style="margin-bottom:20px;">
+                            <label class="ta-form-label">Username <span class="required">*</span></label>
+                            <input type="text" name="username" class="ta-form-input" placeholder="Username" value="{{ session['user'].get('username', '') }}" required>
+                        </div>
+
+                        <hr style="border:0; border-top:1px solid #E4E7EC; margin:24px 0;">
+                        
+                        <h4 style="font-size:0.95rem; font-weight:700; color:#101828; margin-bottom:12px;">Change Password</h4>
+
+                        <div class="ta-form-group" style="margin-bottom:16px;">
+                            <label class="ta-form-label">Current Password <small style="color:#667085;">(Required only if changing password)</small></label>
+                            <input type="password" name="current_password" class="ta-form-input" placeholder="••••••••" autocomplete="current-password">
+                        </div>
+
+                        <div class="ta-form-group" style="margin-bottom:24px;">
+                            <label class="ta-form-label">New Password</label>
+                            <input type="password" name="new_password" class="ta-form-input" placeholder="••••••••" autocomplete="new-password">
+                        </div>
+
+                        <button type="submit" class="ta-btn ta-btn-primary ta-btn-lg">
+                            <i class="fa-solid fa-floppy-disk"></i> Save Profile Changes
+                        </button>
+                    </form>
+                </div>
             </div>
 
         </main>
@@ -279,7 +336,8 @@
     const sectionLabels = {
         'system-overview': 'Global Stats',
         'system-users':    'User Accounts',
-        'system-events':   'All Events'
+        'system-events':   'All Events',
+        'settings':        'Settings'
     };
 
     function switchSection(section, btn) {
@@ -289,6 +347,51 @@
         if (btn) btn.classList.add('active');
         document.getElementById('breadcrumbLabel').textContent = sectionLabels[section] || section;
         closeSidebar();
+    }
+
+    // ── Settings Update Handler ──────────────────────────────────────
+    async function handleSettingsUpdate(event) {
+        event.preventDefault();
+        const form = event.target;
+        const btn = form.querySelector('button[type="submit"]');
+        const succAlert = document.getElementById('settings-alert-success');
+        const errAlert = document.getElementById('settings-alert-error');
+
+        succAlert.classList.add('hidden');
+        errAlert.classList.add('hidden');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch('/api/user/profile', {
+                method: 'POST',
+                body: formData
+            });
+            const res = await response.json();
+
+            if (response.ok && res.success) {
+                succAlert.textContent = res.message || 'Profile updated successfully!';
+                succAlert.classList.remove('hidden');
+                form.querySelector('input[name="current_password"]').value = '';
+                form.querySelector('input[name="new_password"]').value = '';
+                const userNameEl = document.querySelector('.ta-sidebar-user .user-name');
+                if (userNameEl && res.user && res.user.username) {
+                    userNameEl.textContent = res.user.name || res.user.username;
+                }
+            } else {
+                errAlert.textContent = res.message || 'Failed to update profile.';
+                errAlert.classList.remove('hidden');
+            }
+        } catch(err) {
+            console.error(err);
+            errAlert.textContent = 'Connection error. Please try again.';
+            errAlert.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Profile Changes';
+        }
     }
 </script>
 </body>

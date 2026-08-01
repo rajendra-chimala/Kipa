@@ -50,7 +50,8 @@ from database import (
     get_photographer_stats,
     get_photographer_daily_downloads,
     get_photographer_event_chart_data,
-    get_all_users_with_creators
+    get_all_users_with_creators,
+    update_user_profile
 )
 
 # ─── App Configuration ───────────────────────────────────────────────────────
@@ -230,6 +231,40 @@ def logout():
     return redirect(url_for('index'))
 
 
+# ─── User Profile API ────────────────────────────────────────────────────────
+
+@app.route('/api/user/profile', methods=['POST'])
+def api_update_user_profile():
+    """Update profile settings (name, email, username, password) for logged in user."""
+    if not session.get('user'):
+        return jsonify({'success': False, 'message': 'Unauthorized. Please sign in.'}), 401
+    
+    user_id = session['user']['id']
+    data = request.form
+    name = data.get('name')
+    email = data.get('email')
+    username = data.get('username')
+    current_password = data.get('current_password')
+    new_password = data.get('new_password')
+
+    res = update_user_profile(
+        user_id=user_id,
+        name=name,
+        email=email,
+        username=username,
+        current_password=current_password,
+        new_password=new_password
+    )
+
+    if res.get('success') and 'user' in res:
+        session['user']['username'] = res['user']['username']
+        session['user']['name'] = res['user']['name']
+        session['user']['email'] = res['user']['email']
+        session.modified = True
+
+    return jsonify(res)
+
+
 # ─── Dashboards ──────────────────────────────────────────────────────────────
 
 @app.route('/dashboard')
@@ -237,6 +272,13 @@ def logout():
 def photographer_dashboard():
     """Photographer Dashboard."""
     p_id = session['user']['id']
+    u_info = get_user_by_id(p_id)
+    if u_info:
+        session['user']['name'] = u_info.get('name', '')
+        session['user']['email'] = u_info.get('email', '')
+        session['user']['username'] = u_info.get('username', '')
+        session.modified = True
+
     events = get_events_by_photographer(p_id)
     assistants = get_assistants_by_photographer(p_id)
     stats = get_photographer_stats(p_id)
@@ -274,6 +316,13 @@ def api_photographer_event_stats():
 def assistant_dashboard():
     """Assistant Dashboard."""
     a_id = session['user']['id']
+    u_info = get_user_by_id(a_id)
+    if u_info:
+        session['user']['name'] = u_info.get('name', '')
+        session['user']['email'] = u_info.get('email', '')
+        session['user']['username'] = u_info.get('username', '')
+        session.modified = True
+
     assigned_events = get_assigned_events_for_assistant(a_id)
     return render_template('assistant/assistant_dashboard.html', events=assigned_events)
 
@@ -282,6 +331,14 @@ def assistant_dashboard():
 @role_required('super_admin')
 def super_admin_dashboard():
     """Super Admin Dashboard."""
+    admin_id = session['user']['id']
+    u_info = get_user_by_id(admin_id)
+    if u_info:
+        session['user']['name'] = u_info.get('name', '')
+        session['user']['email'] = u_info.get('email', '')
+        session['user']['username'] = u_info.get('username', '')
+        session.modified = True
+
     stats = get_global_stats()
     users = get_all_users_with_creators()
     events = get_all_events_with_creators()
@@ -861,6 +918,49 @@ def api_match_face(event_id):
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'message': f'Internal match error: {str(e)}'}), 500
+
+
+# ─── User Profile API ─────────────────────────────────────────────────────────
+
+@app.route('/api/user/profile', methods=['POST'])
+@login_required
+def api_update_profile():
+    """Update the currently logged-in user's profile (name, email, username, password)."""
+    user_id = session['user']['id']
+    data = request.get_json() or {}
+
+    name             = data.get('name', '').strip()
+    email            = data.get('email', '').strip()
+    username         = data.get('username', '').strip()
+    current_password = data.get('current_password', '').strip()
+    new_password     = data.get('new_password', '').strip()
+
+    if not username:
+        return jsonify({'success': False, 'message': 'Username is required.'}), 400
+
+    result = update_user_profile(
+        user_id,
+        name=name if name else None,
+        email=email if email else None,
+        username=username,
+        current_password=current_password if current_password else None,
+        new_password=new_password if new_password else None,
+    )
+
+    if result['success'] and 'user' in result:
+        # Refresh session so header and avatar update immediately
+        session['user'] = {
+            'id':       result['user']['id'],
+            'username': result['user']['username'],
+            'name':     result['user'].get('name', ''),
+            'email':    result['user'].get('email', ''),
+            'role':     result['user']['role'],
+        }
+        session.modified = True
+
+    status_code = 200 if result['success'] else 400
+    return jsonify(result), status_code
+
 
 
 @app.route('/api/download/<int:image_id>')
