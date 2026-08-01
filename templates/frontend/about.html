@@ -8,8 +8,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+    {% include 'frontend/partials/favicons.html' %}
 </head>
-<body class="page-inner">
+<body class="page-inner page-about">
 
     {% include 'frontend/partials/preloader.html' %}
 
@@ -19,78 +20,92 @@
     <div class="page-header container">
         <div class="page-header-icon"><i class="fa-solid fa-circle-info"></i></div>
         <h1 class="page-title">About KIPA</h1>
-        <p class="page-subtitle">KIPA (किपा) means “memory” — built to reunite people with their favourite moments.</p>
+        <p class="page-subtitle">KIPA (किपा) means “memory” : built to reunite people with their favourite moments.</p>
     </div>
 
-    <main class="container" style="padding-bottom: 80px;">
+    <main class="container about-main">
 
         <!-- Mission -->
-        <section class="how-it-works container" style="padding-top: 0;">
-            <div class="section-header">
-                <h2 class="section-title">Our Mission</h2>
-                <p class="section-sub">Every event photo should reach the right person, in seconds, without compromising privacy.</p>
-            </div>
-            <p style="max-width: 760px; margin: 0 auto; line-height: 1.8; color: var(--text-secondary); text-align: center;">
-                After every wedding, conference, concert or school function, photographers are left delivering thousands of photos to
-                hundreds of people. Attendees are left scrolling through endless galleries hoping to spot themselves. KIPA solves both
-                problems at once: photographers upload once, and every guest retrieves their own photos by scanning their face — in
-                milliseconds, with the strongest privacy protections.
+        <section class="about-mission">
+            <span class="about-eyebrow"><i class="fa-solid fa-bullseye"></i> Our Mission</span>
+            <h2 class="about-heading">Every event photo reaches the right person — in seconds, without compromising privacy.</h2>
+            <p class="about-lead">
+                After every wedding, conference, concert or school function, photographers are left delivering thousands of
+                photos to hundreds of people. Attendees are left scrolling through endless galleries hoping to spot themselves.
+                KIPA solves both problems at once: photographers upload once, and every guest retrieves their own photos by
+                scanning their face — in milliseconds, with the strongest privacy protections.
             </p>
+            <div class="about-mission-points">
+                <span class="about-point"><i class="fa-solid fa-circle-check"></i> Privacy by design</span>
+                <span class="about-point"><i class="fa-solid fa-circle-check"></i> Instant delivery</span>
+                <span class="about-point"><i class="fa-solid fa-circle-check"></i> Built for every photographer</span>
+            </div>
         </section>
 
         <!-- Story -->
-        <section class="privacy-section" style="padding-top: 0;">
-            <div class="privacy-card">
-                <div>
-                    <h2>Built for Photographers, Trusted by Guests</h2>
-                    <p>
-                        KIPA started from a simple frustration: a wedding photographer friend spent weeks sending photo links one by one.
-                        We combined AI face recognition with strict privacy engineering so that beautiful memories reach the right people
-                        faster than ever — while raw face data is never stored or sold.
+        <section class="about-story">
+            <div class="about-story-grid">
+                <div class="about-story-content">
+                    <span class="about-eyebrow"><i class="fa-solid fa-book-open"></i> Our Story</span>
+                    <h2 class="about-heading">Built for Photographers, Trusted by Guests</h2>
+                    <p class="about-story-text">
+                        KIPA started from a simple frustration: a wedding photographer friend spent weeks sending photo links
+                        one by one. We combined AI face recognition with strict privacy engineering so that beautiful memories
+                        reach the right people faster than ever — while raw face data is never stored or sold.
                     </p>
-                    <div style="display: flex; gap: 24px; flex-wrap: wrap;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-circle-check" style="color: var(--success); font-size: 1.1rem;"></i>
-                            <span style="font-size: 0.9rem; font-weight: 700;">Privacy by design</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-circle-check" style="color: var(--success); font-size: 1.1rem;"></i>
-                            <span style="font-size: 0.9rem; font-weight: 700;">Instant delivery</span>
+                    <ul class="about-check-list">
+                        <li><i class="fa-solid fa-circle-check"></i> Face data is never stored or sold</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Guests find their photos in seconds</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Photographers keep full control</li>
+                    </ul>
+                </div>
+                <div class="about-story-visual">
+                    <div class="about-memory-card">
+                        <div class="about-memory-icon"><i class="fa-solid fa-heart"></i></div>
+                        <h3>किपा · KIPA</h3>
+                        <p>From the Nepali word for <em>“memory”</em> — reuniting people with their favourite moments.</p>
+                        <div class="about-memory-tags">
+                            <span>Face Recognition</span>
+                            <span>Privacy First</span>
+                            <span>Sub-Second</span>
                         </div>
                     </div>
-                </div>
-                <div class="privacy-icon-box">
-                    <i class="fa-solid fa-heart"></i>
                 </div>
             </div>
         </section>
 
         <!-- Values -->
-        <section class="features" id="features">
-            <div class="container">
-                <div class="section-header">
-                    <h2 class="section-title">What We Stand For</h2>
-                    <p class="section-sub">The principles behind every line of code and every photo delivered.</p>
-                </div>
+        <section class="about-values">
+            <div class="section-header">
+                <h2 class="section-title">What We Stand For</h2>
+                <p class="section-sub">The principles behind every line of code and every photo delivered.</p>
+            </div>
 
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon gradient-pink"><i class="fa-solid fa-lock"></i></div>
+            <div class="about-values-grid">
+                <div class="about-value-card">
+                    <div class="about-value-icon gradient-pink"><i class="fa-solid fa-lock"></i></div>
+                    <div>
                         <h4>Privacy First</h4>
                         <p>Raw face images from scans are never stored. Only transient 128-dimension vector hashes are used for matching.</p>
                     </div>
-                    <div class="feature-card">
-                        <div class="feature-icon gradient-blue"><i class="fa-solid fa-bolt"></i></div>
+                </div>
+                <div class="about-value-card">
+                    <div class="about-value-icon gradient-blue"><i class="fa-solid fa-bolt"></i></div>
+                    <div>
                         <h4>Radical Speed</h4>
                         <p>Sub-second matching means guests never wait — even across galleries with thousands of high-resolution photos.</p>
                     </div>
-                    <div class="feature-card">
-                        <div class="feature-icon gradient-purple"><i class="fa-solid fa-users"></i></div>
+                </div>
+                <div class="about-value-card">
+                    <div class="about-value-icon gradient-purple"><i class="fa-solid fa-users"></i></div>
+                    <div>
                         <h4>Empowering Photographers</h4>
                         <p>From solo shooters to studios with assistant teams, KIPA gives every photographer an effortless delivery workflow.</p>
                     </div>
-                    <div class="feature-card">
-                        <div class="feature-icon gradient-green"><i class="fa-solid fa-shield-halved"></i></div>
+                </div>
+                <div class="about-value-card">
+                    <div class="about-value-icon gradient-green"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div>
                         <h4>Trust Through Transparency</h4>
                         <p>Liveness checks, download limits and clear controls keep galleries safe and honest for hosts and guests alike.</p>
                     </div>
@@ -99,7 +114,7 @@
         </section>
 
         <!-- CTA -->
-        <section class="cta-section">
+        <section class="cta-section" style="padding-top: 0; margin-top: 40px; background-color: var(--bg-base); width: 100%;">
             <div class="cta-banner">
                 <h2>Ready to Deliver Photos the Modern Way?</h2>
                 <p>Create your photographer account, publish your first event, and let guests find their own memories.</p>
