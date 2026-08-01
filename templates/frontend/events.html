@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="KIPA – Browse all active event galleries and find your photos with a quick face scan." />
+    <title>Active Events – KIPA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+</head>
+<body class="page-inner">
+
+    {% include 'frontend/partials/navbar.html' %}
+
+    <!-- Page Header -->
+    <div class="page-header container">
+        <div class="page-header-icon"><i class="fa-solid fa-calendar-days"></i></div>
+        <h1 class="page-title">Active Event Galleries</h1>
+        <p class="page-subtitle">Pick your event, run a quick liveness scan, and instantly retrieve every photo you appear in.</p>
+    </div>
+
+    <main class="container events-main" style="padding-bottom: 80px;">
+        <div class="events-grid">
+            {% if not events %}
+            <div class="no-events-card">
+                <span class="card-icon"><i class="fa-solid fa-calendar-xmark"></i></span>
+                <h3>No Active Events</h3>
+                <p>There are currently no active public events. Check back soon or log in to create and publish events.</p>
+            </div>
+            {% else %}
+                {% for event in events %}
+                <div class="event-public-card" onclick="window.location.href='/event/{{ event.id }}'">
+                    <div class="event-card-header">
+                        <span class="badge badge-active"><i class="fa-solid fa-circle" style="font-size:0.5rem; color:#12B76A;"></i> Active</span>
+                        <span class="event-creator">By {{ event.creator_name }}</span>
+                    </div>
+                    <h3 class="event-card-title">{{ event.name }}</h3>
+                    <p class="event-card-desc">{{ event.description or 'No description provided.' }}</p>
+                    {% if event.deactivation_date %}
+                    <div class="event-card-expiry"><i class="fa-solid fa-clock"></i> Expires: {{ event.deactivation_date }}</div>
+                    {% endif %}
+                    <div class="event-card-action">
+                        <span class="btn btn-primary btn-sm btn-block"><i class="fa-solid fa-face-viewfinder"></i> Scan Face &amp; Find Photos</span>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </main>
+
+    {% include 'frontend/partials/footer.html' %}
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

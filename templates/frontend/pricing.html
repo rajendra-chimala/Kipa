@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="KIPA – Simple, transparent pricing for photographers and event studios." />
+    <title>Pricing – KIPA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+</head>
+<body class="page-inner">
+
+    {% include 'frontend/partials/navbar.html' %}
+
+    <!-- Page Header -->
+    <div class="page-header container">
+        <div class="page-header-icon"><i class="fa-solid fa-tag"></i></div>
+        <h1 class="page-title">Simple, Honest Pricing</h1>
+        <p class="page-subtitle">Start free, scale as your event business grows. No hidden fees, cancel anytime.</p>
+    </div>
+
+    <main class="container" style="padding-bottom: 80px;">
+
+        <div class="pricing-grid">
+            <!-- Starter -->
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <h3>Starter</h3>
+                    <p>For photographers trying KIPA</p>
+                </div>
+                <div class="pricing-price">
+                    <span class="price-amount">₹0</span>
+                    <span class="price-period">/ forever</span>
+                </div>
+                <ul class="pricing-features">
+                    <li><i class="fa-solid fa-circle-check"></i> Up to 2 active events</li>
+                    <li><i class="fa-solid fa-circle-check"></i> 500 photos per event</li>
+                    <li><i class="fa-solid fa-circle-check"></i> AI face indexing &amp; matching</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Liveness anti-spoof protection</li>
+                    <li><i class="fa-solid fa-xmark"></i> Assistant accounts</li>
+                    <li><i class="fa-solid fa-xmark"></i> Branded gallery page</li>
+                </ul>
+                <a href="/auth" class="btn btn-secondary btn-block">Start Free</a>
+            </div>
+
+            <!-- Pro -->
+            <div class="pricing-card featured">
+                <div class="pricing-badge">Most Popular</div>
+                <div class="pricing-header">
+                    <h3>Pro</h3>
+                    <p>For growing event photographers</p>
+                </div>
+                <div class="pricing-price">
+                    <span class="price-amount">₹999</span>
+                    <span class="price-period">/ month</span>
+                </div>
+                <ul class="pricing-features">
+                    <li><i class="fa-solid fa-circle-check"></i> Unlimited active events</li>
+                    <li><i class="fa-solid fa-circle-check"></i> 10,000 photos per event</li>
+                    <li><i class="fa-solid fa-circle-check"></i> AI face indexing &amp; matching</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Liveness anti-spoof protection</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Up to 5 assistant accounts</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Custom download limits</li>
+                </ul>
+                <a href="/auth" class="btn btn-primary btn-block">Start 7-Day Free Trial</a>
+            </div>
+
+            <!-- Studio -->
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <h3>Studio</h3>
+                    <p>For studios &amp; agencies</p>
+                </div>
+                <div class="pricing-price">
+                    <span class="price-amount">Custom</span>
+                    <span class="price-period">/ tailored</span>
+                </div>
+                <ul class="pricing-features">
+                    <li><i class="fa-solid fa-circle-check"></i> Everything in Pro</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Unlimited assistant accounts</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Branded gallery pages</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Priority support &amp; onboarding</li>
+                    <li><i class="fa-solid fa-circle-check"></i> API &amp; integration access</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Custom storage quotas</li>
+                </ul>
+                <a href="/auth" class="btn btn-secondary btn-block">Contact Us</a>
+            </div>
+        </div>
+
+        <!-- FAQ mini -->
+        <section class="faq-section" id="faq" style="padding-top: 60px;">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Pricing FAQ</h2>
+                </div>
+                <div class="faq-list" style="max-width: 720px; margin: 0 auto;">
+                    <details class="faq-item">
+                        <summary>Do guests need to pay to find their photos?</summary>
+                        <div class="faq-answer">
+                            Never. Photo retrieval for guests is always free. Photographers and studios pay a simple subscription fee.
+                        </div>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Can I change or cancel my plan anytime?</summary>
+                        <div class="faq-answer">
+                            Yes. You can upgrade, downgrade, or cancel at any time from your dashboard. No lock-in contracts.
+                        </div>
+                    </details>
+                    <details class="faq-item">
+                        <summary>What counts as a “photo”?</summary>
+                        <div class="faq-answer">
+                            Each uploaded image counts as one photo. Photos already delivered to guests never count against your quota again.
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    {% include 'frontend/partials/footer.html' %}
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

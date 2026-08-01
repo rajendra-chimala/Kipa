@@ -1,0 +1,84 @@
+<!-- Shared Public Navigation -->
+{% set active = active_page | default('') %}
+<nav class="navbar" id="mainNavbar" style="padding: 20px 100px;">
+    <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
+        <div class="brand-icon"><img src="/static/images/logo.png" height="40" style="height: 40px;" alt="KIPA Logo"></div>
+    </div>
+    <div class="nav-links">
+        <a href="/" class="nav-link {{ 'active' if active == 'home' }}">Home</a>
+        <a href="/about" class="nav-link {{ 'active' if active == 'about' }}">About</a>
+        <a href="/features" class="nav-link {{ 'active' if active == 'features' }}">Features</a>
+        <a href="/pricing" class="nav-link {{ 'active' if active == 'pricing' }}">Pricing</a>
+        <a href="/events" class="nav-link {{ 'active' if active == 'events' }}">Events</a>
+        {% if session.get('user') %}
+            {% if session['user']['role'] == 'super_admin' %}
+                <a href="/admin/dashboard" class="nav-btn">Admin Dashboard</a>
+            {% elif session['user']['role'] == 'photographer' %}
+                <a href="/dashboard" class="nav-btn">Photographer Dashboard</a>
+            {% else %}
+                <a href="/assistant/dashboard" class="nav-btn">Assistant Dashboard</a>
+            {% endif %}
+            <a href="/logout" class="nav-btn-logout" style="margin-left: 8px;">Logout</a>
+        {% else %}
+            <a href="/auth" class="nav-btn">Photographer Portal</a>
+        {% endif %}
+    </div>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<!-- Mobile Nav Drawer -->
+<div class="mobile-nav-drawer" id="mobileNavDrawer" role="dialog" aria-label="Mobile navigation">
+    <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
+    <div class="mobile-nav-panel">
+        <div class="mobile-nav-header">
+            <span class="brand-name">KIPA (किपा)</span>
+            <button class="mobile-nav-close" id="mobileNavClose" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <a href="/" class="mobile-nav-link"><i class="fa-solid fa-house"></i> Home</a>
+        <a href="/about" class="mobile-nav-link"><i class="fa-solid fa-circle-info"></i> About</a>
+        <a href="/features" class="mobile-nav-link"><i class="fa-solid fa-star"></i> Features</a>
+        <a href="/pricing" class="mobile-nav-link"><i class="fa-solid fa-tag"></i> Pricing</a>
+        <a href="/events" class="mobile-nav-link"><i class="fa-solid fa-calendar-days"></i> Events</a>
+        <div class="mobile-nav-divider"></div>
+        {% if session.get('user') %}
+            {% if session['user']['role'] == 'super_admin' %}
+                <a href="/admin/dashboard" class="mobile-nav-btn"><i class="fa-solid fa-shield-halved"></i> Admin Dashboard</a>
+            {% elif session['user']['role'] == 'photographer' %}
+                <a href="/dashboard" class="mobile-nav-btn"><i class="fa-solid fa-camera"></i> Photographer Dashboard</a>
+            {% else %}
+                <a href="/assistant/dashboard" class="mobile-nav-btn"><i class="fa-solid fa-handshake"></i> Assistant Dashboard</a>
+            {% endif %}
+            <a href="/logout" class="mobile-nav-btn mobile-nav-btn-outline"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
+        {% else %}
+            <a href="/auth" class="mobile-nav-btn"><i class="fa-solid fa-camera-retro"></i> Photographer Portal</a>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+(function () {
+    const hamburger     = document.getElementById('navHamburger');
+    const mobileDrawer  = document.getElementById('mobileNavDrawer');
+    const mobileClose   = document.getElementById('mobileNavClose');
+    const mobileBackdrop = document.getElementById('mobileNavBackdrop');
+    if (!hamburger || !mobileDrawer) return;
+    function openMobileNav() {
+        mobileDrawer.classList.add('open');
+        hamburger.classList.add('open');
+        hamburger.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeMobileNav() {
+        mobileDrawer.classList.remove('open');
+        hamburger.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+    }
+    hamburger.addEventListener('click', openMobileNav);
+    if (mobileClose) mobileClose.addEventListener('click', closeMobileNav);
+    if (mobileBackdrop) mobileBackdrop.addEventListener('click', closeMobileNav);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileNav(); });
+})();
+</script>

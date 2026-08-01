@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="KIPA – Learn about our mission to make event photo delivery instant, secure, and privacy-first." />
+    <title>About KIPA – KIPA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+</head>
+<body class="page-inner">
+
+    {% include 'frontend/partials/navbar.html' %}
+
+    <!-- Page Header -->
+    <div class="page-header container">
+        <div class="page-header-icon"><i class="fa-solid fa-circle-info"></i></div>
+        <h1 class="page-title">About KIPA</h1>
+        <p class="page-subtitle">KIPA (किपा) means “memory” — built to reunite people with their favourite moments.</p>
+    </div>
+
+    <main class="container" style="padding-bottom: 80px;">
+
+        <!-- Mission -->
+        <section class="how-it-works container" style="padding-top: 0;">
+            <div class="section-header">
+                <h2 class="section-title">Our Mission</h2>
+                <p class="section-sub">Every event photo should reach the right person, in seconds, without compromising privacy.</p>
+            </div>
+            <p style="max-width: 760px; margin: 0 auto; line-height: 1.8; color: var(--text-secondary); text-align: center;">
+                After every wedding, conference, concert or school function, photographers are left delivering thousands of photos to
+                hundreds of people. Attendees are left scrolling through endless galleries hoping to spot themselves. KIPA solves both
+                problems at once: photographers upload once, and every guest retrieves their own photos by scanning their face — in
+                milliseconds, with the strongest privacy protections.
+            </p>
+        </section>
+
+        <!-- Story -->
+        <section class="privacy-section" style="padding-top: 0;">
+            <div class="privacy-card">
+                <div>
+                    <h2>Built for Photographers, Trusted by Guests</h2>
+                    <p>
+                        KIPA started from a simple frustration: a wedding photographer friend spent weeks sending photo links one by one.
+                        We combined AI face recognition with strict privacy engineering so that beautiful memories reach the right people
+                        faster than ever — while raw face data is never stored or sold.
+                    </p>
+                    <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-circle-check" style="color: var(--success); font-size: 1.1rem;"></i>
+                            <span style="font-size: 0.9rem; font-weight: 700;">Privacy by design</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-circle-check" style="color: var(--success); font-size: 1.1rem;"></i>
+                            <span style="font-size: 0.9rem; font-weight: 700;">Instant delivery</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="privacy-icon-box">
+                    <i class="fa-solid fa-heart"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Values -->
+        <section class="features" id="features">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">What We Stand For</h2>
+                    <p class="section-sub">The principles behind every line of code and every photo delivered.</p>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon gradient-pink"><i class="fa-solid fa-lock"></i></div>
+                        <h4>Privacy First</h4>
+                        <p>Raw face images from scans are never stored. Only transient 128-dimension vector hashes are used for matching.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon gradient-blue"><i class="fa-solid fa-bolt"></i></div>
+                        <h4>Radical Speed</h4>
+                        <p>Sub-second matching means guests never wait — even across galleries with thousands of high-resolution photos.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon gradient-purple"><i class="fa-solid fa-users"></i></div>
+                        <h4>Empowering Photographers</h4>
+                        <p>From solo shooters to studios with assistant teams, KIPA gives every photographer an effortless delivery workflow.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon gradient-green"><i class="fa-solid fa-shield-halved"></i></div>
+                        <h4>Trust Through Transparency</h4>
+                        <p>Liveness checks, download limits and clear controls keep galleries safe and honest for hosts and guests alike.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="cta-section">
+            <div class="cta-banner">
+                <h2>Ready to Deliver Photos the Modern Way?</h2>
+                <p>Create your photographer account, publish your first event, and let guests find their own memories.</p>
+                <div class="cta-actions">
+                    <a href="/auth" class="btn btn-primary btn-lg" style="background-color: var(--secondary); box-shadow: none;">Create Photographer Account</a>
+                    <a href="/events" class="btn btn-secondary btn-lg">Browse Active Galleries</a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    {% include 'frontend/partials/footer.html' %}
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

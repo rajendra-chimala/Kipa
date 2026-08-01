@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -13,60 +13,7 @@
 </head>
 <body class="page-home">
 
-    <!-- ── Navigation ─────────────────────────────────────────── -->
-    <nav class="navbar" id="mainNavbar">
-        <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
-           <img src="{{ url_for('static', filename='images/logo.png') }}" style="height: 35px;" alt="KIPA Logo" class="nav-logo" />
-        </div>
-        <div class="nav-links">
-            <a href="#how-it-works" class="nav-link">How it Works</a>
-            <a href="#active-galleries" class="nav-link">Events</a>
-            <a href="#faq" class="nav-link">FAQ</a>
-            {% if session.get('user') %}
-                {% if session['user']['role'] == 'super_admin' %}
-                    <a href="/admin/dashboard" class="nav-btn">Admin Dashboard</a>
-                {% elif session['user']['role'] == 'photographer' %}
-                    <a href="/dashboard" class="nav-btn">Photographer Dashboard</a>
-                {% else %}
-                    <a href="/assistant/dashboard" class="nav-btn">Assistant Dashboard</a>
-                {% endif %}
-                <a href="/logout" class="nav-btn-logout" style="margin-left: 8px;">Logout</a>
-            {% else %}
-                <a href="/auth" class="nav-btn">Photographer Portal</a>
-            {% endif %}
-        </div>
-        <!-- Hamburger -->
-        <button class="nav-hamburger" id="navHamburger" aria-label="Open menu" aria-expanded="false">
-            <span></span><span></span><span></span>
-        </button>
-    </nav>
-
-    <!-- ── Mobile Nav Drawer ─────────────────────────────────── -->
-    <div class="mobile-nav-drawer" id="mobileNavDrawer" role="dialog" aria-label="Mobile navigation">
-        <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
-        <div class="mobile-nav-panel">
-            <div class="mobile-nav-header">
-                <span class="brand-name">KIPA (किपा)</span>
-                <button class="mobile-nav-close" id="mobileNavClose" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <a href="#how-it-works" class="mobile-nav-link" onclick="closeMobileNav()"><i class="fa-solid fa-circle-question"></i> How it Works</a>
-            <a href="#active-galleries" class="mobile-nav-link" onclick="closeMobileNav()"><i class="fa-solid fa-calendar-days"></i> Events</a>
-            <a href="#faq" class="mobile-nav-link" onclick="closeMobileNav()"><i class="fa-solid fa-comments"></i> FAQ</a>
-            <div class="mobile-nav-divider"></div>
-            {% if session.get('user') %}
-                {% if session['user']['role'] == 'super_admin' %}
-                    <a href="/admin/dashboard" class="mobile-nav-btn"><i class="fa-solid fa-shield-halved"></i> Admin Dashboard</a>
-                {% elif session['user']['role'] == 'photographer' %}
-                    <a href="/dashboard" class="mobile-nav-btn"><i class="fa-solid fa-camera"></i> Photographer Dashboard</a>
-                {% else %}
-                    <a href="/assistant/dashboard" class="mobile-nav-btn"><i class="fa-solid fa-handshake"></i> Assistant Dashboard</a>
-                {% endif %}
-                <a href="/logout" class="mobile-nav-btn mobile-nav-btn-outline"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
-            {% else %}
-                <a href="/auth" class="mobile-nav-btn"><i class="fa-solid fa-camera-retro"></i> Photographer Portal</a>
-            {% endif %}
-        </div>
-    </div>
+    {% include 'frontend/partials/navbar.html' %}
 
     <!-- ── 1. Hero Section ────────────────────────────────────── -->
     <section class="hero">
@@ -83,7 +30,7 @@
                 No more scrolling through hundreds of event photos. Upload your face scan, and KIPA instantly retrieves every single photo you appear in—securely and in milliseconds.
             </p>
             <div class="hero-actions">
-                <a href="#active-galleries" class="btn btn-primary btn-lg">
+                <a href="/events" class="btn btn-primary btn-lg">
                     <span class="btn-icon"><i class="fa-solid fa-face-viewfinder"></i></span>
                     Scan My Face
                 </a>
@@ -185,40 +132,17 @@
         </div>
     </section>
 
-    <!-- ── Active Events / Galleries Section ───────────────────── -->
+    <!-- ── Active Events / Galleries CTA ──────────────────────── -->
     <section class="active-events" id="active-galleries">
-        <div class="container">
+        <div class="container text-center">
             <div class="section-header">
-                <h2 class="section-title">Active Event Galleries</h2>
-                <p class="section-sub">Select your event below, complete the liveness scan, and instantly retrieve your photos.</p>
+                <h2 class="section-title">Browse Active Event Galleries</h2>
+                <p class="section-sub">Select an event, complete the quick liveness scan, and instantly retrieve your photos.</p>
             </div>
-
-            <div class="events-grid">
-                {% if not events %}
-                <div class="no-events-card">
-                    <span class="card-icon"><i class="fa-solid fa-calendar-xmark"></i></span>
-                    <h3>No Active Events</h3>
-                    <p>There are currently no active public events. Log in to create and publish events.</p>
-                </div>
-                {% else %}
-                    {% for event in events %}
-                    <div class="event-public-card" onclick="window.location.href='/event/{{ event.id }}'">
-                        <div class="event-card-header">
-                            <span class="badge badge-active"><i class="fa-solid fa-circle" style="font-size:0.5rem; color:#12B76A;"></i> Active</span>
-                            <span class="event-creator">By {{ event.creator_name }}</span>
-                        </div>
-                        <h3 class="event-card-title">{{ event.name }}</h3>
-                        <p class="event-card-desc">{{ event.description or 'No description provided.' }}</p>
-                        {% if event.deactivation_date %}
-                        <div class="event-card-expiry"><i class="fa-solid fa-clock"></i> Expires: {{ event.deactivation_date }}</div>
-                        {% endif %}
-                        <div class="event-card-action">
-                            <span class="btn btn-primary btn-sm btn-block"><i class="fa-solid fa-face-viewfinder"></i> Scan Face &amp; Find Photos</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% endif %}
-            </div>
+            <a href="/events" class="btn btn-primary btn-lg">
+                <span class="btn-icon"><i class="fa-solid fa-calendar-days"></i></span>
+                View All Events
+            </a>
         </div>
     </section>
 
@@ -563,24 +487,22 @@
 
     <!-- ── 9. CTA Banner Section ──────────────────────────────── -->
     <section class="cta-section">
-        <div class="cta-banner">
+        <div class="cta-banner" style="max-width: 90%;">
             <h2>Ready to Transform Event Photography?</h2>
             <p>Publish events, upload galleries, and let attendees retrieve their memories instantly with the magic of face recognition.</p>
             <div class="cta-actions">
                 <a href="/auth" class="btn btn-primary btn-lg" style="background-color: var(--secondary); box-shadow: none;">Create Photographer Account</a>
-                <a href="#active-galleries" class="btn btn-secondary btn-lg">Browse Active Galleries</a>
+                <a href="/events" class="btn btn-secondary btn-lg">Browse Active Galleries</a>
             </div>
         </div>
     </section>
 
-    <!-- ── 10. Footer Section ─────────────────────────────────── -->
-    <footer class="footer">
-        <p>© 2026 KIPA (किपा) · Built with Flask &amp; face_recognition · Find Your Photos Instantly</p>
-    </footer>
+    <!-- ── 10. Footer ─────────────────────────────────────────── -->
+    {% include 'frontend/partials/footer.html' %}
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
-        // Smooth scroll for nav links
+        // Smooth scroll for in-page anchors
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -590,29 +512,6 @@
                 }
             });
         });
-
-        // Mobile navigation
-        const hamburger   = document.getElementById('navHamburger');
-        const mobileDrawer = document.getElementById('mobileNavDrawer');
-        const mobileClose  = document.getElementById('mobileNavClose');
-        const mobileBackdrop = document.getElementById('mobileNavBackdrop');
-
-        function openMobileNav() {
-            mobileDrawer.classList.add('open');
-            hamburger.classList.add('open');
-            hamburger.setAttribute('aria-expanded', 'true');
-            document.body.style.overflow = 'hidden';
-        }
-        function closeMobileNav() {
-            mobileDrawer.classList.remove('open');
-            hamburger.classList.remove('open');
-            hamburger.setAttribute('aria-expanded', 'false');
-            document.body.style.overflow = '';
-        }
-        hamburger.addEventListener('click', openMobileNav);
-        mobileClose.addEventListener('click', closeMobileNav);
-        mobileBackdrop.addEventListener('click', closeMobileNav);
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileNav(); });
     </script>
 
     <!-- ── GSAP Horizontal Scroll: Occasion Cards ──────────────── -->

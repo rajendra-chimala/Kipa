@@ -160,9 +160,34 @@ def role_required(*roles):
 
 @app.route('/')
 def index():
-    """Landing page displaying active and published events."""
+    """Landing page (Home) displaying the main marketing sections."""
     events = get_all_published_active_events()
-    return render_template('frontend/index.html', events=events)
+    return render_template('frontend/index.html', events=events, active_page='home')
+
+
+@app.route('/about')
+def about():
+    """About page – mission, story, and values."""
+    return render_template('frontend/about.html', active_page='about')
+
+
+@app.route('/features')
+def features():
+    """Features page – detailed capability overview."""
+    return render_template('frontend/features.html', active_page='features')
+
+
+@app.route('/pricing')
+def pricing():
+    """Pricing page – subscription plans for photographers."""
+    return render_template('frontend/pricing.html', active_page='pricing')
+
+
+@app.route('/events')
+def events():
+    """Events page – all active public event galleries."""
+    events = get_all_published_active_events()
+    return render_template('frontend/events.html', events=events, active_page='events')
 
 
 @app.route('/auth')

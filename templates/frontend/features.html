@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="KIPA – Explore the AI features that make instant, private event photo delivery possible." />
+    <title>Features – KIPA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+</head>
+<body class="page-inner">
+
+    {% include 'frontend/partials/navbar.html' %}
+
+    <!-- Page Header -->
+    <div class="page-header container">
+        <div class="page-header-icon"><i class="fa-solid fa-star"></i></div>
+        <h1 class="page-title">Features</h1>
+        <p class="page-subtitle">Everything KIPA does, designed for speed, security, and simplicity.</p>
+    </div>
+
+    <main class="container" style="padding-bottom: 80px;">
+
+        <!-- Feature grid -->
+        <section class="features" id="features" style="padding-top: 0;">
+            <div class="container">
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon gradient-pink"><i class="fa-solid fa-lock"></i></div>
+                        <h4>Privacy First</h4>
+                        <p>Raw face template images are never stored. Only 128-dimension vector calculations are mapped, then discarded after matching.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon gradient-blue"><i class="fa-solid fa-bolt"></i></div>
+                        <h4>Sub-Second Matching</h4>
+                        <p>Search indexes process thousands of files and return exact faces in milliseconds — no waiting, no scrolling.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon gradient-purple"><i class="fa-solid fa-users"></i></div>
+                        <h4>Delegated Assistants</h4>
+                        <p>Create accounts for event assistants with granular permissions to upload, delete, or manage photos only.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon gradient-green"><i class="fa-solid fa-shield-halved"></i></div>
+                        <h4>Liveness Protection</h4>
+                        <p>Anti-spoof challenges (open your mouth, blink) block screens, prints, and masks from stealing gallery privacy.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon gradient-blue"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                        <h4>Bulk Upload &amp; Auto Indexing</h4>
+                        <p>Drag and drop hundreds of high-res photos. KIPA automatically detects faces and builds a searchable index.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon gradient-pink"><i class="fa-solid fa-download"></i></div>
+                        <h4>Controlled Downloads</h4>
+                        <p>Set per-event download limits so every guest can save their photos without overusing the system.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon gradient-green"><i class="fa-solid fa-sliders"></i></div>
+                        <h4>Adjustable Match Sensitivity</h4>
+                        <p>Strict or relaxed matching thresholds let you tune how exact a face match must be for each event.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon gradient-purple"><i class="fa-solid fa-calendar-days"></i></div>
+                        <h4>Event Lifecycle Management</h4>
+                        <p>Publish, unpublish, and auto-deactivate events by date, keeping galleries fresh and controlled.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats -->
+        <section class="stats-landing-section">
+            <div class="stats-landing-grid">
+                <div class="stat-landing-item">
+                    <h3>99.8%</h3>
+                    <p>Accuracy Rate</p>
+                </div>
+                <div class="stat-landing-item">
+                    <h3>&lt; 0.2s</h3>
+                    <p>Match Time</p>
+                </div>
+                <div class="stat-landing-item">
+                    <h3>100K+</h3>
+                    <p>Photos Processed</p>
+                </div>
+                <div class="stat-landing-item">
+                    <h3>0%</h3>
+                    <p>Face Data Sold</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="cta-section">
+            <div class="cta-banner">
+                <h2>See KIPA in Action</h2>
+                <p>Create your account and publish your first event in minutes.</p>
+                <div class="cta-actions">
+                    <a href="/auth" class="btn btn-primary btn-lg" style="background-color: var(--secondary); box-shadow: none;">Get Started Free</a>
+                    <a href="/pricing" class="btn btn-secondary btn-lg">View Pricing</a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    {% include 'frontend/partials/footer.html' %}
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

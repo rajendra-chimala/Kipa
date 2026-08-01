@@ -1,0 +1,43 @@
+<!-- Shared Footer -->
+<footer class="footer" style="padding: 40px 100px; background-color: #f8f9fa;">
+    <div class="footer-grid">
+        <div class="footer-col footer-col-brand">
+            <div class="footer-brand">
+                <img src="/static/images/logo.png" height="40" style="height: 40px;" alt="KIPA Logo">
+                
+            </div>
+            <p class="footer-tagline">Powerful face recognition photo delivery. Upload once, let every guest find their own photos instantly.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Product</h4>
+            <a href="/features">Features</a>
+            <a href="/pricing">Pricing</a>
+            <a href="/events">Active Events</a>
+        </div>
+        <div class="footer-col">
+            <h4>Company</h4>
+            <a href="/">Home</a>
+            <a href="/about">About</a>
+            <a href="/events">Events</a>
+        </div>
+        <div class="footer-col">
+            <h4>Account</h4>
+            {% if session.get('user') %}
+                {% if session['user']['role'] == 'super_admin' %}
+                    <a href="/admin/dashboard">Admin Dashboard</a>
+                {% elif session['user']['role'] == 'photographer' %}
+                    <a href="/dashboard">Photographer Dashboard</a>
+                {% else %}
+                    <a href="/assistant/dashboard">Assistant Dashboard</a>
+                {% endif %}
+                <a href="/logout">Logout</a>
+            {% else %}
+                <a href="/auth">Photographer Portal</a>
+                <a href="/auth">Create Account</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>© 2026 KIPA (किपा) has all copyrights reserved. Find Your Photos Instantly</p>
+    </div>
+</footer>
