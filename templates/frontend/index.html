@@ -7,6 +7,7 @@
     <title>KIPA (किपा) – Find Your Photos Instantly</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
 </head>
 <body class="page-home">
 
@@ -235,39 +236,121 @@
     </section>
 
     <!-- ── 5. Event Categories Section ────────────────────────── -->
-    <section class="categories-section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Memories from Any Occasion</h2>
-                <p class="section-sub">KIPA delivers smart distributions for photography events of all sizes.</p>
+    <section class="occasion-section" id="categories">
+        <div class="container" style="text-align: center;">
+            <div class="occasion-pill-badge">
+                <i class="fa-solid fa-camera"></i> EVERY MOMENT MATTERS
             </div>
+            <h2 class="occasion-header-title">Memories from Any Occasion</h2>
+            <p class="occasion-header-sub">KIPA delivers smart distributions for photography events of all sizes.</p>
 
-            <div class="categories-grid">
-                <div class="category-card">
-                    <span class="category-emoji">💍</span>
-                    <h4>Weddings</h4>
-                    <p>Help guests grab photos of key wedding moments instantly.</p>
+            <div class="occasion-grid">
+
+                <!-- Card 1: Weddings -->
+                <div class="occasion-card theme-pink">
+                    <div class="occasion-card-media">
+                        <img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80" alt="Weddings" class="occasion-card-img" />
+                        <svg class="occasion-wave-svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                            <path fill="#ffffff" fill-opacity="1" d="M0,224L48,213.3C96,203,192,181,288,186.7C384,192,480,224,576,218.7C672,213,768,171,864,170.7C960,171,1056,213,1152,224C1248,235,1344,213,1392,202.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                        </svg>
+                        <div class="occasion-icon-box">
+                            <i class="fa-solid fa-ring"></i>
+                        </div>
+                    </div>
+                    <div class="occasion-card-body">
+                        <h3 class="occasion-card-title">Weddings</h3>
+                        <div class="occasion-dash"></div>
+                        <p class="occasion-card-desc">Help guests grab photos of key wedding moments instantly.</p>
+                        <a href="#active-galleries" class="occasion-card-link">
+                            Learn more <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="category-card">
-                    <span class="category-emoji">🏃</span>
-                    <h4>Sports Events</h4>
-                    <p>Runners and athletes find their action shots instantly.</p>
+
+                <!-- Card 2: Sports Events -->
+                <div class="occasion-card theme-orange">
+                    <div class="occasion-card-media">
+                        <img src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=600&q=80" alt="Sports Events" class="occasion-card-img" />
+                        <svg class="occasion-wave-svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                            <path fill="#ffffff" fill-opacity="1" d="M0,224L48,213.3C96,203,192,181,288,186.7C384,192,480,224,576,218.7C672,213,768,171,864,170.7C960,171,1056,213,1152,224C1248,235,1344,213,1392,202.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                        </svg>
+                        <div class="occasion-icon-box">
+                            <i class="fa-solid fa-person-running"></i>
+                        </div>
+                    </div>
+                    <div class="occasion-card-body">
+                        <h3 class="occasion-card-title">Sports Events</h3>
+                        <div class="occasion-dash"></div>
+                        <p class="occasion-card-desc">Runners and athletes find their action shots instantly.</p>
+                        <a href="#active-galleries" class="occasion-card-link">
+                            Learn more <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="category-card">
-                    <span class="category-emoji">🎸</span>
-                    <h4>Concerts &amp; Gigs</h4>
-                    <p>Fans download memories with high-precision matches.</p>
+
+                <!-- Card 3: Concerts & Gigs -->
+                <div class="occasion-card theme-purple">
+                    <div class="occasion-card-media">
+                        <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=600&q=80" alt="Concerts & Gigs" class="occasion-card-img" />
+                        <svg class="occasion-wave-svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                            <path fill="#ffffff" fill-opacity="1" d="M0,224L48,213.3C96,203,192,181,288,186.7C384,192,480,224,576,218.7C672,213,768,171,864,170.7C960,171,1056,213,1152,224C1248,235,1344,213,1392,202.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                        </svg>
+                        <div class="occasion-icon-box">
+                            <i class="fa-solid fa-guitar"></i>
+                        </div>
+                    </div>
+                    <div class="occasion-card-body">
+                        <h3 class="occasion-card-title">Concerts &amp; Gigs</h3>
+                        <div class="occasion-dash"></div>
+                        <p class="occasion-card-desc">Fans download memories with high-precision matches.</p>
+                        <a href="#active-galleries" class="occasion-card-link">
+                            Learn more <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="category-card">
-                    <span class="category-emoji">👔</span>
-                    <h4>Corporate Gigs</h4>
-                    <p>Speed up professional headshot sharing among delegates.</p>
+
+                <!-- Card 4: Corporate Gigs -->
+                <div class="occasion-card theme-blue">
+                    <div class="occasion-card-media">
+                        <img src="https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=600&q=80" alt="Corporate Gigs" class="occasion-card-img" />
+                        <svg class="occasion-wave-svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                            <path fill="#ffffff" fill-opacity="1" d="M0,224L48,213.3C96,203,192,181,288,186.7C384,192,480,224,576,218.7C672,213,768,171,864,170.7C960,171,1056,213,1152,224C1248,235,1344,213,1392,202.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                        </svg>
+                        <div class="occasion-icon-box">
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                    </div>
+                    <div class="occasion-card-body">
+                        <h3 class="occasion-card-title">Corporate Gigs</h3>
+                        <div class="occasion-dash"></div>
+                        <p class="occasion-card-desc">Speed up professional headshot sharing among delegates.</p>
+                        <a href="#active-galleries" class="occasion-card-link">
+                            Learn more <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="category-card">
-                    <span class="category-emoji">🎂</span>
-                    <h4>Social Parties</h4>
-                    <p>Birthdays and reunion galleries simplified for guests.</p>
+
+                <!-- Card 5: Social Parties -->
+                <div class="occasion-card theme-teal">
+                    <div class="occasion-card-media">
+                        <img src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=600&q=80" alt="Social Parties" class="occasion-card-img" />
+                        <svg class="occasion-wave-svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                            <path fill="#ffffff" fill-opacity="1" d="M0,224L48,213.3C96,203,192,181,288,186.7C384,192,480,224,576,218.7C672,213,768,171,864,170.7C960,171,1056,213,1152,224C1248,235,1344,213,1392,202.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                        </svg>
+                        <div class="occasion-icon-box">
+                            <i class="fa-solid fa-cake-candles"></i>
+                        </div>
+                    </div>
+                    <div class="occasion-card-body">
+                        <h3 class="occasion-card-title">Social Parties</h3>
+                        <div class="occasion-dash"></div>
+                        <p class="occasion-card-desc">Birthdays and reunion galleries simplified for guests.</p>
+                        <a href="#active-galleries" class="occasion-card-link">
+                            Learn more <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
+
             </div>
         </div>
     </section>
