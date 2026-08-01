@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
 </head>
-<body class="page-inner">
+<body class="page-features">
 
     {% include 'frontend/partials/navbar.html' %}
 
@@ -20,58 +20,226 @@
         <p class="page-subtitle">Everything KIPA does, designed for speed, security, and simplicity.</p>
     </div>
 
-    <main class="container" style="padding-bottom: 80px;">
+    <main class="container features-showcase" style="padding-bottom: 80px;">
 
-        <!-- Feature grid -->
-        <section class="features" id="features" style="padding-top: 0;">
-            <div class="container">
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon gradient-pink"><i class="fa-solid fa-lock"></i></div>
-                        <h4>Privacy First</h4>
-                        <p>Raw face template images are never stored. Only 128-dimension vector calculations are mapped, then discarded after matching.</p>
+        <!-- Feature 1: Privacy First -->
+        <article class="feature-row">
+            <div class="feature-row-content">
+                <span class="feature-badge badge-pink"><i class="fa-solid fa-lock"></i> Privacy First</span>
+                <h2 class="feature-row-title">Your guests' faces are never stored</h2>
+                <p class="feature-row-desc">
+                    Raw face template images are never saved. KIPA converts faces into transient 128-dimension vector hashes the
+                    moment a scan happens, runs the match, and discards the data — your gallery stays yours.
+                </p>
+                <a href="/about" class="feature-row-link">Learn More <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="feature-row-visual">
+                <div class="mockup">
+                    <div class="mockup-topbar">
+                        <span class="mockup-dot" style="background:#F87171;"></span>
+                        <span class="mockup-dot" style="background:#FBBF24;"></span>
+                        <span class="mockup-dot" style="background:#34D399;"></span>
                     </div>
-                    <div class="feature-card">
-                        <div class="feature-icon gradient-blue"><i class="fa-solid fa-bolt"></i></div>
-                        <h4>Sub-Second Matching</h4>
-                        <p>Search indexes process thousands of files and return exact faces in milliseconds — no waiting, no scrolling.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon gradient-purple"><i class="fa-solid fa-users"></i></div>
-                        <h4>Delegated Assistants</h4>
-                        <p>Create accounts for event assistants with granular permissions to upload, delete, or manage photos only.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon gradient-green"><i class="fa-solid fa-shield-halved"></i></div>
-                        <h4>Liveness Protection</h4>
-                        <p>Anti-spoof challenges (open your mouth, blink) block screens, prints, and masks from stealing gallery privacy.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon gradient-blue"><i class="fa-solid fa-cloud-arrow-up"></i></div>
-                        <h4>Bulk Upload &amp; Auto Indexing</h4>
-                        <p>Drag and drop hundreds of high-res photos. KIPA automatically detects faces and builds a searchable index.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon gradient-pink"><i class="fa-solid fa-download"></i></div>
-                        <h4>Controlled Downloads</h4>
-                        <p>Set per-event download limits so every guest can save their photos without overusing the system.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon gradient-green"><i class="fa-solid fa-sliders"></i></div>
-                        <h4>Adjustable Match Sensitivity</h4>
-                        <p>Strict or relaxed matching thresholds let you tune how exact a face match must be for each event.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon gradient-purple"><i class="fa-solid fa-calendar-days"></i></div>
-                        <h4>Event Lifecycle Management</h4>
-                        <p>Publish, unpublish, and auto-deactivate events by date, keeping galleries fresh and controlled.</p>
+                    <div class="mockup-body" style="text-align:center;">
+                        <div class="mockup-shield">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div class="mockup-label-row">
+                            <span class="mockup-chip chip-success"><i class="fa-solid fa-circle-check"></i> No templates stored</span>
+                            <span class="mockup-chip chip-success"><i class="fa-solid fa-circle-check"></i> GDPR compliant</span>
+                        </div>
+                        <div class="mockup-hash">128-dim · hashed · ephemeral</div>
                     </div>
                 </div>
             </div>
-        </section>
+        </article>
+
+        <!-- Feature 2: Sub-Second Matching -->
+        <article class="feature-row row-reverse">
+            <div class="feature-row-content">
+                <span class="feature-badge badge-blue"><i class="fa-solid fa-bolt"></i> Sub-Second Matching</span>
+                <h2 class="feature-row-title">Find every photo in milliseconds</h2>
+                <p class="feature-row-desc">
+                    The search index processes thousands of high-resolution photos and returns exact face matches in under a
+                    fifth of a second — no endless scrolling through albums to find yourself.
+                </p>
+                <a href="/events" class="feature-row-link">View Details <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="feature-row-visual">
+                <div class="mockup">
+                    <div class="mockup-topbar">
+                        <span class="mockup-dot" style="background:#F87171;"></span>
+                        <span class="mockup-dot" style="background:#FBBF24;"></span>
+                        <span class="mockup-dot" style="background:#34D399;"></span>
+                        <span class="mockup-search"><i class="fa-solid fa-magnifying-glass"></i> Scanning gallery…</span>
+                    </div>
+                    <div class="mockup-body">
+                        <div class="mockup-match-head">
+                            <div class="mockup-face"><i class="fa-solid fa-user"></i></div>
+                            <div>
+                                <strong>3 matches found</strong>
+                                <div class="mockup-time"><i class="fa-solid fa-clock"></i> 0.18s</div>
+                            </div>
+                        </div>
+                        <div class="mockup-match-grid">
+                            <div class="mockup-photo ph1"></div>
+                            <div class="mockup-photo ph2"></div>
+                            <div class="mockup-photo ph3"></div>
+                            <div class="mockup-photo ph4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Feature 3: Delegated Assistants -->
+        <article class="feature-row">
+            <div class="feature-row-content">
+                <span class="feature-badge badge-purple"><i class="fa-solid fa-users"></i> Delegated Assistants</span>
+                <h2 class="feature-row-title">Hand off work without handing over control</h2>
+                <p class="feature-row-desc">
+                    Create accounts for event assistants with granular permissions — upload photos, delete images, or manage
+                    events — while keeping dashboard and event settings locked down to you.
+                </p>
+                <a href="/auth" class="feature-row-link">Learn More <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="feature-row-visual">
+                <div class="mockup">
+                    <div class="mockup-topbar">
+                        <span class="mockup-dot" style="background:#F87171;"></span>
+                        <span class="mockup-dot" style="background:#FBBF24;"></span>
+                        <span class="mockup-dot" style="background:#34D399;"></span>
+                    </div>
+                    <div class="mockup-body mockup-perms">
+                        <div class="mockup-perm">
+                            <span class="mockup-perm-name"><i class="fa-solid fa-upload" style="color:var(--primary);"></i> Upload photos</span>
+                            <span class="mockup-toggle on"></span>
+                        </div>
+                        <div class="mockup-perm">
+                            <span class="mockup-perm-name"><i class="fa-solid fa-trash-can" style="color:var(--danger);"></i> Delete photos</span>
+                            <span class="mockup-toggle on"></span>
+                        </div>
+                        <div class="mockup-perm">
+                            <span class="mockup-perm-name"><i class="fa-solid fa-power-off" style="color:var(--warning);"></i> Deactivate event</span>
+                            <span class="mockup-toggle"></span>
+                        </div>
+                        <div class="mockup-perm">
+                            <span class="mockup-perm-name"><i class="fa-solid fa-gear" style="color:var(--text-muted);"></i> Change settings</span>
+                            <span class="mockup-toggle"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Feature 4: Liveness Anti-Spoof -->
+        <article class="feature-row row-reverse">
+            <div class="feature-row-content">
+                <span class="feature-badge badge-green"><i class="fa-solid fa-shield-halved"></i> Liveness Protection</span>
+                <h2 class="feature-row-title">Block screens, prints, and masks</h2>
+                <p class="feature-row-desc">
+                    A multi-challenge liveness check — open your mouth, blink — proves a real person is in front of the camera.
+                    Photos of photos and phone screens can't steal gallery privacy.
+                </p>
+                <a href="/events" class="feature-row-link">View Details <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="feature-row-visual">
+                <div class="mockup">
+                    <div class="mockup-topbar">
+                        <span class="mockup-dot" style="background:#F87171;"></span>
+                        <span class="mockup-dot" style="background:#FBBF24;"></span>
+                        <span class="mockup-dot" style="background:#34D399;"></span>
+                    </div>
+                    <div class="mockup-body mockup-liveness">
+                        <div class="mockup-cam">
+                            <div class="mockup-face"><i class="fa-solid fa-face-smile"></i></div>
+                            <div class="mockup-cam-frame"></div>
+                        </div>
+                        <div class="mockup-step-row">
+                            <span class="mockup-step done"><i class="fa-solid fa-circle-check"></i> Neutral</span>
+                            <span class="mockup-step active"><i class="fa-solid fa-spinner"></i> Open mouth</span>
+                            <span class="mockup-step"><i class="fa-solid fa-ellipsis"></i> Verify</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Feature 5: Bulk Upload & Auto-Indexing -->
+        <article class="feature-row">
+            <div class="feature-row-content">
+                <span class="feature-badge badge-amber"><i class="fa-solid fa-cloud-arrow-up"></i> Bulk Upload &amp; Auto-Indexing</span>
+                <h2 class="feature-row-title">Drag, drop, and let AI do the rest</h2>
+                <p class="feature-row-desc">
+                    Upload hundreds of high-res photos in one go. KIPA automatically detects every face, builds a searchable
+                    index, and makes each guest's gallery ready in seconds.
+                </p>
+                <a href="/auth" class="feature-row-link">Learn More <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="feature-row-visual">
+                <div class="mockup">
+                    <div class="mockup-topbar">
+                        <span class="mockup-dot" style="background:#F87171;"></span>
+                        <span class="mockup-dot" style="background:#FBBF24;"></span>
+                        <span class="mockup-dot" style="background:#34D399;"></span>
+                    </div>
+                    <div class="mockup-body">
+                        <div class="mockup-dropzone">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <strong>Drop event photos here</strong>
+                            <span>JPG · PNG · WEBP — up to 50 MB</span>
+                        </div>
+                        <div class="mockup-progress-row">
+                            <div class="mockup-progress-label"><span>Wedding — 412 photos</span><span>68%</span></div>
+                            <div class="mockup-progress-bar"><div style="width:68%;"></div></div>
+                        </div>
+                        <div class="mockup-progress-row">
+                            <div class="mockup-progress-label"><span>Conference — 980 photos</span><span>42%</span></div>
+                            <div class="mockup-progress-bar"><div style="width:42%;"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Feature 6: Controlled Downloads -->
+        <article class="feature-row row-reverse">
+            <div class="feature-row-content">
+                <span class="feature-badge badge-indigo"><i class="fa-solid fa-download"></i> Controlled Downloads</span>
+                <h2 class="feature-row-title">Set limits, protect bandwidth</h2>
+                <p class="feature-row-desc">
+                    Configure a strict per-event download limit so every guest can save their matches without overloading your
+                    gallery. Once a guest hits the cap, further downloads are blocked automatically.
+                </p>
+                <a href="/pricing" class="feature-row-link">View Details <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="feature-row-visual">
+                <div class="mockup">
+                    <div class="mockup-topbar">
+                        <span class="mockup-dot" style="background:#F87171;"></span>
+                        <span class="mockup-dot" style="background:#FBBF24;"></span>
+                        <span class="mockup-dot" style="background:#34D399;"></span>
+                    </div>
+                    <div class="mockup-body">
+                        <div class="mockup-limit-card">
+                            <div>
+                                <span class="mockup-limit-label">Downloads remaining</span>
+                                <div class="mockup-limit-value">2 <small>/ 5</small></div>
+                            </div>
+                            <span class="mockup-chip chip-warn"><i class="fa-solid fa-hourglass-half"></i> 3 left</span>
+                        </div>
+                        <div class="mockup-limit-bar"><div style="width:60%;"></div></div>
+                        <div class="mockup-btn-row">
+                            <span class="mockup-btn"><i class="fa-solid fa-download"></i> Download all</span>
+                            <span class="mockup-btn muted"><i class="fa-solid fa-box-archive"></i> Save batch</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
 
         <!-- Stats -->
-        <section class="stats-landing-section">
+        <section class="stats-landing-section" style="padding-top: 80px;">
             <div class="stats-landing-grid">
                 <div class="stat-landing-item">
                     <h3><span class="stat-count" data-target="99.8" data-decimals="1" data-suffix="%">0</span></h3>
@@ -93,7 +261,7 @@
         </section>
 
         <!-- CTA -->
-        <section class="cta-section">
+        <section class="cta-section" style="padding-top: 0;">
             <div class="cta-banner">
                 <h2>See KIPA in Action</h2>
                 <p>Create your account and publish your first event in minutes.</p>
