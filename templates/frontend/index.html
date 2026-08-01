@@ -13,6 +13,8 @@
 </head>
 <body class="page-home">
 
+    {% include 'frontend/partials/preloader.html' %}
+
     {% include 'frontend/partials/navbar.html' %}
 
     <!-- ── 1. Hero Section ────────────────────────────────────── -->
@@ -346,34 +348,28 @@
         </div>
     </section>
 
-    <!-- ── 3. Features Section ────────────────────────────────── -->
-    <section class="features" id="features">
+    <!-- ── 3. Image Slider Section ───────────────────────────── -->
+    <section class="image-slider-section">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Features Designed for Speed & Trust</h2>
-                <p class="section-sub">KIPA combines state-of-the-art AI utility with ultimate privacy safety checks.</p>
+                <h2 class="section-title">Moments in Motion</h2>
+                <p class="section-sub">A glimpse of the events KIPA brings to life.</p>
             </div>
+        </div>
 
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon gradient-pink"><i class="fa-solid fa-lock"></i></div>
-                    <h4>Privacy First</h4>
-                    <p>Raw face template images are never stored. Only 128-dimension vector calculations are mapped.</p>
+        <div class="image-slider">
+            <div class="image-slider-track">
+                <div class="image-slider-group">
+                    <img src="{{ url_for('static', filename='Image-Slider/image1.png') }}" alt="Event photo 1" class="image-slider-item" loading="lazy" />
+                    <img src="{{ url_for('static', filename='Image-Slider/image2.png') }}" alt="Event photo 2" class="image-slider-item" loading="lazy" />
+                    <img src="{{ url_for('static', filename='Image-Slider/image3.png') }}" alt="Event photo 3" class="image-slider-item" loading="lazy" />
+                    <img src="{{ url_for('static', filename='Image-Slider/image5.png') }}" alt="Event photo 5" class="image-slider-item" loading="lazy" />
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon gradient-blue"><i class="fa-solid fa-bolt"></i></div>
-                    <h4>Sub-Second Matching</h4>
-                    <p>Search index processes thousands of files and returns exact faces in milliseconds.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon gradient-purple"><i class="fa-solid fa-users"></i></div>
-                    <h4>Delegated Assistants</h4>
-                    <p>Create separate accounts for event assistants with specific permissions to upload or delete.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon gradient-green"><i class="fa-solid fa-shield-halved"></i></div>
-                    <h4>Liveness Protection</h4>
-                    <p>Our anti-spoof checks prevent users from matching screens or prints, preserving gallery privacy.</p>
+                <div class="image-slider-group" aria-hidden="true">
+                    <img src="{{ url_for('static', filename='Image-Slider/image1.png') }}" alt="" class="image-slider-item" loading="lazy" />
+                    <img src="{{ url_for('static', filename='Image-Slider/image2.png') }}" alt="" class="image-slider-item" loading="lazy" />
+                    <img src="{{ url_for('static', filename='Image-Slider/image3.png') }}" alt="" class="image-slider-item" loading="lazy" />
+                    <img src="{{ url_for('static', filename='Image-Slider/image5.png') }}" alt="" class="image-slider-item" loading="lazy" />
                 </div>
             </div>
         </div>
@@ -403,7 +399,7 @@
     </section>
 
     <!-- ── Active Events / Galleries CTA ──────────────────────── -->
-    <section class="active-events" id="active-galleries">
+    <!-- <section class="active-events" id="active-galleries">
         <div class="container text-center">
             <div class="section-header">
                 <h2 class="section-title">Browse Active Event Galleries</h2>
@@ -414,7 +410,7 @@
                 View All Events
             </a>
         </div>
-    </section>
+    </section> -->
 
   
 

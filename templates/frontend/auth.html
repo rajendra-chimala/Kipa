@@ -11,6 +11,8 @@
 </head>
 <body class="page-auth">
 
+    {% include 'frontend/partials/preloader.html' %}
+
     {% include 'frontend/partials/navbar.html' %}
 
     <main class="auth-container">
@@ -123,5 +125,7 @@
             }
         }
     </script>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

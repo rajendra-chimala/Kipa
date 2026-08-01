@@ -11,6 +11,8 @@
 </head>
 <body class="page-event-details">
 
+    {% include 'frontend/partials/preloader.html' %}
+
     {% include 'frontend/partials/navbar.html' %}
 
     <!-- Page Header -->
@@ -561,5 +563,7 @@
             }, 600);
         }
     </script>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

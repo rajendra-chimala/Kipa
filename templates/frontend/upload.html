@@ -11,6 +11,8 @@
 </head>
 <body class="page-inner">
 
+    {% include 'frontend/partials/preloader.html' %}
+
     {% include 'frontend/partials/navbar.html' %}
 
     <!-- Page Header -->
@@ -81,5 +83,6 @@
     {% include 'frontend/partials/footer.html' %}
 
     <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

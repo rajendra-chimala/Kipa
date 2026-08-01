@@ -1,0 +1,25 @@
+<!-- Site Preloader / Loading Screen -->
+<div class="preloader" id="sitePreloader">
+    <div class="preloader-inner">
+        <div class="preloader-ring" aria-hidden="true"></div>
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="KIPA" class="preloader-logo" />
+    </div>
+</div>
+<script>
+    (function () {
+        var pre = document.getElementById('sitePreloader');
+        if (!pre) return;
+        function release() {
+            if (pre.dataset.released) return;
+            pre.dataset.released = '1';
+            pre.classList.add('is-loaded');
+            document.body.classList.remove('preloader-lock');
+            setTimeout(function () { if (pre.parentNode) pre.parentNode.removeChild(pre); }, 900);
+        }
+        // Main.js handles the load-based release; this is a hard
+        // fallback so the loading screen can never block the page.
+        setTimeout(release, 4000);
+        window.addEventListener('load', function () { setTimeout(release, 400); });
+    })();
+</script>
+<noscript><style>#sitePreloader { display: none !important; }</style></noscript>
