@@ -7,6 +7,7 @@
     <title>Scan Your Face – KIPA</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
 </head>
 <body class="page-inner">
 
@@ -14,7 +15,7 @@
     <nav class="navbar">
         <div class="nav-brand">
             <a href="/" class="brand-link">
-                <div class="brand-icon">📸</div>
+                <div class="brand-icon"><i class="fa-solid fa-camera-retro"></i></div>
                 <span class="brand-name">KIPA (किपा)</span>
             </a>
         </div>
@@ -34,17 +35,17 @@
         <div class="mobile-nav-panel">
             <div class="mobile-nav-header">
                 <span class="brand-name">KIPA (किपा)</span>
-                <button class="mobile-nav-close" id="mobileNavClose">✕</button>
+                <button class="mobile-nav-close" id="mobileNavClose"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <a href="/" class="mobile-nav-link">🏠 Home</a>
-            <a href="/upload" class="mobile-nav-link">📤 Upload</a>
-            <a href="/gallery" class="mobile-nav-link">🖼️ Gallery</a>
+            <a href="/" class="mobile-nav-link"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="/upload" class="mobile-nav-link"><i class="fa-solid fa-cloud-arrow-up"></i> Upload</a>
+            <a href="/gallery" class="mobile-nav-link"><i class="fa-solid fa-images"></i> Gallery</a>
         </div>
     </div>
 
     <!-- Page Header -->
     <div class="page-header container">
-        <div class="page-header-icon">🎯</div>
+        <div class="page-header-icon"><i class="fa-solid fa-crosshairs"></i></div>
         <h1 class="page-title">Find My Photos</h1>
         <p class="page-subtitle">Look straight at your camera. KIPA will match your face and show all your event photos.</p>
     </div>
@@ -57,7 +58,7 @@
                 <div class="camera-viewport" id="cameraViewport">
                     <!-- State: Idle -->
                     <div class="cam-state" id="stateIdle">
-                        <div class="cam-placeholder-icon">📷</div>
+                        <div class="cam-placeholder-icon"><i class="fa-solid fa-camera"></i></div>
                         <h3>Camera Off</h3>
                         <p>Click the button below to start your camera</p>
                     </div>
@@ -90,11 +91,11 @@
                 <!-- Camera Controls -->
                 <div class="camera-controls">
                     <button class="btn btn-primary btn-lg" id="startCameraBtn">
-                        <span class="btn-icon">📷</span>
+                        <span class="btn-icon"><i class="fa-solid fa-video"></i></span>
                         Start Camera
                     </button>
                     <button class="btn btn-success btn-lg" id="captureBtn" style="display:none">
-                        <span class="btn-icon">🔍</span>
+                        <span class="btn-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
                         Scan My Face
                     </button>
                     <button class="btn btn-secondary" id="stopCameraBtn" style="display:none">
@@ -121,28 +122,28 @@
                 <h3 class="instruction-title">Tips for Best Results</h3>
                 <ul class="tip-list">
                     <li class="tip-item">
-                        <div class="tip-icon">💡</div>
+                        <div class="tip-icon"><i class="fa-solid fa-lightbulb"></i></div>
                         <div>
                             <strong>Good Lighting</strong>
                             <p>Face a bright window or light source</p>
                         </div>
                     </li>
                     <li class="tip-item">
-                        <div class="tip-icon">👁️</div>
+                        <div class="tip-icon"><i class="fa-solid fa-eye"></i></div>
                         <div>
                             <strong>Look Straight Ahead</strong>
                             <p>Face the camera directly for best matching</p>
                         </div>
                     </li>
                     <li class="tip-item">
-                        <div class="tip-icon">📏</div>
+                        <div class="tip-icon"><i class="fa-solid fa-ruler"></i></div>
                         <div>
                             <strong>Correct Distance</strong>
                             <p>Keep your face 40–60 cm from the camera</p>
                         </div>
                     </li>
                     <li class="tip-item">
-                        <div class="tip-icon">🔲</div>
+                        <div class="tip-icon"><i class="fa-solid fa-square"></i></div>
                         <div>
                             <strong>Centre Your Face</strong>
                             <p>Align within the scan frame shown on screen</p>

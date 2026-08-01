@@ -7,6 +7,7 @@
     <title>Upload Photos – KIPA</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
 </head>
 <body class="page-inner">
 
@@ -14,7 +15,7 @@
     <nav class="navbar">
         <div class="nav-brand">
             <a href="/" class="brand-link">
-                <div class="brand-icon">📸</div>
+                <div class="brand-icon"><i class="fa-solid fa-camera-retro"></i></div>
                 <span class="brand-name">KIPA (किपा)</span>
             </a>
         </div>
@@ -34,17 +35,17 @@
         <div class="mobile-nav-panel">
             <div class="mobile-nav-header">
                 <span class="brand-name">KIPA (किपा)</span>
-                <button class="mobile-nav-close" id="mobileNavClose">✕</button>
+                <button class="mobile-nav-close" id="mobileNavClose"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <a href="/" class="mobile-nav-link">🏠 Home</a>
-            <a href="/scan" class="mobile-nav-link">🎯 Scan Face</a>
-            <a href="/gallery" class="mobile-nav-link">🖼️ Gallery</a>
+            <a href="/" class="mobile-nav-link"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="/scan" class="mobile-nav-link"><i class="fa-solid fa-crosshairs"></i> Scan Face</a>
+            <a href="/gallery" class="mobile-nav-link"><i class="fa-solid fa-images"></i> Gallery</a>
         </div>
     </div>
 
     <!-- Page Header -->
     <div class="page-header container">
-        <div class="page-header-icon">📤</div>
+        <div class="page-header-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
         <h1 class="page-title">Upload Event Photos</h1>
         <p class="page-subtitle">Drop your event images below. KIPA will automatically detect and index every face.</p>
     </div>
@@ -56,7 +57,7 @@
         <div class="upload-zone" id="uploadZone">
             <input type="file" id="fileInput" multiple accept="image/*" hidden />
             <div class="upload-zone-inner">
-                <div class="upload-icon">🖼️</div>
+                <div class="upload-icon"><i class="fa-solid fa-images"></i></div>
                 <h3>Drag &amp; Drop Images Here</h3>
                 <p>or <button class="btn-danger-link" id="browseBtn" style="font-weight: 700;">browse your files</button></p>
                 <p class="upload-hint">Supports JPG, PNG, WEBP · Max 50 MB per upload</p>
@@ -72,7 +73,7 @@
             <div class="preview-grid" id="previewGrid"></div>
             <div class="upload-actions">
                 <button class="btn btn-primary btn-lg" id="uploadBtn">
-                    <span class="btn-icon">🚀</span>
+                    <span class="btn-icon"><i class="fa-solid fa-cloud-arrow-up"></i></span>
                     Upload &amp; Process
                 </button>
             </div>
@@ -99,7 +100,7 @@
             <div class="results-actions">
                 <button class="btn btn-secondary" id="uploadMoreBtn">Upload More</button>
                 <a href="/scan" class="btn btn-primary">
-                    <span class="btn-icon">🎯</span>
+                    <span class="btn-icon"><i class="fa-solid fa-crosshairs"></i></span>
                     Try Face Scan
                 </a>
             </div>

@@ -8,7 +8,7 @@
 function toast(msg, type = 'info') {
     let c = document.querySelector('.toast-container');
     if (!c) { c = document.createElement('div'); c.className = 'toast-container'; document.body.appendChild(c); }
-    const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+    const icons = { success: '<i class="fa-solid fa-circle-check"></i>', error: '<i class="fa-solid fa-circle-xmark"></i>', info: '<i class="fa-solid fa-circle-info"></i>', warning: '<i class="fa-solid fa-triangle-exclamation"></i>' };
     const t = document.createElement('div');
     t.className = `toast toast-${type}`;
     t.innerHTML = `<span class="toast-icon">${icons[type]}</span><span class="toast-msg">${msg}</span>`;

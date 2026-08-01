@@ -7,12 +7,13 @@
     <title>Access Portal – KIPA</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
 </head>
 <body class="page-auth">
 
     <nav class="navbar">
         <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
-            <div class="brand-icon">📸</div>
+            <div class="brand-icon"><i class="fa-solid fa-camera-retro"></i></div>
             <span class="brand-name">KIPA (किपा)</span>
         </div>
         <div class="nav-links">
@@ -29,9 +30,9 @@
         <div class="mobile-nav-panel">
             <div class="mobile-nav-header">
                 <span class="brand-name">KIPA (किपा)</span>
-                <button class="mobile-nav-close" id="mobileNavClose">✕</button>
+                <button class="mobile-nav-close" id="mobileNavClose"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <a href="/" class="mobile-nav-link">🏠 Home</a>
+            <a href="/" class="mobile-nav-link"><i class="fa-solid fa-house"></i> Home</a>
         </div>
     </div>
 

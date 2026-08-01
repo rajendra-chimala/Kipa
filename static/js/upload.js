@@ -7,7 +7,7 @@
 function toast(msg, type = 'info') {
     let c = document.querySelector('.toast-container');
     if (!c) { c = document.createElement('div'); c.className = 'toast-container'; document.body.appendChild(c); }
-    const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+    const icons = { success: '<i class="fa-solid fa-circle-check"></i>', error: '<i class="fa-solid fa-circle-xmark"></i>', info: '<i class="fa-solid fa-circle-info"></i>', warning: '<i class="fa-solid fa-triangle-exclamation"></i>' };
     const t = document.createElement('div');
     t.className = `toast toast-${type}`;
     t.innerHTML = `<span class="toast-icon">${icons[type]}</span><span class="toast-msg">${msg}</span>`;
@@ -90,7 +90,7 @@ function renderPreviews() {
             item.innerHTML = `
                 <img src="${e.target.result}" alt="${file.name}" loading="lazy" />
                 <div class="preview-item-name">${file.name}</div>
-                <button class="preview-remove" data-idx="${idx}" title="Remove">✕</button>
+                <button class="preview-remove" data-idx="${idx}" title="Remove"><i class="fa-solid fa-xmark"></i></button>
             `;
             item.querySelector('.preview-remove').addEventListener('click', (ev) => {
                 ev.stopPropagation();
@@ -172,7 +172,7 @@ function showResults(results) {
         const isNoFace  = r.status === 'no face detected';
         if (isSuccess) { successCount++; totalFaces += r.faces || 0; }
 
-        const icon  = isSuccess ? '✅' : isNoFace ? '⚠️' : '❌';
+        const icon  = isSuccess ? '<i class="fa-solid fa-circle-check"></i>' : isNoFace ? '<i class="fa-solid fa-triangle-exclamation"></i>' : '<i class="fa-solid fa-circle-xmark"></i>';
         const badge = isSuccess ? 'badge-success' : isNoFace ? 'badge-warning' : 'badge-error';
         const label = isSuccess ? `${r.faces} face${r.faces!==1?'s':''} detected` : r.status;
 
@@ -184,13 +184,13 @@ function showResults(results) {
                 <div class="result-filename">${r.file}</div>
                 <div class="result-detail">${label}</div>
             </div>
-            <span class="result-badge ${badge}">${isSuccess ? '✓ OK' : isNoFace ? 'No Face' : 'Error'}</span>
+            <span class="result-badge ${badge}">${isSuccess ? '<i class="fa-solid fa-check"></i> OK' : isNoFace ? 'No Face' : 'Error'}</span>
         `;
         resultsGrid.appendChild(item);
     });
 
     if (successCount > 0) {
-        toast(`✅ ${successCount} photo${successCount!==1?'s':''} uploaded — ${totalFaces} face${totalFaces!==1?'s':''} indexed.`, 'success', 6000);
+        toast(`<i class="fa-solid fa-circle-check"></i> ${successCount} photo${successCount!==1?'s':''} uploaded — ${totalFaces} face${totalFaces!==1?'s':''} indexed.`, 'success', 6000);
     } else {
         toast('No photos were successfully processed.', 'warning');
     }

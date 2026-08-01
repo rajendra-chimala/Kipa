@@ -15,11 +15,11 @@ Kipa.toast = function(message, type = 'info', duration = 4000) {
         document.body.appendChild(container);
     }
 
-    const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+    const icons = { success: '<i class="fa-solid fa-circle-check"></i>', error: '<i class="fa-solid fa-circle-xmark"></i>', info: '<i class="fa-solid fa-circle-info"></i>', warning: '<i class="fa-solid fa-triangle-exclamation"></i>' };
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerHTML = `
-        <span class="toast-icon">${icons[type] || 'ℹ️'}</span>
+        <span class="toast-icon">${icons[type] || icons.info}</span>
         <span class="toast-msg">${message}</span>
     `;
     container.appendChild(toast);

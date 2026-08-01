@@ -1001,6 +1001,10 @@ input[type=range].slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
 .toast-error { border-left-color: var(--danger); }
 .toast-warning { border-left-color: var(--warning); }
 .toast-info { border-left-color: #3B82F6; }
+.toast-success .toast-icon { color: var(--success); }
+.toast-error .toast-icon { color: var(--danger); }
+.toast-warning .toast-icon { color: var(--warning); }
+.toast-info .toast-icon { color: #3B82F6; }
 
 /* ═══════════════════════════════════════════════════════════════
    DASHBOARDS (photographer & assistant & super admin)
@@ -2578,9 +2582,11 @@ input[type=range].slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
 }
 
 /* ── Redesigned Occasion Cards ──────────────────────────────────── */
-.occasion-section {
-    padding: 90px 0;
+.occasion-section, .occasion-horizontal-wrapper {
+    position: relative;
+    padding: 85px 0;
     background: #F8FAFC;
+    /* NOTE: overflow must NOT be hidden — GSAP pin spacer needs to push content below */
 }
 
 .occasion-pill-badge {
@@ -2615,158 +2621,239 @@ input[type=range].slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
     margin: 0 auto;
 }
 
-.occasion-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 22px;
-    margin-top: 48px;
-    align-items: stretch;
-}
-
-.occasion-card {
-    background: #FFFFFF;
-    border-radius: 24px;
-    border: 1px solid #F1F5F9;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-}
-
-.occasion-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
-}
-
-.occasion-card-media {
-    position: relative;
-    height: 240px;
+/* ── GSAP Horizontal Track ──────────────────────────────────────── */
+.occasion-horizontal-container {
     width: 100%;
     overflow: hidden;
+    padding: 24px 0 40px;
 }
 
-.occasion-card-img {
+.occasion-track {
+    display: flex;
+    gap: 28px;
+    padding: 0 5vw;
+    width: max-content;
+    will-change: transform;
+}
+
+.occasion-card-v2 {
+    width: 500px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 28px;
+    padding: 28px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.occasion-card-v2:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 22px 45px rgba(15, 23, 42, 0.1);
+    border-color: #CBD5E1;
+}
+
+.occasion-v2-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.occasion-v2-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    background: #F8FAFC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+
+.occasion-v2-brand {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0F172A;
+}
+
+.occasion-v2-media {
+    width: 100%;
+    height: 250px;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    border: 1px solid #F1F5F9;
+    background: #F1F5F9;
+}
+
+.occasion-v2-media img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform 0.5s ease;
 }
 
-.occasion-card:hover .occasion-card-img {
-    transform: scale(1.06);
+.occasion-card-v2:hover .occasion-v2-media img {
+    transform: scale(1.05);
 }
 
-/* Organic Wavy Divider SVG Mask */
-.occasion-wave-svg {
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    width: 100%;
-    height: 48px;
-    z-index: 2;
-    pointer-events: none;
-}
-
-/* Floating Icon Box */
-.occasion-icon-box {
-    position: absolute;
-    bottom: -8px;
-    left: 24px;
-    width: 56px;
-    height: 56px;
-    border-radius: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #FFFFFF;
-    font-size: 1.35rem;
-    z-index: 3;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
-}
-
-/* Color Themes for Icons & Titles */
-.theme-pink .occasion-icon-box { background: linear-gradient(135deg, #FF6584, #E5093A); }
-.theme-orange .occasion-icon-box { background: linear-gradient(135deg, #FFB74D, #F57C00); }
-.theme-purple .occasion-icon-box { background: linear-gradient(135deg, #BA68C8, #8E24AA); }
-.theme-blue .occasion-icon-box { background: linear-gradient(135deg, #64B5F6, #1976D2); }
-.theme-teal .occasion-icon-box { background: linear-gradient(135deg, #4DB6AC, #00897B); }
-
-.occasion-card-body {
-    padding: 34px 24px 28px;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    text-align: left;
-}
-
-.occasion-card-title {
-    font-size: 1.22rem;
+.occasion-v2-title {
+    font-size: 1.28rem;
     font-weight: 800;
-    margin-bottom: 10px;
+    color: #0F172A;
+    line-height: 1.38;
+    margin-bottom: 12px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-.theme-pink .occasion-card-title { color: #E5093A; }
-.theme-orange .occasion-card-title { color: #E65100; }
-.theme-purple .occasion-card-title { color: #7B1FA2; }
-.theme-blue .occasion-card-title { color: #1565C0; }
-.theme-teal .occasion-card-title { color: #00695C; }
-
-/* Dash underline */
-.occasion-dash {
-    width: 24px;
-    height: 3px;
-    border-radius: 99px;
-    margin-bottom: 14px;
-}
-
-.theme-pink .occasion-dash { background: #E5093A; }
-.theme-orange .occasion-dash { background: #E65100; }
-.theme-purple .occasion-dash { background: #7B1FA2; }
-.theme-blue .occasion-dash { background: #1565C0; }
-.theme-teal .occasion-dash { background: #00695C; }
-
-.occasion-card-desc {
-    font-size: 0.86rem;
+.occasion-v2-desc {
+    font-size: 0.9rem;
     color: #64748B;
     line-height: 1.55;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     flex-grow: 1;
 }
 
-.occasion-card-link {
-    font-size: 0.88rem;
-    font-weight: 700;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: gap 0.2s ease;
+.occasion-v2-tag {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-top: 1px solid #F1F5F9;
+    padding-top: 14px;
+    margin-top: auto;
 }
 
-.theme-pink .occasion-card-link { color: #E5093A; }
-.theme-orange .occasion-card-link { color: #E65100; }
-.theme-purple .occasion-card-link { color: #7B1FA2; }
-.theme-blue .occasion-card-link { color: #1565C0; }
-.theme-teal .occasion-card-link { color: #00695C; }
-
-.occasion-card:hover .occasion-card-link {
-    gap: 12px;
-}
-
-@media (max-width: 1200px) {
-    .occasion-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
 @media (max-width: 768px) {
-    .occasion-grid {
-        grid-template-columns: repeat(1, 1fr);
+    .occasion-track {
+        flex-direction: column;
+        width: 100%;
+        padding: 0 20px;
+    }
+    .occasion-card-v2 {
+        width: 100%;
     }
     .occasion-header-title {
         font-size: 2rem;
     }
 }
 
+/* ── Frontend FA Icon Polishing ─────────────────────────────────── */
 
+/* Step icons — How It Works */
+.step-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    margin: 0 auto 16px;
+    background: linear-gradient(135deg, #FFF0F4, #FFE4EC);
+    color: var(--primary);
+    font-size: 1.6rem;
+}
+
+.step-connector {
+    color: #CBD5E1;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Feature icons — Features Section */
+.feature-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    margin: 0 auto 14px;
+    font-size: 1.4rem;
+    color: #FFFFFF;
+}
+
+.feature-icon.gradient-pink   { background: linear-gradient(135deg, #FF6584, #E5093A); }
+.feature-icon.gradient-blue   { background: linear-gradient(135deg, #64B5F6, #1565C0); }
+.feature-icon.gradient-purple { background: linear-gradient(135deg, #CE93D8, #7B1FA2); }
+.feature-icon.gradient-green  { background: linear-gradient(135deg, #80CBC4, #00695C); }
+
+/* Privacy section icon box */
+.privacy-icon-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 120px;
+    border-radius: 30px;
+    background: linear-gradient(135deg, #FFF0F4, #FFE4EC);
+    color: var(--primary);
+    font-size: 3rem;
+    flex-shrink: 0;
+}
+
+/* Hero button icon */
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 6px;
+    font-size: 0.95rem;
+}
+
+/* Testimonial stars */
+.testimonial-stars {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 14px;
+}
+.testimonial-stars .fa-star {
+    color: #F59E0B;
+    font-size: 0.95rem;
+}
+
+/* Active event badge dot */
+.badge.badge-active {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* No-events empty state icon */
+.no-events-card .card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: #CBD5E1;
+    margin-bottom: 12px;
+}
+
+/* Mobile nav icon spacing */
+.mobile-nav-link i,
+.mobile-nav-btn i {
+    width: 18px;
+    text-align: center;
+    margin-right: 4px;
+}
+
+/* Frontend icons – brand red theme (matches logo) */
+.brand-icon i,
+.mobile-nav-link i,
+.mobile-nav-close i,
+.page-header-icon i,
+.cam-placeholder-icon i,
+.upload-icon i,
+.tip-icon i,
+.card-large-icon i,
+.liveness-emoji i,
+.liveness-shield i {
+    color: var(--primary);
+}

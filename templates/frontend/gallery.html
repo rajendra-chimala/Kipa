@@ -7,6 +7,7 @@
     <title>My Photo Gallery – KIPA</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
 </head>
 <body class="page-inner">
 
@@ -14,7 +15,7 @@
     <nav class="navbar">
         <div class="nav-brand">
             <a href="/" class="brand-link">
-                <div class="brand-icon">📸</div>
+                <div class="brand-icon"><i class="fa-solid fa-camera-retro"></i></div>
                 <span class="brand-name">KIPA (किपा)</span>
             </a>
         </div>
@@ -34,17 +35,17 @@
         <div class="mobile-nav-panel">
             <div class="mobile-nav-header">
                 <span class="brand-name">KIPA (किपा)</span>
-                <button class="mobile-nav-close" id="mobileNavClose">✕</button>
+                <button class="mobile-nav-close" id="mobileNavClose"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <a href="/" class="mobile-nav-link">🏠 Home</a>
-            <a href="/upload" class="mobile-nav-link">📤 Upload</a>
-            <a href="/scan" class="mobile-nav-link">🔄 Scan Again</a>
+            <a href="/" class="mobile-nav-link"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="/upload" class="mobile-nav-link"><i class="fa-solid fa-cloud-arrow-up"></i> Upload</a>
+            <a href="/scan" class="mobile-nav-link"><i class="fa-solid fa-rotate"></i> Scan Again</a>
         </div>
     </div>
 
     <!-- Page Header -->
     <div class="page-header container" id="galleryHeader">
-        <div class="page-header-icon">🖼️</div>
+        <div class="page-header-icon"><i class="fa-solid fa-images"></i></div>
         <h1 class="page-title" id="galleryTitle">Your Matched Photos</h1>
         <p class="page-subtitle" id="gallerySubtitle">Loading your personalised gallery…</p>
     </div>
@@ -59,7 +60,9 @@
 
         <!-- Empty state (no results) -->
         <div class="gallery-empty text-center py-5" id="galleryEmpty" style="display:none">
-            <div class="empty-icon" style="font-size: 3rem; margin-bottom: 16px;">😔</div>
+            <div class="empty-icon" style="font-size: 3rem; margin-bottom: 16px; color:#CBD5E1;">
+                <i class="fa-solid fa-face-sad-tear"></i>
+            </div>
             <h3>No Photos Found</h3>
             <p style="color: var(--text-secondary); margin-bottom: 24px;">We couldn't find photos matching your face. Try adjusting the sensitivity or scan again.</p>
             <div class="empty-actions">
@@ -70,11 +73,13 @@
 
         <!-- No session state (arrived directly without scanning) -->
         <div class="gallery-no-session text-center py-5" id="galleryNoSession" style="display:none">
-            <div class="empty-icon" style="font-size: 3rem; margin-bottom: 16px;">🎯</div>
+            <div class="empty-icon" style="font-size: 3rem; margin-bottom: 16px; color:#CBD5E1;">
+                <i class="fa-solid fa-face-viewfinder"></i>
+            </div>
             <h3>No Scan Session Found</h3>
             <p style="color: var(--text-secondary); margin-bottom: 24px;">Please scan your face first to see your personalised gallery.</p>
             <a href="/scan" class="btn btn-primary btn-lg">
-                <span class="btn-icon">📷</span>
+                <span class="btn-icon"><i class="fa-solid fa-camera"></i></span>
                 Go to Scan
             </a>
         </div>
@@ -86,11 +91,11 @@
             </div>
             <div class="toolbar-actions" style="display: flex; gap: 12px;">
                 <button class="btn btn-secondary" id="downloadAllBtn">
-                    <span class="btn-icon">📦</span>
+                    <span class="btn-icon"><i class="fa-solid fa-box-archive"></i></span>
                     Download All
                 </button>
                 <a href="/scan" class="btn btn-ghost">
-                    <span class="btn-icon">🔄</span>
+                    <span class="btn-icon"><i class="fa-solid fa-rotate"></i></span>
                     Scan Again
                 </a>
             </div>
@@ -105,14 +110,14 @@
     <div class="lightbox" id="lightbox" style="display:none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 500; align-items: center; justify-content: center;">
         <div class="lightbox-overlay" id="lightboxOverlay" style="position: absolute; inset: 0;"></div>
         <div class="lightbox-content" style="position: relative; z-index: 501; max-width: 90%; max-height: 90%; display: flex; flex-direction: column; align-items: center; gap: 20px;">
-            <button class="lightbox-close" id="lightboxClose" style="position: absolute; top: -40px; right: 0; color: #fff; font-size: 1.5rem; font-weight: 700;">✕</button>
-            <button class="lightbox-nav lightbox-prev" id="lightboxPrev" style="position: absolute; left: -60px; top: 50%; transform: translateY(-50%); color: #fff; font-size: 3rem;">‹</button>
+            <button class="lightbox-close" id="lightboxClose" style="position: absolute; top: -40px; right: 0; color: #fff; font-size: 1.5rem; font-weight: 700;"><i class="fa-solid fa-xmark"></i></button>
+            <button class="lightbox-nav lightbox-prev" id="lightboxPrev" style="position: absolute; left: -60px; top: 50%; transform: translateY(-50%); color: #fff; font-size: 3rem;"><i class="fa-solid fa-chevron-left"></i></button>
             <img class="lightbox-image" id="lightboxImage" src="" alt="Event photo" style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: var(--r-md); border: 2px solid rgba(255,255,255,0.2);" />
-            <button class="lightbox-nav lightbox-next" id="lightboxNext" style="position: absolute; right: -60px; top: 50%; transform: translateY(-50%); color: #fff; font-size: 3rem;">›</button>
+            <button class="lightbox-nav lightbox-next" id="lightboxNext" style="position: absolute; right: -60px; top: 50%; transform: translateY(-50%); color: #fff; font-size: 3rem;"><i class="fa-solid fa-chevron-right"></i></button>
             <div class="lightbox-footer" style="display: flex; justify-content: space-between; align-items: center; width: 100%; color: #fff;">
                 <span class="lightbox-counter" id="lightboxCounter">1 / 1</span>
                 <a class="btn btn-primary btn-sm" id="lightboxDownload" href="#" download>
-                    ⬇ Download
+                    <i class="fa-solid fa-download"></i> Download
                 </a>
             </div>
         </div>

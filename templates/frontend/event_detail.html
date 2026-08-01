@@ -7,13 +7,14 @@
     <title>{{ event.name }} – KIPA</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
 </head>
 <body class="page-event-details">
 
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-brand" onclick="window.location.href='/'" style="cursor: pointer;">
-            <div class="brand-icon">📸</div>
+            <div class="brand-icon"><i class="fa-solid fa-camera-retro"></i></div>
             <span class="brand-name">KIPA (किपा)</span>
         </div>
         <div class="nav-links">
@@ -30,9 +31,9 @@
         <div class="mobile-nav-panel">
             <div class="mobile-nav-header">
                 <span class="brand-name">KIPA (किपा)</span>
-                <button class="mobile-nav-close" id="mobileNavClose">✕</button>
+                <button class="mobile-nav-close" id="mobileNavClose"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <a href="/" class="mobile-nav-link">🏠 Home</a>
+            <a href="/" class="mobile-nav-link"><i class="fa-solid fa-house"></i> Home</a>
         </div>
     </div>
 
@@ -40,13 +41,13 @@
     <header class="event-header container">
         <div class="event-meta-card">
             <div class="event-meta-header">
-                <span class="badge badge-active">🟢 Active Event</span>
+                <span class="badge badge-active"><i class="fa-solid fa-circle"></i> Active Event</span>
                 <span class="event-date">Published by <strong>{{ event.creator_name }}</strong></span>
             </div>
             <h1 class="event-title">{{ event.name }}</h1>
             <p class="event-desc">{{ event.description or 'No description provided.' }}</p>
             {% if event.deactivation_date %}
-            <div class="event-deact-info">⏳ Automatically deactivating on: <strong>{{ event.deactivation_date }}</strong></div>
+            <div class="event-deact-info"><i class="fa-solid fa-hourglass-half"></i> Automatically deactivating on: <strong>{{ event.deactivation_date }}</strong></div>
             {% endif %}
         </div>
     </header>
@@ -60,7 +61,7 @@
                 <div class="camera-viewport" id="cameraViewport">
                     <!-- State: Idle -->
                     <div class="cam-state" id="stateIdle">
-                        <div class="cam-placeholder-icon">👤</div>
+                        <div class="cam-placeholder-icon"><i class="fa-solid fa-user"></i></div>
                         <h3>Scan Face to Find Photos</h3>
                         <p>Allow camera access to match your face and fetch your photos in this event.</p>
                     </div>
@@ -93,11 +94,11 @@
                 <!-- Camera Controls -->
                 <div class="camera-controls">
                     <button class="btn btn-primary btn-lg" id="startCameraBtn">
-                        <span class="btn-icon">📷</span>
+                        <span class="btn-icon"><i class="fa-solid fa-video"></i></span>
                         Enable Webcam
                     </button>
                     <button class="btn btn-success btn-lg" id="captureBtn" style="display:none">
-                        <span class="btn-icon">🔍</span>
+                        <span class="btn-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
                         Scan My Face
                     </button>
                     <button class="btn btn-secondary" id="stopCameraBtn" style="display:none">
@@ -124,28 +125,28 @@
                 <h3 class="instruction-title">How to Scan</h3>
                 <ul class="tip-list">
                     <li class="tip-item">
-                        <div class="tip-icon">🛡️</div>
+                        <div class="tip-icon"><i class="fa-solid fa-shield-halved"></i></div>
                         <div>
                             <strong>Anti-Spoof Protection</strong>
                             <p>You must pass a quick liveness check before scanning—photos and phone screens are blocked.</p>
                         </div>
                     </li>
                     <li class="tip-item">
-                        <div class="tip-icon">💡</div>
+                        <div class="tip-icon"><i class="fa-solid fa-lightbulb"></i></div>
                         <div>
                             <strong>Bright Environment</strong>
                             <p>Avoid strong background lights, shadows, or backlit setups.</p>
                         </div>
                     </li>
                     <li class="tip-item">
-                        <div class="tip-icon">👁️</div>
+                        <div class="tip-icon"><i class="fa-solid fa-eye"></i></div>
                         <div>
                             <strong>Direct Pose</strong>
                             <p>Look straight into the webcam without tilted angles.</p>
                         </div>
                     </li>
                     <li class="tip-item">
-                        <div class="tip-icon">🕶️</div>
+                        <div class="tip-icon"><i class="fa-solid fa-glasses"></i></div>
                         <div>
                             <strong>Remove Obstacles</strong>
                             <p>Take off sunglasses, masks, or large hats if matching fails.</p>
@@ -177,7 +178,7 @@
         <!-- No Photos Match Banner -->
         <section id="no-photos-container" class="matched-gallery-section mt-5 hidden">
             <div class="no-matches-card">
-                <span class="card-large-icon">🔍</span>
+                <span class="card-large-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
                 <h3>No Matching Photos Found</h3>
                 <p>We could not find any photos matching your face in this event, or they have already been downloaded.</p>
             </div>
@@ -195,7 +196,7 @@
         function toast(msg, type = 'info') {
             let c = document.querySelector('.toast-container');
             if (!c) { c = document.createElement('div'); c.className = 'toast-container'; document.body.appendChild(c); }
-            const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+            const icons = { success: '<i class="fa-solid fa-circle-check"></i>', error: '<i class="fa-solid fa-circle-xmark"></i>', info: '<i class="fa-solid fa-circle-info"></i>', warning: '<i class="fa-solid fa-triangle-exclamation"></i>' };
             const t = document.createElement('div');
             t.className = `toast toast-${type}`;
             t.innerHTML = `<span class="toast-icon">${icons[type]}</span><span class="toast-msg">${msg}</span>`;
@@ -235,7 +236,7 @@
 
         // ── Liveness Challenges ────────────────────────────────────────────────
         const CHALLENGES = [
-            { type: 'mouth', emoji: '😮', title: 'Open Your Mouth Wide',
+            { type: 'mouth', emoji: '<i class="fa-solid fa-face-grin-wide"></i>', title: 'Open Your Mouth Wide',
               hint: 'Slowly open your mouth as wide as you can.' }
         ];
         const REQUIRED_CHALLENGES = 1;  // only mouth open required
@@ -361,7 +362,7 @@
                 <div class="liveness-backdrop"></div>
                 <div class="liveness-card">
                     <div class="liveness-header">
-                        <span class="liveness-shield">🛡️</span>
+                        <span class="liveness-shield"><i class="fa-solid fa-shield-halved"></i></span>
                         <div>
                             <h3>Anti-Spoof Check</h3>
                             <p class="liveness-sub">${progressLabel} — Prove you are a real person</p>
@@ -379,7 +380,7 @@
                         <span class="liveness-secs-label">Capturing in <strong id="lvSecs">1.5</strong>s</span>
                     </div>
                     <div class="liveness-actions">
-                        <button class="btn btn-secondary btn-sm" id="lvCancelBtn">✕ Cancel</button>
+                        <button class="btn btn-secondary btn-sm" id="lvCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
                     </div>
                     <div class="liveness-status" id="lvStatus"></div>
                 </div>`;
@@ -416,7 +417,7 @@
             const lvStatus = document.getElementById('lvStatus');
             const lvTitle  = document.getElementById('lvTitle');
             const lvEmoji  = document.getElementById('lvEmoji');
-            if(lvEmoji)  lvEmoji.textContent  = '⏳';
+            if(lvEmoji)  lvEmoji.innerHTML  = '<i class="fa-solid fa-hourglass-half"></i>';
             if(lvTitle)  lvTitle.textContent  = 'Verifying…';
             if(lvStatus) lvStatus.innerHTML   = `<div class="lv-checking"><div class="spinner" style="width:24px;height:24px;margin:0 auto 6px;border-width:2px;"></div>Analysing frames…</div>`;
 
@@ -436,7 +437,7 @@
                 if(res.success) {
                     challengeIndex++;
                     const isLast = challengeIndex >= challengeList.length;
-                    if(lvEmoji) lvEmoji.textContent = '✅';
+                    if(lvEmoji) lvEmoji.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
                     if(lvTitle) lvTitle.textContent  = isLast ? 'All Checks Passed!' : 'Challenge Passed!';
                     if(lvStatus) lvStatus.innerHTML  = `<p class="lv-pass">${isLast ? 'Anti-spoof verified. Scanning your face…' : 'Moving to next challenge…'}</p>`;
                     toast(isLast ? 'Anti-spoof check passed! Scanning your face…' : 'Challenge passed! One more to go.','success');
@@ -450,9 +451,9 @@
                         }
                     }, isLast ? 1300 : 1000);
                 } else {
-                    if(lvEmoji) lvEmoji.textContent = '❌';
+                    if(lvEmoji) lvEmoji.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
                     if(lvTitle) lvTitle.textContent  = 'Check Failed';
-                    if(lvStatus) lvStatus.innerHTML  = `<p class="lv-fail">${res.message}</p><button class="btn btn-primary btn-sm" id="lvRetryBtn">🔄 Try Again</button>`;
+                    if(lvStatus) lvStatus.innerHTML  = `<p class="lv-fail">${res.message}</p><button class="btn btn-primary btn-sm" id="lvRetryBtn"><i class="fa-solid fa-rotate"></i> Try Again</button>`;
                     document.getElementById('lvRetryBtn').onclick = ()=>{
                         clearChallengeTimer();
                         removeLivenessPanel();
