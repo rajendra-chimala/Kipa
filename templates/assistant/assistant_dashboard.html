@@ -41,9 +41,9 @@
         <div class="ta-sidebar-footer">
             <div class="ta-sidebar-user">
                 {% if session['user'].get('profile_pic') %}
-                <div class="user-avatar"><img src="/{{ session['user']['profile_pic'] }}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>
+                <div class="user-avatar" style="border-radius:10px;overflow:hidden;"><img src="/{{ session['user']['profile_pic'] }}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:10px;"></div>
                 {% else %}
-                <div class="user-avatar">{{ session['user']['username'][0]|upper }}</div>
+                <div class="user-avatar" style="border-radius:10px;">{{ session['user']['username'][0]|upper }}</div>
                 {% endif %}
                 <div class="user-info">
                     <div class="user-name">{{ session['user']['username'] }}</div>
@@ -204,70 +204,130 @@
                     </div>
                 </div>
 
-                <div class="ta-info-card" style="max-width:640px;">
-                    <form id="form-settings" onsubmit="handleSettingsUpdate(event)">
-                        <div id="settings-alert-success" class="ta-event-info-banner hidden" style="background:#ECFDF5; border-color:#A7F3D0; color:#065F46; margin-bottom:16px;"></div>
-                        <div id="settings-alert-error" class="ta-event-info-banner hidden" style="background:#FEF2F2; border-color:#FECDD3; color:#991B1B; margin-bottom:16px;"></div>
+                <!-- Two-column layout -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
 
-                        <!-- Profile Picture -->
-                        <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px;flex-wrap:wrap;">
-                            <div id="settings-avatar-preview" style="width:84px;height:84px;border-radius:50%;background:#F4F3FF;color:#6941C6;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;overflow:hidden;flex-shrink:0;border:2px solid #E4E7EC;">
-                                {% if session['user'].get('profile_pic') %}
-                                <img src="/{{ session['user']['profile_pic'] }}" alt="Profile picture" style="width:100%;height:100%;object-fit:cover;">
-                                {% else %}
-                                {{ session['user']['username'][0]|upper }}
-                                {% endif %}
-                            </div>
-                            <div style="display:flex;flex-direction:column;gap:8px;min-width:200px;">
-                                <div style="font-size:0.95rem;font-weight:700;color:#101828;">Profile Picture</div>
-                                <div style="font-size:0.8rem;color:#667085;">Upload a photo to personalise your account.</div>
-                                <div style="display:flex;gap:8px;margin-top:4px;">
-                                    <button type="button" class="ta-btn ta-btn-secondary ta-btn-sm" onclick="document.getElementById('profile-pic-input').click()"><i class="fa-solid fa-camera" style="margin-right:4px;"></i> Upload Photo</button>
+                    <!-- ── LEFT: Edit Form ── -->
+                    <div class="ta-info-card">
+                        <form id="form-settings" onsubmit="handleSettingsUpdate(event)">
+                            <div id="settings-alert-success" class="ta-event-info-banner hidden" style="background:#ECFDF5;border-color:#A7F3D0;color:#065F46;margin-bottom:16px;"></div>
+                            <div id="settings-alert-error" class="ta-event-info-banner hidden" style="background:#FEF2F2;border-color:#FECDD3;color:#991B1B;margin-bottom:16px;"></div>
+
+                            <!-- Profile Picture Row -->
+                            <div style="display:flex;align-items:center;gap:18px;margin-bottom:22px;">
+                                <div id="settings-avatar-preview" style="width:80px;height:80px;border-radius:14px;background:linear-gradient(135deg,#6941C6,#E5093A);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:800;overflow:hidden;flex-shrink:0;border:3px solid #E4E7EC;box-shadow:0 4px 12px rgba(105,65,198,.18);">
                                     {% if session['user'].get('profile_pic') %}
-                                    <button type="button" class="ta-btn ta-btn-danger ta-btn-sm" onclick="removeProfilePic()"><i class="fa-regular fa-trash-can" style="margin-right:4px;"></i> Remove</button>
+                                    <img src="/{{ session['user']['profile_pic'] }}" alt="Profile" style="width:100%;height:100%;object-fit:cover;">
+                                    {% else %}
+                                    {{ session['user']['username'][0]|upper }}
                                     {% endif %}
                                 </div>
-                                <input type="file" id="profile-pic-input" accept="image/*" style="display:none;" onchange="uploadProfilePic(this)">
-                                <div id="profile-pic-status" class="ta-event-info-banner hidden" style="margin-top:4px;"></div>
+                                <div>
+                                    <div style="font-size:0.93rem;font-weight:700;color:#101828;margin-bottom:4px;">Profile Picture</div>
+                                    <div style="font-size:0.78rem;color:#667085;margin-bottom:10px;">Upload a photo to personalise your account.</div>
+                                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                        <button type="button" class="ta-btn ta-btn-secondary ta-btn-sm" onclick="document.getElementById('profile-pic-input').click()">
+                                            <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Upload Photo
+                                        </button>
+                                        {% if session['user'].get('profile_pic') %}
+                                        <button type="button" class="ta-btn ta-btn-danger ta-btn-sm" onclick="removeProfilePic()">
+                                            <i class="fa-regular fa-trash-can" style="margin-right:4px;"></i> Remove
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                    <input type="file" id="profile-pic-input" accept="image/*" style="display:none;" onchange="uploadProfilePic(this)">
+                                    <div id="profile-pic-status" class="ta-event-info-banner hidden" style="margin-top:8px;font-size:0.8rem;"></div>
+                                </div>
+                            </div>
+                            <hr style="border:0;border-top:1px solid #E4E7EC;margin:0 0 20px;">
+
+                            <div class="ta-form-group" style="margin-bottom:14px;">
+                                <label class="ta-form-label">Full Name</label>
+                                <input type="text" name="name" id="input-name" class="ta-form-input" placeholder="e.g. Jane Doe" value="{{ session['user'].get('name', '') }}" oninput="syncPreview()">
+                            </div>
+
+                            <div class="ta-form-group" style="margin-bottom:14px;">
+                                <label class="ta-form-label">Email Address</label>
+                                <input type="email" name="email" id="input-email" class="ta-form-input" placeholder="e.g. jane@example.com" value="{{ session['user'].get('email', '') }}" oninput="syncPreview()">
+                            </div>
+
+                            <div class="ta-form-group" style="margin-bottom:20px;">
+                                <label class="ta-form-label">Username <span class="required">*</span></label>
+                                <input type="text" name="username" id="input-username" class="ta-form-input" placeholder="Username" value="{{ session['user'].get('username', '') }}" required oninput="syncPreview()">
+                            </div>
+
+                            <hr style="border:0;border-top:1px solid #E4E7EC;margin:0 0 18px;">
+                            <h4 style="font-size:0.9rem;font-weight:700;color:#101828;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+                                <i class="fa-solid fa-lock" style="color:var(--primary);font-size:0.85rem;"></i> Change Password
+                            </h4>
+
+                            <div class="ta-form-group" style="margin-bottom:14px;">
+                                <label class="ta-form-label">Current Password <small style="color:#667085;">(Required only if changing password)</small></label>
+                                <input type="password" name="current_password" class="ta-form-input" placeholder="••••••••" autocomplete="current-password">
+                            </div>
+
+                            <div class="ta-form-group" style="margin-bottom:22px;">
+                                <label class="ta-form-label">New Password</label>
+                                <input type="password" name="new_password" class="ta-form-input" placeholder="••••••••" autocomplete="new-password">
+                            </div>
+
+                            <button type="submit" class="ta-btn ta-btn-primary" style="width:100%;justify-content:center;padding:12px;">
+                                <i class="fa-solid fa-floppy-disk"></i> Save Profile Changes
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- ── RIGHT: Preview + Info ── -->
+                    <div style="display:flex;flex-direction:column;gap:20px;">
+
+                        <!-- Profile Preview Card -->
+                        <div style="background:#fff;border:1px solid #E4E7EC;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);">
+                            <div style="height:90px;background:linear-gradient(135deg,#6941C6 0%,#E5093A 100%);position:relative;"></div>
+                            <div style="display:flex;flex-direction:column;align-items:center;padding:0 24px 24px;margin-top:-44px;text-align:center;position:relative;z-index:2;">
+                                <div id="preview-avatar" style="width:88px;height:88px;border-radius:16px;background:linear-gradient(135deg,#6941C6,#E5093A);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;border:4px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,.15);overflow:hidden;margin-bottom:12px;">
+                                    {% if session['user'].get('profile_pic') %}
+                                    <img src="/{{ session['user']['profile_pic'] }}" alt="Profile" style="width:100%;height:100%;object-fit:cover;">
+                                    {% else %}
+                                    <span id="preview-initial">{{ session['user']['username'][0]|upper }}</span>
+                                    {% endif %}
+                                </div>
+                                <div id="preview-name" style="font-size:1.05rem;font-weight:800;color:#101828;margin-bottom:4px;">{{ session['user'].get('name') or session['user']['username'] }}</div>
+                                <div id="preview-email" style="font-size:0.8rem;color:#667085;margin-bottom:10px;">{{ session['user'].get('email') or '—' }}</div>
+                                <span class="ta-badge warning" style="font-size:0.75rem;padding:4px 12px;">
+                                    <i class="fa-solid fa-user-group" style="margin-right:5px;"></i> Assistant
+                                </span>
                             </div>
                         </div>
-                        <hr style="border:0; border-top:1px solid #E4E7EC; margin:0 0 24px;">
 
-                        <div class="ta-form-group" style="margin-bottom:16px;">
-                            <label class="ta-form-label">Full Name</label>
-                            <input type="text" name="name" class="ta-form-input" placeholder="e.g. Jane Doe" value="{{ session['user'].get('name', '') }}">
+                        <!-- Account Info Card -->
+                        <div style="background:#fff;border:1px solid #E4E7EC;border-radius:16px;padding:22px;box-shadow:0 2px 12px rgba(0,0,0,.06);">
+                            <h4 style="font-size:0.9rem;font-weight:700;color:#101828;margin:0 0 16px;display:flex;align-items:center;gap:7px;">
+                                <i class="fa-solid fa-circle-info" style="color:var(--primary);"></i> Account Info
+                            </h4>
+                            <div style="display:flex;flex-direction:column;gap:12px;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;">
+                                    <span style="font-size:0.82rem;color:#667085;display:flex;align-items:center;gap:7px;"><i class="fa-solid fa-at" style="width:14px;color:#98A2B3;"></i> Username</span>
+                                    <span id="preview-username" style="font-size:0.82rem;font-weight:600;color:#101828;">{{ session['user']['username'] }}</span>
+                                </div>
+                                <div style="display:flex;align-items:center;justify-content:space-between;">
+                                    <span style="font-size:0.82rem;color:#667085;display:flex;align-items:center;gap:7px;"><i class="fa-solid fa-user-shield" style="width:14px;color:#98A2B3;"></i> Role</span>
+                                    <span style="font-size:0.82rem;font-weight:600;color:#101828;">Assistant</span>
+                                </div>
+                                <div style="display:flex;align-items:center;justify-content:space-between;">
+                                    <span style="font-size:0.82rem;color:#667085;display:flex;align-items:center;gap:7px;"><i class="fa-solid fa-shield-halved" style="width:14px;color:#98A2B3;"></i> Password</span>
+                                    <span style="font-size:0.82rem;font-weight:600;color:#6941C6;letter-spacing:2px;">••••••••</span>
+                                </div>
+                                <hr style="border:0;border-top:1px solid #F2F4F7;margin:2px 0;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;">
+                                    <span style="font-size:0.82rem;color:#667085;display:flex;align-items:center;gap:7px;"><i class="fa-solid fa-calendar-check" style="width:14px;color:#98A2B3;"></i> Status</span>
+                                    <span class="ta-badge success" style="font-size:0.73rem;">● Active</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="ta-form-group" style="margin-bottom:16px;">
-                            <label class="ta-form-label">Email Address</label>
-                            <input type="email" name="email" class="ta-form-input" placeholder="e.g. jane@example.com" value="{{ session['user'].get('email', '') }}">
-                        </div>
-
-                        <div class="ta-form-group" style="margin-bottom:20px;">
-                            <label class="ta-form-label">Username <span class="required">*</span></label>
-                            <input type="text" name="username" class="ta-form-input" placeholder="Username" value="{{ session['user'].get('username', '') }}" required>
-                        </div>
-
-                        <hr style="border:0; border-top:1px solid #E4E7EC; margin:24px 0;">
-                        
-                        <h4 style="font-size:0.95rem; font-weight:700; color:#101828; margin-bottom:12px;">Change Password</h4>
-
-                        <div class="ta-form-group" style="margin-bottom:16px;">
-                            <label class="ta-form-label">Current Password <small style="color:#667085;">(Required only if changing password)</small></label>
-                            <input type="password" name="current_password" class="ta-form-input" placeholder="••••••••" autocomplete="current-password">
-                        </div>
-
-                        <div class="ta-form-group" style="margin-bottom:24px;">
-                            <label class="ta-form-label">New Password</label>
-                            <input type="password" name="new_password" class="ta-form-input" placeholder="••••••••" autocomplete="new-password">
-                        </div>
-
-                        <button type="submit" class="ta-btn ta-btn-primary ta-btn-lg">
-                            <i class="fa-solid fa-floppy-disk"></i> Save Profile Changes
-                        </button>
-                    </form>
-                </div>
-            </div>
+                    </div><!-- end right col -->
+                </div><!-- end grid -->
+            </div><!-- end #sec-settings -->
 
         </main>
     </div>
@@ -336,30 +396,45 @@
         const form = event.target;
         const btn = form.querySelector('button[type="submit"]');
         const succAlert = document.getElementById('settings-alert-success');
-        const errAlert = document.getElementById('settings-alert-error');
+        const errAlert  = document.getElementById('settings-alert-error');
 
         succAlert.classList.add('hidden');
         errAlert.classList.add('hidden');
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
-        const formData = new FormData(form);
+        const payload = {
+            name:             form.querySelector('[name="name"]').value,
+            email:            form.querySelector('[name="email"]').value,
+            username:         form.querySelector('[name="username"]').value,
+            current_password: form.querySelector('[name="current_password"]').value,
+            new_password:     form.querySelector('[name="new_password"]').value,
+        };
 
         try {
             const response = await fetch('/api/user/profile', {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
             const res = await response.json();
 
             if (response.ok && res.success) {
                 succAlert.textContent = res.message || 'Profile updated successfully!';
                 succAlert.classList.remove('hidden');
-                form.querySelector('input[name="current_password"]').value = '';
-                form.querySelector('input[name="new_password"]').value = '';
+                form.querySelector('[name="current_password"]').value = '';
+                form.querySelector('[name="new_password"]').value = '';
                 const userNameEl = document.querySelector('.ta-sidebar-user .user-name');
-                if (userNameEl && res.user && res.user.username) {
-                    userNameEl.textContent = res.user.name || res.user.username;
+                if (userNameEl && res.user) { userNameEl.textContent = res.user.name || res.user.username; }
+                if (res.user) {
+                    const pName = document.getElementById('preview-name');
+                    const pEmail = document.getElementById('preview-email');
+                    const pUser  = document.getElementById('preview-username');
+                    const pInit  = document.getElementById('preview-initial');
+                    if (pName)  pName.textContent  = res.user.name || res.user.username;
+                    if (pEmail) pEmail.textContent = res.user.email || '—';
+                    if (pUser)  pUser.textContent  = res.user.username;
+                    if (pInit)  pInit.textContent  = (res.user.username || 'U')[0].toUpperCase();
                 }
             } else {
                 errAlert.textContent = res.message || 'Failed to update profile.';
@@ -375,23 +450,40 @@
         }
     }
 
+    // ── Live Preview Sync ─────────────────────────────────────────────
+    function syncPreview() {
+        const name     = (document.getElementById('input-name')?.value || '').trim();
+        const email    = (document.getElementById('input-email')?.value || '').trim();
+        const username = (document.getElementById('input-username')?.value || '').trim();
+        const pName  = document.getElementById('preview-name');
+        const pEmail = document.getElementById('preview-email');
+        const pUser  = document.getElementById('preview-username');
+        const pInit  = document.getElementById('preview-initial');
+        if (pName)  pName.textContent  = name || username || '—';
+        if (pEmail) pEmail.textContent = email || '—';
+        if (pUser)  pUser.textContent  = username || '—';
+        if (pInit)  pInit.textContent  = (name || username || 'U')[0].toUpperCase();
+    }
+
     // ── Profile Picture ─────────────────────────────────────────────
     function _setProfilePicStatus(msg, isSuccess) {
         const status = document.getElementById('profile-pic-status');
         status.classList.remove('hidden');
-        status.style.background = isSuccess ? '#ECFDF5' : '#FEF2F2';
+        status.style.background  = isSuccess ? '#ECFDF5' : '#FEF2F2';
         status.style.borderColor = isSuccess ? '#A7F3D0' : '#FECDD3';
-        status.style.color = isSuccess ? '#065F46' : '#991B1B';
+        status.style.color       = isSuccess ? '#065F46' : '#991B1B';
         status.textContent = msg;
     }
 
     function _refreshProfilePicPreview(path) {
+        const t = Date.now();
+        const imgTag = `<img src="/${path}?t=${t}" alt="Profile" style="width:100%;height:100%;object-fit:cover;">`;
         const preview = document.getElementById('settings-avatar-preview');
-        preview.innerHTML = `<img src="/${path}?t=${Date.now()}" alt="Profile picture" style="width:100%;height:100%;object-fit:cover;">`;
+        if (preview) preview.innerHTML = imgTag;
+        const previewAvatar = document.getElementById('preview-avatar');
+        if (previewAvatar) previewAvatar.innerHTML = imgTag;
         const sidebarAvatar = document.querySelector('.ta-sidebar-user .user-avatar');
-        if (sidebarAvatar) {
-            sidebarAvatar.innerHTML = `<img src="/${path}?t=${Date.now()}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-        }
+        if (sidebarAvatar) sidebarAvatar.innerHTML = `<img src="/${path}?t=${t}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`;
     }
 
     async function uploadProfilePic(input) {

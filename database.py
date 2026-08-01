@@ -328,6 +328,19 @@ def update_event(event_id, name=None, description=None, status=None, deactivatio
     conn.close()
 
 
+def delete_event(event_id):
+    """Delete an event (cascades to its images, face encodings, downloads and assignments)."""
+    conn = get_connection()
+    try:
+        with conn:
+            conn.execute('DELETE FROM events WHERE id = ?', (event_id,))
+        conn.close()
+        return {'success': True, 'message': 'Event deleted successfully.'}
+    except Exception as e:
+        conn.close()
+        return {'success': False, 'message': f'Failed to delete event: {str(e)}'}
+
+
 def get_event_by_id(event_id):
     """Fetch a single event and its status (including auto deactivation status)."""
     conn = get_connection()

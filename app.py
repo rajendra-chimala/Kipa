@@ -29,6 +29,7 @@ from database import (
     get_assistants_by_photographer,
     create_event,
     update_event,
+    delete_event,
     get_event_by_id,
     get_events_by_photographer,
     get_all_published_active_events,
@@ -406,7 +407,8 @@ def super_admin_dashboard():
     stats = get_global_stats()
     users = get_all_users_with_creators()
     events = get_all_events_with_creators()
-    return render_template('super_admin/super_admin.html', stats=stats, users=users, events=events)
+    photographers = [u for u in users if u['role'] == 'photographer']
+    return render_template('super_admin/super_admin.html', stats=stats, users=users, events=events, photographers=photographers)
 
 
 # ─── Super Admin User Management API ─────────────────────────────────────────
@@ -500,7 +502,7 @@ def api_admin_delete_user():
 # ─── Event Management API ────────────────────────────────────────────────────
 
 @app.route('/api/event/create', methods=['POST'])
-@role_required('photographer')
+@role_required('photographer', 'super_admin')
 def api_create_event():
     """Create a new event."""
     name = request.form.get('name')
@@ -511,12 +513,23 @@ def api_create_event():
     if not name:
         return jsonify({'success': False, 'message': 'Event name is required.'}), 400
 
+    role = session['user']['role']
     created_by = session['user']['id']
 
-    # Double-check user still exists (belt-and-suspenders against FK failure)
-    if not get_user_by_id(created_by):
-        session.clear()
-        return jsonify({'success': False, 'message': 'Session invalid — please log in again.'}), 401
+    # Super admin can create an event on behalf of a selected photographer
+    if role == 'super_admin':
+        owner_id = request.form.get('created_by')
+        if owner_id:
+            owner = get_user_by_id(int(owner_id))
+            if owner and owner['role'] == 'photographer':
+                created_by = int(owner_id)
+            else:
+                return jsonify({'success': False, 'message': 'Selected photographer is not valid.'}), 400
+    else:
+        # Double-check user still exists (belt-and-suspenders against FK failure)
+        if not get_user_by_id(created_by):
+            session.clear()
+            return jsonify({'success': False, 'message': 'Session invalid — please log in again.'}), 401
 
     try:
         event_id = create_event(
@@ -585,6 +598,50 @@ def api_update_event(event_id):
         download_limit=download_limit
     )
     return jsonify({'success': True, 'message': 'Event updated successfully.'})
+
+
+@app.route('/api/event/<int:event_id>/delete', methods=['POST'])
+@login_required
+def api_delete_event(event_id):
+    """Delete an event (super admin or the owning photographer)."""
+    event = get_event_by_id(event_id)
+    if not event:
+        return jsonify({'success': False, 'message': 'Event not found.'}), 404
+
+    role = session['user']['role']
+    user_id = session['user']['id']
+
+    if role == 'photographer':
+        if event['created_by'] != user_id:
+            return jsonify({'success': False, 'message': 'Unauthorized.'}), 403
+    elif role != 'super_admin':
+        return jsonify({'success': False, 'message': 'Unauthorized.'}), 403
+
+    # Remove uploaded files from disk first
+    images = get_images_by_event(event_id)
+    for img in images:
+        path = img['image_path']
+        if path.startswith('static/') and os.path.exists(path):
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+
+    folder = os.path.join(app.config['UPLOAD_FOLDER'], str(event_id))
+    if os.path.isdir(folder):
+        try:
+            for f in os.listdir(folder):
+                fp = os.path.join(folder, f)
+                if os.path.isfile(fp):
+                    os.remove(fp)
+            os.rmdir(folder)
+        except OSError:
+            pass
+
+    res = delete_event(event_id)
+    if res['success']:
+        return jsonify(res)
+    return jsonify(res), 500
 
 
 # ─── Assistant Management API ────────────────────────────────────────────────

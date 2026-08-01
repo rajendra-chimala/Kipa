@@ -2546,4 +2546,34 @@ input[type=range].slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
     .lightbox-next { right: -10px !important; font-size: 2.2rem !important; background: rgba(0,0,0,0.5); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 }
 
+/* ── Settings Two-Column Grid Responsive ────────────────────────── */
+/* Collapse to single column on tablets and below */
+@media (max-width: 1024px) {
+    #sec-settings > div[style*="grid-template-columns:1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ── Sidebar Logout Button ──────────────────────────────────────── */
+.ta-sidebar-logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    margin-top: 8px;
+    background: #FFF0F4;
+    color: #E5093A;
+    border: 1px solid #FECDD3;
+    border-radius: 10px;
+    font-size: 0.87rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.18s, border-color 0.18s;
+}
+.ta-sidebar-logout-btn:hover {
+    background: #FFE0E9;
+    border-color: #E5093A;
+}
 
