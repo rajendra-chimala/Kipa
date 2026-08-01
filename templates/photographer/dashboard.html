@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 
 <body style="margin:0;padding:0;background:#F9FAFB;">
@@ -45,6 +46,12 @@
                     <span class="ta-mi-icon"><i class="fa-solid fa-users"></i></span>
                     Assistants
                 </button>
+
+                <button class="ta-menu-item" id="mi-permissions" onclick="switchSection('permissions', this)">
+                    <span class="ta-mi-icon"><i class="fa-solid fa-user-shield"></i></span>
+                    Permissions
+                </button>
+
 
                 <div class="ta-menu-group-label">SITE</div>
 
@@ -147,17 +154,154 @@
                         </div>
                     </div>
 
-                    <!-- Quick Guide -->
-                    <div class="ta-info-card">
-                        <h4>🚀 Quick Guide</h4>
-                        <p>Welcome to your KIPA Photographer Dashboard. Here's what you can do:</p>
-                        <ul>
-                            <li>Create photography events and set them to published or unpublished.</li>
-                            <li>Add deactivation dates so events automatically expire.</li>
-                            <li>Configure a Download Limit per photo — tracked per visitor session.</li>
-                            <li>Register Assistant sub-users to help with uploads and deletions.</li>
-                        </ul>
+                    <!-- Daily Downloads Chart -->
+                    <div class="ta-table-card" id="downloads-chart-card">
+                        <div class="ta-table-card-header" style="padding:18px 22px 14px;border-bottom:1px solid #F2F4F7;">
+                            <div>
+                                <h3 style="font-size:1rem;font-weight:700;color:#101828;margin:0;">
+                                    <i class="fa-solid fa-chart-line" style="color:var(--primary);margin-right:7px;"></i>
+                                    Daily Photo Downloads
+                                </h3>
+                                <p id="chart-subheading" style="font-size:0.8rem;color:#667085;margin:3px 0 0;">Trend of downloads over the selected period</p>
+                            </div>
+                            <!-- Period selector -->
+                            <div style="display:flex;gap:6px;">
+                                <button id="chart-btn-7"  onclick="loadChart(7)"  class="chart-period-btn">7d</button>
+                                <button id="chart-btn-14" onclick="loadChart(14)" class="chart-period-btn">14d</button>
+                                <button id="chart-btn-30" onclick="loadChart(30)" class="chart-period-btn active">30d</button>
+                            </div>
+                        </div>
+                        <div style="padding:20px 22px 22px;position:relative;">
+                            <!-- Spinner overlay -->
+                            <div id="chart-loader" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;align-items:center;justify-content:center;background:rgba(255,255,255,0.8);z-index:5;border-radius:0 0 16px 16px;">
+                                <i class="fa-solid fa-circle-notch fa-spin" style="font-size:1.5rem;color:var(--primary);"></i>
+                            </div>
+                            <!-- Error message (hidden by default) -->
+                            <div id="chart-error" style="display:none;text-align:center;padding:40px 0;color:#98A2B3;font-size:0.875rem;">
+                                <i class="fa-solid fa-circle-exclamation" style="font-size:1.5rem;color:#E4E7EC;display:block;margin-bottom:8px;"></i>
+                                Could not load chart data.
+                            </div>
+                            <!-- Canvas wrapper — fixed height so Chart.js has room -->
+                            <div id="chart-wrap" style="width:100%;height:240px;position:relative;">
+                                <canvas id="downloadsChart"></canvas>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- ── Two-column: Pie + Bar charts ── -->
+                    <div class="overview-charts-row">
+
+                        <!-- Pie Chart: Events by Photos -->
+                        <div class="ta-table-card" id="pie-chart-card">
+                            <div class="ta-table-card-header" style="padding:18px 22px 14px;border-bottom:1px solid #F2F4F7;">
+                                <div>
+                                    <h3 style="font-size:1rem;font-weight:700;color:#101828;margin:0;">
+                                        <i class="fa-solid fa-chart-pie" style="color:var(--primary);margin-right:7px;"></i>
+                                        Events Overview
+                                    </h3>
+                                    <p id="pie-subheading" style="font-size:0.8rem;color:#667085;margin:3px 0 0;">Photos uploaded per event</p>
+                                </div>
+                            </div>
+                            <div style="padding:16px 22px 22px;position:relative;">
+                                <div id="pie-loader" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;align-items:center;justify-content:center;background:rgba(255,255,255,0.8);z-index:5;">
+                                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size:1.4rem;color:var(--primary);"></i>
+                                </div>
+                                <div id="pie-empty" style="display:none;text-align:center;padding:36px 0;color:#98A2B3;font-size:0.85rem;">
+                                    <i class="fa-solid fa-calendar-xmark" style="font-size:1.8rem;color:#E4E7EC;display:block;margin-bottom:8px;"></i>
+                                    No events yet.
+                                </div>
+                                <div id="pie-wrap" style="width:100%;height:220px;position:relative;">
+                                    <canvas id="pieChart"></canvas>
+                                </div>
+                                <!-- Legend -->
+                                <div id="pie-legend" style="display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:12px;justify-content:center;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Bar Chart: Active Events Downloads -->
+                        <div class="ta-table-card" id="bar-chart-card">
+                            <div class="ta-table-card-header" style="padding:18px 22px 14px;border-bottom:1px solid #F2F4F7;">
+                                <div>
+                                    <h3 style="font-size:1rem;font-weight:700;color:#101828;margin:0;">
+                                        <i class="fa-solid fa-chart-bar" style="color:var(--primary);margin-right:7px;"></i>
+                                        Active Events — Downloads
+                                    </h3>
+                                    <p id="bar-subheading" style="font-size:0.8rem;color:#667085;margin:3px 0 0;">Downloads per active event</p>
+                                </div>
+                            </div>
+                            <div style="padding:16px 22px 22px;position:relative;">
+                                <div id="bar-loader" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;align-items:center;justify-content:center;background:rgba(255,255,255,0.8);z-index:5;">
+                                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size:1.4rem;color:var(--primary);"></i>
+                                </div>
+                                <div id="bar-empty" style="display:none;text-align:center;padding:36px 0;color:#98A2B3;font-size:0.85rem;">
+                                    <i class="fa-solid fa-toggle-off" style="font-size:1.8rem;color:#E4E7EC;display:block;margin-bottom:8px;"></i>
+                                    No active events.
+                                </div>
+                                <div id="bar-wrap" style="width:100%;height:220px;position:relative;">
+                                    <canvas id="barChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div><!-- end .overview-charts-row -->
+
+                    <!-- Quick Guide: Creative Step Cards -->
+                    <div class="ta-guide-container">
+                        <div class="ta-guide-header">
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <div class="ta-guide-badge">
+                                    <i class="fa-solid fa-rocket" style="color:var(--primary);"></i>
+                                </div>
+                                <div>
+                                    <h4 style="font-size:1.02rem;font-weight:700;color:#101828;margin:0;">Quick Workflow Guide</h4>
+                                    <p style="font-size:0.81rem;color:#667085;margin:2px 0 0;">Master your KIPA photographer center with key platform capabilities</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ta-guide-grid">
+                            <!-- Step 1 -->
+                            <div class="ta-guide-card">
+                                <div class="ta-guide-step-tag">STEP 01</div>
+                                <div class="ta-guide-icon-wrap" style="background:#FFF0F4;color:#E5093A;">
+                                    <i class="fa-solid fa-ticket"></i>
+                                </div>
+                                <h5 class="ta-guide-card-title">Create &amp; Publish Events</h5>
+                                <p class="ta-guide-card-desc">Set up photography galleries, manage visibility, and switch between published or draft status.</p>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div class="ta-guide-card">
+                                <div class="ta-guide-step-tag">STEP 02</div>
+                                <div class="ta-guide-icon-wrap" style="background:#EFF8FF;color:#175CD3;">
+                                    <i class="fa-solid fa-calendar-xmark"></i>
+                                </div>
+                                <h5 class="ta-guide-card-title">Auto-Expiry Dates</h5>
+                                <p class="ta-guide-card-desc">Configure auto-deactivation dates so event links automatically close when photo availability ends.</p>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div class="ta-guide-card">
+                                <div class="ta-guide-step-tag">STEP 03</div>
+                                <div class="ta-guide-icon-wrap" style="background:#ECFDF3;color:#027A48;">
+                                    <i class="fa-solid fa-cloud-arrow-down"></i>
+                                </div>
+                                <h5 class="ta-guide-card-title">Download Limits</h5>
+                                <p class="ta-guide-card-desc">Set download limits per photo, dynamically tracked per visitor session to safeguard quotas.</p>
+                            </div>
+
+                            <!-- Step 4 -->
+                            <div class="ta-guide-card">
+                                <div class="ta-guide-step-tag">STEP 04</div>
+                                <div class="ta-guide-icon-wrap" style="background:#F4F3FF;color:#5925DC;">
+                                    <i class="fa-solid fa-user-shield"></i>
+                                </div>
+                                <h5 class="ta-guide-card-title">Assistant Permissions</h5>
+                                <p class="ta-guide-card-desc">Register assistant accounts and grant tailored access permissions for uploads and deletions.</p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- ══ SECTION 2: Events ══ -->
@@ -231,15 +375,15 @@
                                             <div class="td-actions">
                                                 <button class="ta-btn ta-btn-secondary ta-btn-sm"
                                                     onclick="viewEventDetails({{ event.id }}, '{{ event.name|escape }}')">
-                                                    🖼️ Photos
+                                                    <i class="fa-regular fa-images" style="margin-right:4px;"></i> Photos
                                                 </button>
                                                 <button class="ta-btn ta-btn-secondary ta-btn-sm"
                                                     onclick="openEditEventModal({{ event.id }}, '{{ event.name|escape }}', '{{ event.description|escape }}', '{{ event.deactivation_date or '' }}', {{ event.download_limit }}, '{{ event.status }}')">
-                                                    ⚙️ Settings
+                                                    <i class="fa-solid fa-gear" style="margin-right:4px;"></i> Settings
                                                 </button>
                                                 <button class="ta-btn ta-btn-secondary ta-btn-sm"
                                                     onclick="openAssignAssistantModal({{ event.id }}, '{{ event.name|escape }}')">
-                                                    👥 Perms
+                                                    <i class="fa-solid fa-user-shield" style="margin-right:4px;"></i> Perms
                                                 </button>
                                             </div>
                                         </td>
@@ -254,13 +398,13 @@
                     <div id="event-details-panel" class="ta-table-card" style="display:none;">
                         <div class="ta-table-card-header">
                             <h3 id="details-event-name">Event Photos</h3>
-                            <button class="ta-btn ta-btn-ghost ta-btn-sm" onclick="closeDetailsPanel()">✕ Close</button>
+                            <button class="ta-btn ta-btn-ghost ta-btn-sm" onclick="closeDetailsPanel()"><i class="fa-solid fa-xmark" style="margin-right:4px;"></i> Close</button>
                         </div>
                         <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
 
                             <!-- Upload Zone -->
                             <div class="ta-upload-zone" id="drop-zone">
-                                <div class="ta-upload-icon">📤</div>
+                                <div class="ta-upload-icon"><i class="fa-solid fa-cloud-arrow-up" style="color:var(--text-secondary);font-size:2.4rem;"></i></div>
                                 <div class="ta-upload-title">Drag &amp; drop photos here</div>
                                 <div class="ta-upload-hint">or click to browse — JPG, PNG, WEBP (Max 50 MB per upload)
                                 </div>
@@ -341,7 +485,119 @@
                     </div>
                 </div>
 
+                <!-- ══ SECTION 4: Permissions ══ -->
+                <div id="sec-permissions" class="ta-section">
+                    <div>
+                        <div class="ta-section-header">
+                            <div>
+                                <div class="ta-section-title">Assistant Permissions</div>
+                                <div class="ta-section-sub">Configure and manage event access rights for your assistant sub-users</div>
+                            </div>
+                            <button class="ta-btn ta-btn-primary" onclick="openModal('modal-create-assistant')">
+                                ＋ Register Assistant
+                            </button>
+                        </div>
+                    </div>
+
+                    {% if not assistants %}
+                    <div style="background:#FFF6ED;border:1px solid #FEE4E2;border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                        <div style="display:flex;align-items:center;gap:10px;color:#B42318;font-size:0.88rem;font-weight:500;">
+                            <i class="fa-solid fa-triangle-exclamation" style="font-size:1.1rem;"></i>
+                            <span>No assistants registered yet. You need to register an assistant before assigning permissions.</span>
+                        </div>
+                        <button type="button" class="ta-btn ta-btn-secondary ta-btn-sm" onclick="openModal('modal-create-assistant')">
+                            ＋ Register Assistant
+                        </button>
+                    </div>
+                    {% endif %}
+
+                    <!-- Main Permissions Manager Card -->
+                    <div class="ta-table-card">
+                        <div class="ta-table-card-header">
+                            <h3><i class="fa-solid fa-sliders" style="color:var(--primary);margin-right:8px;"></i> Event Access Configurator</h3>
+                            <span class="ta-badge info">Select event to manage access</span>
+                        </div>
+                        
+                        <div style="padding:22px;display:flex;flex-direction:column;gap:20px;">
+                            <!-- Select Event Dropdown -->
+                            <div class="ta-form-group" style="max-width:440px;margin:0;">
+                                <label class="ta-form-label" for="perm-select-event">Select Event to Manage Permissions</label>
+                                <select class="ta-form-select" id="perm-select-event" onchange="onPermissionEventSelect(this.value)">
+                                    <option value="">— Choose an Event —</option>
+                                    {% for event in events %}
+                                    <option value="{{ event.id }}">{{ event.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Active Event Permission Workspace -->
+                            <div id="perm-workspace" style="display:none;border-top:1px solid #F2F4F7;padding-top:20px;">
+                                <h4 style="font-size:0.95rem;font-weight:700;color:#101828;margin-bottom:16px;">
+                                    <i class="fa-regular fa-calendar-check" style="color:var(--primary);margin-right:6px;"></i> Permissions for: <span id="perm-workspace-event-name" style="color:var(--primary);"></span>
+                                </h4>
+
+                                <!-- Assign Form & Current List side-by-side grid -->
+                                <div style="display:grid;grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));gap:24px;">
+                                    
+                                    <!-- Form: Assign / Update -->
+                                    <form id="form-section-assign-assistant" onsubmit="submitSectionAssignAssistant(event)" style="background:#F9FAFB;border:1px solid #EAECF0;border-radius:12px;padding:20px;">
+                                        <h5 style="font-size:0.9rem;font-weight:700;color:#101828;margin-bottom:14px;">
+                                            <i class="fa-solid fa-user-plus" style="color:var(--primary);margin-right:6px;"></i> Assign Assistant Access
+                                        </h5>
+                                        <input type="hidden" id="sec-assign-event-id" name="event_id">
+
+                                        <div class="ta-form-group">
+                                            <label class="ta-form-label" for="sec-assign-user-id">Select Assistant <span class="required">*</span></label>
+                                            <select class="ta-form-select" id="sec-assign-user-id" name="user_id" required onchange="onSectionAssistantSelect(this.value)">
+                                                <option value="">— Choose Assistant —</option>
+                                                {% for assistant in assistants %}
+                                                <option value="{{ assistant.id }}">{{ assistant.username }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+                                            <label class="ta-form-label">Access Rights</label>
+                                            <label class="ta-checkbox-row">
+                                                <input type="checkbox" id="sec-perm-upload" name="can_upload">
+                                                <span class="check-label">Allow image uploads</span>
+                                                <span class="check-desc">Upload</span>
+                                            </label>
+                                            <label class="ta-checkbox-row">
+                                                <input type="checkbox" id="sec-perm-delete" name="can_delete">
+                                                <span class="check-label">Allow image deletions</span>
+                                                <span class="check-desc">Delete</span>
+                                            </label>
+                                            <label class="ta-checkbox-row">
+                                                <input type="checkbox" id="sec-perm-deactivate" name="can_deactivate">
+                                                <span class="check-label">Allow event deactivation</span>
+                                                <span class="check-desc">Deactivate</span>
+                                            </label>
+                                        </div>
+
+                                        <button type="submit" class="ta-btn ta-btn-primary" style="width:100%;">
+                                            Save Permissions
+                                        </button>
+                                    </form>
+
+                                    <!-- Assigned list -->
+                                    <div style="background:#ffffff;border:1px solid #EAECF0;border-radius:12px;padding:20px;">
+                                        <h5 style="font-size:0.9rem;font-weight:700;color:#101828;margin-bottom:14px;">
+                                            <i class="fa-solid fa-users" style="color:var(--primary);margin-right:6px;"></i> Currently Assigned Assistants
+                                        </h5>
+                                        <ul id="sec-assignment-list" class="ta-assignment-list">
+                                            <li style="color:#98A2B3;font-size:0.84rem;padding:8px 0;">Select an event above to view assignments.</li>
+                                        </ul>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </main>
+
         </div><!-- end .ta-right-col -->
     </div><!-- end .ta-wrapper -->
 
@@ -356,7 +612,7 @@
                     <h3>Create New Event</h3>
                     <p>Set up a new photography event for your guests</p>
                 </div>
-                <button class="ta-modal-close" onclick="closeModal('modal-create-event')">✕</button>
+                <button class="ta-modal-close" onclick="closeModal('modal-create-event')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="form-create-event" onsubmit="submitCreateEvent(event)">
                 <div class="ta-modal-body">
@@ -399,7 +655,7 @@
                     <h3>Edit Event Configuration</h3>
                     <p>Update event settings and publish status</p>
                 </div>
-                <button class="ta-modal-close" onclick="closeModal('modal-edit-event')">✕</button>
+                <button class="ta-modal-close" onclick="closeModal('modal-edit-event')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="form-edit-event" onsubmit="submitEditEvent(event)">
                 <div class="ta-modal-body">
@@ -447,7 +703,7 @@
                     <h3>Register Assistant Sub-User</h3>
                     <p>Create a new assistant account under your photographer</p>
                 </div>
-                <button class="ta-modal-close" onclick="closeModal('modal-create-assistant')">✕</button>
+                <button class="ta-modal-close" onclick="closeModal('modal-create-assistant')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="form-create-assistant" onsubmit="submitCreateAssistant(event)">
                 <div class="ta-modal-body">
@@ -481,12 +737,12 @@
                     <h3>Configure Assistant Permissions</h3>
                     <p>Assign an assistant and define their access rights</p>
                 </div>
-                <button class="ta-modal-close" onclick="closeModal('modal-assign-assistant')">✕</button>
+                <button class="ta-modal-close" onclick="closeModal('modal-assign-assistant')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="form-assign-assistant" onsubmit="submitAssignAssistant(event)">
                 <div class="ta-modal-body">
                     <div class="ta-event-info-banner">
-                        📅 Event: <strong id="assign-event-title"></strong>
+                        <i class="fa-regular fa-calendar-check" style="margin-right:6px;"></i> Event: <strong id="assign-event-title"></strong>
                     </div>
                     <input type="hidden" id="assign-event-id" name="event_id">
 
@@ -552,17 +808,40 @@
         }
 
         // ── Section Switching ───────────────────────────────────────────
-        const sectionLabels = { overview: 'Overview', events: 'Events', assistants: 'Assistants' };
+        const sectionLabels = { overview: 'Overview', events: 'Events', assistants: 'Assistants', permissions: 'Permissions' };
 
         function switchSection(section, btn) {
             document.querySelectorAll('.ta-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.ta-menu-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`sec-${section}`).classList.add('active');
-            if (btn) btn.classList.add('active');
+            
+            const targetSec = document.getElementById(`sec-${section}`);
+            if (targetSec) targetSec.classList.add('active');
+            
+            const targetBtn = btn || document.getElementById(`mi-${section}`);
+            if (targetBtn) targetBtn.classList.add('active');
+            
             document.getElementById('breadcrumbLabel').textContent = sectionLabels[section] || section;
+            
+            // Set URL hash so refreshes stay on the same section tab
+            if (history.replaceState) {
+                history.replaceState(null, null, '#' + section);
+            } else {
+                window.location.hash = section;
+            }
+            
             closeDetailsPanel();
             closeSidebar();
         }
+
+        // On refresh/load, auto-select tab matching URL hash
+        document.addEventListener('DOMContentLoaded', function() {
+            const hash = window.location.hash.replace('#', '');
+            if (hash && ['overview', 'events', 'assistants', 'permissions'].includes(hash)) {
+                switchSection(hash);
+            } else {
+                switchSection('overview');
+            }
+        });
 
         // ── Modal Helpers ───────────────────────────────────────────────
         function openModal(id) { document.getElementById(id).classList.add('active'); }
@@ -643,10 +922,17 @@
                 data.assignments.forEach(asgn => {
                     const li = document.createElement('li');
                     li.className = 'ta-assignment-item';
+                    const upCheck = asgn.can_upload ? '<i class="fa-solid fa-circle-check" style="color:#10B981;font-size:0.8rem;"></i>' : '<i class="fa-solid fa-circle-minus" style="color:#94A3B8;opacity:0.6;font-size:0.8rem;"></i>';
+                    const delCheck = asgn.can_delete ? '<i class="fa-solid fa-circle-check" style="color:#10B981;font-size:0.8rem;"></i>' : '<i class="fa-solid fa-circle-minus" style="color:#94A3B8;opacity:0.6;font-size:0.8rem;"></i>';
+                    const deactCheck = asgn.can_deactivate ? '<i class="fa-solid fa-circle-check" style="color:#10B981;font-size:0.8rem;"></i>' : '<i class="fa-solid fa-circle-minus" style="color:#94A3B8;opacity:0.6;font-size:0.8rem;"></i>';
                     li.innerHTML = `
                     <div>
                         <strong>${asgn.username}</strong>
-                        <div class="perms">Upload: ${asgn.can_upload ? '✅' : '—'} · Delete: ${asgn.can_delete ? '✅' : '—'} · Deactivate: ${asgn.can_deactivate ? '✅' : '—'}</div>
+                        <div class="perms" style="display:flex;align-items:center;gap:10px;margin-top:3px;font-size:0.78rem;color:#475569;">
+                            <span>Upload: ${upCheck}</span>
+                            <span>Delete: ${delCheck}</span>
+                            <span>Deactivate: ${deactCheck}</span>
+                        </div>
                     </div>
                     <button type="button" class="ta-btn ta-btn-danger ta-btn-sm" onclick="removeAssignment(${eventId}, ${asgn.user_id})">Remove</button>
                 `;
@@ -685,6 +971,115 @@
             } catch (err) { alert("Server connection failed."); }
         }
 
+        window._currentSectionAssignments = [];
+
+        function onPermissionEventSelect(eventId) {
+            if (!eventId) {
+                document.getElementById('perm-workspace').style.display = 'none';
+                return;
+            }
+            const selectEl = document.getElementById('perm-select-event');
+            const eventName = selectEl.options[selectEl.selectedIndex].text;
+            document.getElementById('perm-workspace-event-name').textContent = eventName;
+            document.getElementById('sec-assign-event-id').value = eventId;
+            document.getElementById('perm-workspace').style.display = 'block';
+            
+            // Reset assistant select & checkboxes
+            document.getElementById('sec-assign-user-id').value = '';
+            document.getElementById('sec-perm-upload').checked = false;
+            document.getElementById('sec-perm-delete').checked = false;
+            document.getElementById('sec-perm-deactivate').checked = false;
+
+            loadSectionAssignments(eventId);
+        }
+
+        function onSectionAssistantSelect(userId) {
+            if (!userId) {
+                document.getElementById('sec-perm-upload').checked = false;
+                document.getElementById('sec-perm-delete').checked = false;
+                document.getElementById('sec-perm-deactivate').checked = false;
+                return;
+            }
+            const existing = (window._currentSectionAssignments || []).find(a => a.user_id == userId);
+            if (existing) {
+                document.getElementById('sec-perm-upload').checked = !!existing.can_upload;
+                document.getElementById('sec-perm-delete').checked = !!existing.can_delete;
+                document.getElementById('sec-perm-deactivate').checked = !!existing.can_deactivate;
+            } else {
+                document.getElementById('sec-perm-upload').checked = false;
+                document.getElementById('sec-perm-delete').checked = false;
+                document.getElementById('sec-perm-deactivate').checked = false;
+            }
+        }
+
+        async function loadSectionAssignments(eventId) {
+            const listEl = document.getElementById('sec-assignment-list');
+            listEl.innerHTML = '<li style="color:#98A2B3;font-size:0.84rem;padding:8px 0;">Loading assignments…</li>';
+            try {
+                const res = await fetch(`/api/event/${eventId}/assignments`);
+                const data = await res.json();
+                listEl.innerHTML = '';
+                window._currentSectionAssignments = data.assignments || [];
+
+                if (!data.assignments || data.assignments.length === 0) {
+                    listEl.innerHTML = '<li style="color:#98A2B3;font-size:0.84rem;padding:8px 0;">No assistants assigned to this event yet.</li>';
+                    return;
+                }
+                data.assignments.forEach(asgn => {
+                    const li = document.createElement('li');
+                    li.className = 'ta-assignment-item';
+                    const upCheck = asgn.can_upload ? '<i class="fa-solid fa-circle-check" style="color:#10B981;font-size:0.8rem;"></i>' : '<i class="fa-solid fa-circle-minus" style="color:#94A3B8;opacity:0.6;font-size:0.8rem;"></i>';
+                    const delCheck = asgn.can_delete ? '<i class="fa-solid fa-circle-check" style="color:#10B981;font-size:0.8rem;"></i>' : '<i class="fa-solid fa-circle-minus" style="color:#94A3B8;opacity:0.6;font-size:0.8rem;"></i>';
+                    const deactCheck = asgn.can_deactivate ? '<i class="fa-solid fa-circle-check" style="color:#10B981;font-size:0.8rem;"></i>' : '<i class="fa-solid fa-circle-minus" style="color:#94A3B8;opacity:0.6;font-size:0.8rem;"></i>';
+                    li.innerHTML = `
+                    <div>
+                        <strong>${asgn.username}</strong>
+                        <div class="perms" style="display:flex;align-items:center;gap:10px;margin-top:3px;font-size:0.78rem;color:#475569;">
+                            <span>Upload: ${upCheck}</span>
+                            <span>Delete: ${delCheck}</span>
+                            <span>Deactivate: ${deactCheck}</span>
+                        </div>
+                    </div>
+                    <button type="button" class="ta-btn ta-btn-danger ta-btn-sm" onclick="removeSectionAssignment(${eventId}, ${asgn.user_id})">Remove</button>
+                `;
+                    listEl.appendChild(li);
+                });
+            } catch (err) {
+                listEl.innerHTML = '<li style="color:#B42318;font-size:0.84rem;padding:8px 0;">Failed to load assignments.</li>';
+            }
+        }
+
+        async function submitSectionAssignAssistant(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            try {
+                const response = await fetch('/api/event/assign-assistant', { method: 'POST', body: formData });
+                const res = await response.json();
+                if (res.success) {
+                    const eventId = document.getElementById('sec-assign-event-id').value;
+                    await loadSectionAssignments(eventId);
+                    form.reset();
+                    document.getElementById('sec-assign-event-id').value = eventId;
+                } else { alert(res.message); }
+            } catch (err) { alert("Server connection failed."); }
+        }
+
+        async function removeSectionAssignment(eventId, userId) {
+            if (!confirm("Are you sure you want to unassign this assistant?")) return;
+            const formData = new FormData();
+            formData.append('event_id', eventId);
+            formData.append('user_id', userId);
+            try {
+                const response = await fetch('/api/event/remove-assistant', { method: 'POST', body: formData });
+                const res = await response.json();
+                if (res.success) {
+                    await loadSectionAssignments(eventId);
+                } else { alert(res.message); }
+            } catch (err) { alert("Server connection failed."); }
+        }
+
+
         // ── Event Photos Panel ──────────────────────────────────────────
         let activeEventId = null;
 
@@ -717,7 +1112,7 @@
                     wrap.className = 'ta-photo-item';
                     wrap.innerHTML = `
                     <img src="/${img.image_path}" loading="lazy" alt="Event photo">
-                    <button class="ta-photo-del" onclick="deletePhoto(${img.id})" title="Delete">🗑️</button>
+                    <button class="ta-photo-del" onclick="deletePhoto(${img.id})" title="Delete" style="display:flex;align-items:center;justify-content:center;"><i class="fa-regular fa-trash-can"></i></button>
                 `;
                     grid.appendChild(wrap);
                 });
@@ -798,6 +1193,454 @@
             setTimeout(() => { progressContainer.style.display = 'none'; }, 6000);
         }
     </script>
-</body>
 
+    <style>
+        /* Period selector buttons */
+        .chart-period-btn {
+            padding: 5px 13px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1.5px solid #E4E7EC;
+            background: #fff;
+            color: #667085;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+        .chart-period-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .chart-period-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(229,9,58,0.22);
+        }
+        /* Force canvas to fill its wrapper */
+        #chart-wrap canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+    </style>
+
+    <script>
+        // ── Downloads Chart ─────────────────────────────────────────────
+        let _downloadsChart = null;
+        let _activeDays     = 30;
+
+        function _fmtDate(iso) {
+            const d = new Date(iso + 'T00:00:00');
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        async function loadChart(days) {
+            _activeDays = days;
+
+            // Update active button
+            document.querySelectorAll('.chart-period-btn').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.getElementById('chart-btn-' + days);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // Hide error, show loader
+            document.getElementById('chart-error').style.display = 'none';
+            document.getElementById('chart-wrap').style.display  = 'block';
+            document.getElementById('chart-loader').style.display = 'flex';
+
+            try {
+                const res  = await fetch('/api/overview/downloads?days=' + days);
+
+                // Guard: if response is not JSON (e.g. redirect to login), handle gracefully
+                const contentType = res.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    throw new Error('Non-JSON response — possible session timeout');
+                }
+
+                const json = await res.json();
+                if (!json.success) { throw new Error(json.message || 'API error'); }
+
+                const labels  = json.data.map(r => _fmtDate(r.date));
+                const values  = json.data.map(r => r.downloads);
+                const totalDL = values.reduce((a, b) => a + b, 0);
+
+                // Destroy previous chart instance
+                if (_downloadsChart) {
+                    _downloadsChart.destroy();
+                    _downloadsChart = null;
+                }
+
+                const canvas = document.getElementById('downloadsChart');
+                const ctx    = canvas.getContext('2d');
+
+                // Build gradient AFTER chart wrapper has real dimensions
+                const wrapH = document.getElementById('chart-wrap').clientHeight || 240;
+                const grad  = ctx.createLinearGradient(0, 0, 0, wrapH);
+                grad.addColorStop(0,   'rgba(229, 9, 58, 0.20)');
+                grad.addColorStop(0.65,'rgba(229, 9, 58, 0.05)');
+                grad.addColorStop(1,   'rgba(229, 9, 58, 0.00)');
+
+                _downloadsChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Downloads',
+                            data: values,
+                            fill: true,
+                            backgroundColor: grad,
+                            borderColor: '#E5093A',
+                            borderWidth: 2.5,
+                            pointBackgroundColor: '#E5093A',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: values.length <= 14 ? 5 : 3,
+                            pointHoverRadius: 7,
+                            tension: 0.4,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: { duration: 500, easing: 'easeInOutQuart' },
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#101828',
+                                titleColor: '#F9FAFB',
+                                bodyColor: '#E5093A',
+                                borderColor: '#344054',
+                                borderWidth: 1,
+                                padding: 10,
+                                cornerRadius: 10,
+                                callbacks: {
+                                    label: function(c) {
+                                        return '  ' + c.parsed.y + ' download' + (c.parsed.y !== 1 ? 's' : '');
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: '#F2F4F7', drawBorder: false, display: true },
+                                border: { display: false },
+                                ticks: {
+                                    color: '#98A2B3',
+                                    font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
+                                    maxTicksLimit: days <= 14 ? days : 10,
+                                    maxRotation: 0,
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: '#F2F4F7', drawBorder: false },
+                                border: { display: false },
+                                ticks: {
+                                    color: '#98A2B3',
+                                    font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
+                                    precision: 0,
+                                    stepSize: 1,
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Update sub-heading
+                const subEl = document.getElementById('chart-subheading');
+                if (subEl) {
+                    subEl.textContent = totalDL + ' total download' + (totalDL !== 1 ? 's' : '') + ' in the last ' + days + ' days';
+                }
+
+            } catch (err) {
+                console.error('Chart load error:', err);
+                document.getElementById('chart-wrap').style.display  = 'none';
+                document.getElementById('chart-error').style.display = 'block';
+            } finally {
+                document.getElementById('chart-loader').style.display = 'none';
+            }
+        }
+
+        // Auto-load on page ready
+        document.addEventListener('DOMContentLoaded', function() {
+            loadChart(30);
+        });
+
+        // Re-load when switching back to Overview
+        const _origSwitchSection = typeof switchSection === 'function' ? switchSection : null;
+        window.switchSection = function(section, btn) {
+            if (_origSwitchSection) _origSwitchSection(section, btn);
+            if (section === 'overview') {
+                // Small delay so the section is visible before Chart.js measures canvas
+                setTimeout(function() { 
+                    loadChart(_activeDays); 
+                    loadEventCharts();
+                }, 50);
+            }
+        };
+    </script>
+
+    <!-- ── Pie + Bar Charts ─────────────────────────────────── -->
+    <style>
+        .overview-charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 700px) {
+            .overview-charts-row { grid-template-columns: 1fr; }
+        }
+        #pie-wrap canvas, #bar-wrap canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .pie-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.74rem;
+            color: #475569;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .pie-legend-dot {
+            width: 9px; height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* ── Creative Quick Guide Styles ── */
+        .ta-guide-container {
+            background: #ffffff;
+            border: 1px solid #E4E7EC;
+            border-radius: 16px;
+            padding: 22px 24px;
+            box-shadow: 0 1px 3px rgba(16,24,40,0.04);
+            margin-top: 6px;
+        }
+        .ta-guide-header {
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #F2F4F7;
+        }
+        .ta-guide-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: #FFF0F4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+        .ta-guide-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .ta-guide-card {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .ta-guide-card:hover {
+            background: #ffffff;
+            border-color: #CBD5E1;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(16,24,40,0.08), 0 4px 6px -2px rgba(16,24,40,0.03);
+        }
+        .ta-guide-step-tag {
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            color: #94A3B8;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .ta-guide-icon-wrap {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            margin-bottom: 14px;
+            flex-shrink: 0;
+        }
+        .ta-guide-card-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #0F172A;
+            margin-bottom: 6px;
+            line-height: 1.35;
+        }
+        .ta-guide-card-desc {
+            font-size: 0.81rem;
+            color: #475569;
+            line-height: 1.5;
+            margin: 0;
+        }
+    </style>
+
+    <script>
+        var EVENT_PALETTE = [
+            '#E5093A','#FF4D6D','#C50732','#FF7A99',
+            '#801A30','#1E293B','#3B82F6','#F59E0B',
+            '#10B981','#6941C6','#667085','#0EA5E9'
+        ];
+        var _pieChart = null;
+        var _barChart = null;
+
+        function _trunc(str, n) {
+            return str.length > n ? str.slice(0, n - 1) + '\u2026' : str;
+        }
+
+        async function loadEventCharts() {
+            document.getElementById('pie-loader').style.display = 'flex';
+            document.getElementById('bar-loader').style.display = 'flex';
+            try {
+                var res = await fetch('/api/overview/event-stats');
+                var ct  = res.headers.get('content-type') || '';
+                if (!ct.includes('application/json')) throw new Error('Non-JSON');
+                var json = await res.json();
+                if (!json.success) throw new Error(json.message || 'API error');
+
+                var all    = json.data;
+                var active = all.filter(function(e){ return e.is_active; });
+
+                /* PIE */
+                if (!all.length) {
+                    document.getElementById('pie-wrap').style.display  = 'none';
+                    document.getElementById('pie-empty').style.display = 'block';
+                } else {
+                    document.getElementById('pie-wrap').style.display  = 'block';
+                    document.getElementById('pie-empty').style.display = 'none';
+
+                    var pieLabels = all.map(function(e){ return _trunc(e.name, 22); });
+                    var rawVals   = all.map(function(e){ return e.total_images; });
+                    var pieValues = rawVals.every(function(v){ return v===0; })
+                                    ? all.map(function(){ return 1; }) : rawVals;
+                    var pieColors = all.map(function(_,i){ return EVENT_PALETTE[i % EVENT_PALETTE.length]; });
+
+                    if (_pieChart) { _pieChart.destroy(); _pieChart = null; }
+                    _pieChart = new Chart(document.getElementById('pieChart').getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: pieLabels,
+                            datasets: [{ data: pieValues, backgroundColor: pieColors, borderColor: '#fff', borderWidth: 3, hoverOffset: 8 }]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false, cutout: '62%',
+                            animation: { duration: 600 },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: '#101828', titleColor: '#F9FAFB', bodyColor: '#E5093A',
+                                    borderColor: '#344054', borderWidth: 1, padding: 10, cornerRadius: 10,
+                                    callbacks: {
+                                        label: function(c) {
+                                            var ev = all[c.dataIndex];
+                                            return '  ' + ev.total_images + ' photo' + (ev.total_images !== 1 ? 's' : '');
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    var leg = document.getElementById('pie-legend');
+                    leg.innerHTML = '';
+                    all.forEach(function(ev, i) {
+                        var item = document.createElement('div');
+                        item.className = 'pie-legend-item';
+                        item.innerHTML = '<div class="pie-legend-dot" style="background:' + pieColors[i] + ';"></div><span>' + _trunc(ev.name, 18) + '</span>';
+                        leg.appendChild(item);
+                    });
+
+                    var pSub = document.getElementById('pie-subheading');
+                    if (pSub) pSub.textContent = all.length + ' event' + (all.length!==1?'s':'') +
+                        ' \u00b7 ' + all.reduce(function(s,e){ return s + e.total_images; }, 0) + ' total photos';
+                }
+
+                /* BAR */
+                if (!active.length) {
+                    document.getElementById('bar-wrap').style.display  = 'none';
+                    document.getElementById('bar-empty').style.display = 'block';
+                } else {
+                    document.getElementById('bar-wrap').style.display  = 'block';
+                    document.getElementById('bar-empty').style.display = 'none';
+
+                    var barLabels = active.map(function(e){ return _trunc(e.name, 16); });
+                    var barValues = active.map(function(e){ return e.total_downloads; });
+
+                    var barCtx  = document.getElementById('barChart').getContext('2d');
+                    var wH      = document.getElementById('bar-wrap').clientHeight || 220;
+                    var barGrad = barCtx.createLinearGradient(0, 0, 0, wH);
+                    barGrad.addColorStop(0, 'rgba(229,9,58,0.92)');
+                    barGrad.addColorStop(1, 'rgba(229,9,58,0.28)');
+
+                    if (_barChart) { _barChart.destroy(); _barChart = null; }
+                    _barChart = new Chart(barCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: barLabels,
+                            datasets: [{
+                                label: 'Downloads', data: barValues,
+                                backgroundColor: barGrad, borderColor: '#E5093A',
+                                borderWidth: 0, borderRadius: 7, borderSkipped: false
+                            }]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            animation: { duration: 600 },
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: '#101828', titleColor: '#F9FAFB', bodyColor: '#E5093A',
+                                    borderColor: '#344054', borderWidth: 1, padding: 10, cornerRadius: 10,
+                                    callbacks: {
+                                        label: function(c) {
+                                            return '  ' + c.parsed.y + ' download' + (c.parsed.y!==1?'s':'');
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { display: false }, border: { display: false },
+                                    ticks: { color: '#98A2B3', font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 }, maxRotation: 30 }
+                                },
+                                y: {
+                                    beginAtZero: true, grid: { color: '#F2F4F7' }, border: { display: false },
+                                    ticks: { color: '#98A2B3', font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 }, precision: 0, stepSize: 1 }
+                                }
+                            }
+                        }
+                    });
+
+                    var bSub = document.getElementById('bar-subheading');
+                    if (bSub) bSub.textContent = active.length + ' active event' + (active.length!==1?'s':'') +
+                        ' \u00b7 ' + barValues.reduce(function(a,b){ return a+b; }, 0) + ' total downloads';
+                }
+
+            } catch(err) {
+                console.error('Event chart error:', err);
+            } finally {
+                document.getElementById('pie-loader').style.display = 'none';
+                document.getElementById('bar-loader').style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() { loadEventCharts(); });
+    </script>
+
+</body>
 </html>

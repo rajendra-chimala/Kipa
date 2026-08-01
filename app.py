@@ -48,6 +48,8 @@ from database import (
     filter_downloaded_images,
     get_global_stats,
     get_photographer_stats,
+    get_photographer_daily_downloads,
+    get_photographer_event_chart_data,
     get_all_users_with_creators
 )
 
@@ -239,6 +241,32 @@ def photographer_dashboard():
     assistants = get_assistants_by_photographer(p_id)
     stats = get_photographer_stats(p_id)
     return render_template('photographer/dashboard.html', events=events, assistants=assistants, stats=stats)
+
+
+@app.route('/api/overview/downloads')
+@role_required('photographer')
+def api_photographer_daily_downloads():
+    """Return daily photo-download totals for the logged-in photographer."""
+    try:
+        days = request.args.get('days', 30, type=int)
+        days = max(7, min(days, 90))  # clamp to 7–90
+        p_id = session['user']['id']
+        data = get_photographer_daily_downloads(p_id, days)
+        return jsonify({'success': True, 'data': data})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/overview/event-stats')
+@role_required('photographer')
+def api_photographer_event_stats():
+    """Return per-event photo/download stats for the overview pie & bar charts."""
+    try:
+        p_id = session['user']['id']
+        data = get_photographer_event_chart_data(p_id)
+        return jsonify({'success': True, 'data': data})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @app.route('/assistant/dashboard')

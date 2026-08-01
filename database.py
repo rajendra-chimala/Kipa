@@ -632,6 +632,80 @@ def get_photographer_stats(photographer_id):
     }
 
 
+def get_photographer_daily_downloads(photographer_id, days=30):
+    """
+    Return daily download counts for the last `days` days for a specific photographer.
+    Returns a list of dicts: [{'date': 'YYYY-MM-DD', 'downloads': N}, ...]
+    ordered from oldest to newest.
+    """
+    from datetime import date, timedelta
+
+    conn = get_connection()
+    # Use f-string for the days modifier — `days` is already an integer clamped by the API
+    rows = conn.execute(f'''
+        SELECT date(d.downloaded_at) AS day,
+               COALESCE(SUM(d.download_count), 0) AS downloads
+        FROM downloads d
+        JOIN images i ON d.image_id = i.id
+        JOIN events e  ON i.event_id = e.id
+        WHERE e.created_by = ?
+          AND date(d.downloaded_at) >= date('now', '-{days} days')
+        GROUP BY day
+        ORDER BY day ASC
+    ''', (photographer_id,)).fetchall()
+    conn.close()
+
+    # Build a full date series filling 0 for days with no downloads
+    result_map = {row['day']: int(row['downloads']) for row in rows}
+    today = date.today()
+    full_series = []
+    for i in range(days - 1, -1, -1):
+        d = (today - timedelta(days=i)).isoformat()
+        full_series.append({'date': d, 'downloads': result_map.get(d, 0)})
+    return full_series
+
+
+def get_photographer_event_chart_data(photographer_id):
+    """
+    Return per-event statistics for a photographer's overview pie/bar charts.
+    Each row: id, name, is_active, total_images, total_downloads
+    """
+    from datetime import date as _date
+    conn = get_connection()
+    rows = conn.execute('''
+        SELECT
+            e.id,
+            e.name,
+            e.status,
+            e.deactivation_date,
+            COUNT(DISTINCT i.id)              AS total_images,
+            COALESCE(SUM(d.download_count),0) AS total_downloads
+        FROM events e
+        LEFT JOIN images   i ON i.event_id  = e.id
+        LEFT JOIN downloads d ON d.image_id = i.id
+        WHERE e.created_by = ?
+        GROUP BY e.id
+        ORDER BY e.name ASC
+    ''', (photographer_id,)).fetchall()
+    conn.close()
+
+    today = _date.today().isoformat()
+    result = []
+    for row in rows:
+        is_active = (
+            row['status'] == 'published' and
+            (not row['deactivation_date'] or row['deactivation_date'] >= today)
+        )
+        result.append({
+            'id':              row['id'],
+            'name':            row['name'],
+            'is_active':       is_active,
+            'total_images':    int(row['total_images']),
+            'total_downloads': int(row['total_downloads']),
+        })
+    return result
+
+
 def get_all_users_with_creators():
     """Retrieve all users with their creator names (if any)."""
     conn = get_connection()
