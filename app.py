@@ -48,6 +48,7 @@ from database import (
     track_download,
     filter_downloaded_images,
     get_global_stats,
+    get_global_chart_data,
     get_photographer_stats,
     get_photographer_daily_downloads,
     get_photographer_event_chart_data,
@@ -408,7 +409,20 @@ def super_admin_dashboard():
     users = get_all_users_with_creators()
     events = get_all_events_with_creators()
     photographers = [u for u in users if u['role'] == 'photographer']
-    return render_template('super_admin/super_admin.html', stats=stats, users=users, events=events, photographers=photographers)
+    chart_data = get_global_chart_data()
+    return render_template('super_admin/super_admin.html', stats=stats, users=users, events=events, photographers=photographers, chart_data=chart_data)
+
+
+@app.route('/api/admin/chart-stats')
+@role_required('super_admin')
+def api_admin_chart_stats():
+    """Return JSON endpoint for super admin interactive charts."""
+    try:
+        data = get_global_chart_data()
+        return jsonify({'success': True, 'data': data})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 
 
 # ─── Super Admin User Management API ─────────────────────────────────────────

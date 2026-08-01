@@ -690,6 +690,81 @@ def get_global_stats():
     }
 
 
+def get_global_chart_data():
+    """Return comprehensive data for super_admin interactive charts."""
+    conn = get_connection()
+    
+    # 1. User Roles breakdown
+    photographers = conn.execute("SELECT COUNT(*) FROM users WHERE role = 'photographer'").fetchone()[0]
+    assistants = conn.execute("SELECT COUNT(*) FROM users WHERE role = 'assistant'").fetchone()[0]
+    admins = conn.execute("SELECT COUNT(*) FROM users WHERE role = 'super_admin'").fetchone()[0]
+    
+    # 2. Event Status breakdown
+    active_events = conn.execute('''
+        SELECT COUNT(*) FROM events
+        WHERE status = 'published' AND 
+              (deactivation_date IS NULL OR deactivation_date = '' OR deactivation_date >= date('now'))
+    ''').fetchone()[0]
+    
+    total_events = conn.execute("SELECT COUNT(*) FROM events").fetchone()[0]
+    inactive_events = total_events - active_events
+    published_events = conn.execute("SELECT COUNT(*) FROM events WHERE status = 'published'").fetchone()[0]
+    unpublished_events = conn.execute("SELECT COUNT(*) FROM events WHERE status = 'unpublished'").fetchone()[0]
+    
+    # 3. Overall Totals for Histogram / Bar Comparison
+    total_images = conn.execute("SELECT COUNT(*) FROM images").fetchone()[0]
+    total_downloads = conn.execute("SELECT COALESCE(SUM(download_count), 0) FROM downloads").fetchone()[0]
+    
+    # 4. Global Daily Download trend for line graph (last 14 days)
+    from datetime import date, timedelta
+    today = date.today()
+    start_date = today - timedelta(days=13)
+    
+    download_rows = conn.execute('''
+        SELECT date(downloaded_at) as dl_date, SUM(download_count) as total_dl
+        FROM downloads
+        WHERE downloaded_at >= ?
+        GROUP BY date(downloaded_at)
+    ''', (start_date.isoformat(),)).fetchall()
+    
+    dl_map = {row['dl_date']: row['total_dl'] for row in download_rows}
+    
+    daily_downloads = []
+    for i in range(14):
+        d = start_date + timedelta(days=i)
+        d_str = d.isoformat()
+        daily_downloads.append({
+            'date': d.strftime('%b %d'),
+            'downloads': dl_map.get(d_str, 0)
+        })
+        
+    conn.close()
+    
+    return {
+        'users_breakdown': {
+            'photographers': photographers,
+            'assistants': assistants,
+            'admins': admins,
+            'total': photographers + assistants + admins
+        },
+        'events_breakdown': {
+            'active': active_events,
+            'inactive': inactive_events,
+            'published': published_events,
+            'unpublished': unpublished_events,
+            'total': total_events
+        },
+        'media_totals': {
+            'uploaded': total_images,
+            'downloaded': total_downloads,
+            'events': total_events,
+            'users': photographers + assistants + admins
+        },
+        'daily_downloads': daily_downloads
+    }
+
+
+
 def get_photographer_stats(photographer_id):
     """Return dashboard statistics for a specific photographer."""
     conn = get_connection()
