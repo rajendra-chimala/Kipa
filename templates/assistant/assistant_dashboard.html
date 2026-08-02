@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Assistant portal to upload and manage assigned photographer events.">
     <title>Assistant Dashboard – KIPA</title>
+    {% include 'frontend/partials/favicons.html' %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -134,15 +135,15 @@
                                 </td>
                                 <td>
                                     <div style="display:flex;gap:5px;flex-wrap:wrap;">
-                                        <span class="ta-badge {{ 'success' if event.can_upload else 'danger' }}">{{ '✅' if event.can_upload else '—' }} Upload</span>
-                                        <span class="ta-badge {{ 'success' if event.can_delete else 'danger' }}">{{ '✅' if event.can_delete else '—' }} Delete</span>
-                                        <span class="ta-badge {{ 'success' if event.can_deactivate else 'danger' }}">{{ '✅' if event.can_deactivate else '—' }} Deactivate</span>
+                                        <span class="ta-badge {{ 'success' if event.can_upload else 'danger' }}">{% if event.can_upload %}<i class="fa-solid fa-check"></i>{% else %}<i class="fa-solid fa-xmark"></i>{% endif %} Upload</span>
+                                        <span class="ta-badge {{ 'success' if event.can_delete else 'danger' }}">{% if event.can_delete %}<i class="fa-solid fa-check"></i>{% else %}<i class="fa-solid fa-xmark"></i>{% endif %} Delete</span>
+                                        <span class="ta-badge {{ 'success' if event.can_deactivate else 'danger' }}">{% if event.can_deactivate %}<i class="fa-solid fa-check"></i>{% else %}<i class="fa-solid fa-xmark"></i>{% endif %} Deactivate</span>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="td-actions">
                                         <button class="ta-btn ta-btn-secondary ta-btn-sm" onclick="viewEventDetails({{ event.id }}, '{{ event.name|escape }}', {{ event.can_upload }}, {{ event.can_delete }})">
-                                            🖼️ Photos
+                                            <i class="fa-regular fa-images" style="margin-right:4px;"></i> Photos
                                         </button>
                                         {% if event.can_deactivate %}
                                             {% if event.status == 'published' %}
@@ -164,13 +165,13 @@
             <div id="event-details-panel" class="ta-table-card" style="display:none;">
                 <div class="ta-table-card-header">
                     <h3 id="details-event-name">Event Photos</h3>
-                    <button class="ta-btn ta-btn-ghost ta-btn-sm" onclick="closeDetailsPanel()">✕ Close</button>
+                    <button class="ta-btn ta-btn-ghost ta-btn-sm" onclick="closeDetailsPanel()"><i class="fa-solid fa-xmark" style="margin-right:4px;"></i> Close</button>
                 </div>
                 <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
 
                     <!-- Upload Zone (permission gated) -->
                     <div class="ta-upload-zone" id="drop-zone" style="display:none;">
-                        <div class="ta-upload-icon">📤</div>
+                        <div class="ta-upload-icon"><i class="fa-solid fa-cloud-arrow-up" style="color:var(--text-secondary);font-size:2.4rem;"></i></div>
                         <div class="ta-upload-title">Drag &amp; drop photos here</div>
                         <div class="ta-upload-hint">or click to browse — JPG, PNG, WEBP (Max 50 MB per upload)</div>
                         <input type="file" id="file-input" multiple accept="image/*" style="display:none;">
@@ -584,7 +585,7 @@
                 wrap.className = 'ta-photo-item';
                 let inner = `<img src="/${img.image_path}" loading="lazy" alt="Event photo">`;
                 if (userCanDelete) {
-                    inner += `<button class="ta-photo-del" onclick="deletePhoto(${img.id})" title="Delete">🗑️</button>`;
+                    inner += `<button class="ta-photo-del" onclick="deletePhoto(${img.id})" title="Delete"><i class="fa-solid fa-trash-can"></i></button>`;
                 }
                 wrap.innerHTML = inner;
                 grid.appendChild(wrap);
@@ -645,16 +646,16 @@
                 if (response.ok && res.success && res.results && res.results.length > 0) {
                     const fileRes = res.results[0];
                     if (fileRes.status === 'success') {
-                        summaryHTML += `<li>✅ <strong>${file.name}</strong> — ${fileRes.faces} face(s) detected</li>`;
+                        summaryHTML += `<li><i class="fa-solid fa-circle-check" style="color:#027A48;"></i> <strong>${file.name}</strong> — ${fileRes.faces} face(s) detected</li>`;
                         successCount++;
                     } else {
-                        summaryHTML += `<li>⚠️ <strong>${file.name}</strong> — Skipped (${fileRes.status})</li>`;
+                        summaryHTML += `<li><i class="fa-solid fa-triangle-exclamation" style="color:#DC6803;"></i> <strong>${file.name}</strong> — Skipped (${fileRes.status})</li>`;
                     }
                 } else {
-                    summaryHTML += `<li>❌ <strong>${file.name}</strong> — Failed (${res.message || 'Unknown error'})</li>`;
+                    summaryHTML += `<li><i class="fa-solid fa-circle-xmark" style="color:#B42318;"></i> <strong>${file.name}</strong> — Failed (${res.message || 'Unknown error'})</li>`;
                 }
             } catch (err) {
-                summaryHTML += `<li>❌ <strong>${file.name}</strong> — Connection error</li>`;
+                summaryHTML += `<li><i class="fa-solid fa-circle-xmark" style="color:#B42318;"></i> <strong>${file.name}</strong> — Connection error</li>`;
             }
             resultsDiv.innerHTML = summaryHTML + '</ul>';
             await loadEventPhotos();

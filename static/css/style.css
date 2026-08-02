@@ -3846,22 +3846,26 @@ body.preloader-lock { overflow: hidden; }
     box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
 }
 .team-avatar {
-    width: 84px;
-    height: 84px;
+    width: 100px;
+    height: 100px;
     margin: 0 auto 18px;
-    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.6rem;
     font-weight: 800;
     color: #fff;
-    box-shadow: var(--shadow-sm);
+    
 }
-.avatar-1 { background: linear-gradient(135deg, #E5093A, #FF5C7A); }
-.avatar-2 { background: linear-gradient(135deg, #2563EB, #60A5FA); }
-.avatar-3 { background: linear-gradient(135deg, #7C3AED, #A78BFA); }
-.avatar-4 { background: linear-gradient(135deg, #059669, #34D399); }
+
+
+
+
+
+.avatar-1 {  }
+.avatar-2 {  }
+.avatar-3 {  }
+.avatar-4 {  }
 .team-card h4 { font-size: 1.05rem; font-weight: 800; color: var(--secondary); margin: 0 0 4px; }
 .team-role {
     display: inline-block;
