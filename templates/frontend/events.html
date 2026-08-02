@@ -17,7 +17,7 @@
     {% include 'frontend/partials/navbar.html' %}
 
     <!-- Page Header -->
-    <div class="page-header container">
+    <div class="page-header container fade-up">
         <div class="page-header-icon"><i class="fa-solid fa-calendar-days"></i></div>
         <h1 class="page-title">Active Event Galleries</h1>
         <p class="page-subtitle">Pick your event, run a quick liveness scan, and instantly retrieve every photo you appear in.</p>
@@ -33,7 +33,7 @@
             </div>
             {% else %}
                 {% for event in events %}
-                <div class="event-public-card" onclick="window.location.href='/event/{{ event.id }}'">
+                <div class="event-public-card fade-up d-{{ loop.index % 4 + 1 }}" onclick="window.location.href='/event/{{ event.id }}'">
                     <div class="event-card-cover">
                         {% if event.cover_image %}
                         <img src="/{{ event.cover_image }}" alt="{{ event.name }}" class="event-cover-img">

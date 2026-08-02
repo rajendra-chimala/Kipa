@@ -3,6 +3,34 @@
  * Includes: Toast notifications, smooth scroll, navbar scroll effect
  */
 
+// ── Fade-Up Scroll Reveal (site-wide) ────────────────────────────────────
+// Usage: <div class="fade-up d-2">…</div> — element fades/slides up into
+// view the first time it scrolls into the viewport.
+(function() {
+    document.documentElement.classList.add('js');
+
+    const els = document.querySelectorAll('.fade-up');
+    if (!els.length) return;
+
+    const reveal = (el) => el.classList.add('fade-up-visible');
+
+    if (!('IntersectionObserver' in window)) {
+        els.forEach(reveal);
+        return;
+    }
+
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                reveal(entry.target);
+                io.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -48px 0px' });
+
+    els.forEach(el => io.observe(el));
+})();
+
 // ── Toast Notification System ───────────────────────────────────────────
 window.Kipa = window.Kipa || {};
 window.FaceSnap = window.Kipa; // Backward compatibility alias

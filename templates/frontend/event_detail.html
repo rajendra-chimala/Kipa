@@ -17,7 +17,7 @@
     {% include 'frontend/partials/navbar.html' %}
 
     <!-- Page Header -->
-    <header class="event-header container">
+    <header class="event-header container fade-up">
         <div class="event-meta-card">
             {% if event.cover_image %}
             <div class="event-cover-hero">
@@ -41,7 +41,7 @@
         <div class="scan-layout">
 
             <!-- Camera Panel -->
-            <div class="camera-panel">
+            <div class="camera-panel fade-up d-1">
                 <div class="camera-viewport" id="cameraViewport">
                     <!-- State: Idle -->
                     <div class="cam-state" id="stateIdle">
@@ -105,7 +105,7 @@
             </div>
 
             <!-- Instruction Tips -->
-            <div class="instruction-panel">
+            <div class="instruction-panel fade-up d-2">
                 <h3 class="instruction-title">How to Scan</h3>
                 <ul class="tip-list">
                     <li class="tip-item">
