@@ -181,22 +181,92 @@ def init_db():
 
 # ─── User Helper Functions ───────────────────────────────────────────────────
 
-def create_user(username, password, role, created_by=None):
+def create_user(username, password, role, created_by=None, name='', email=''):
     """Create a new user with a hashed password."""
     pw_hash = generate_password_hash(password)
     conn = get_connection()
     try:
         with conn:
             cursor = conn.execute(
-                'INSERT INTO users (username, password_hash, role, created_by) VALUES (?, ?, ?, ?)',
-                (username, pw_hash, role, created_by)
+                'INSERT INTO users (username, name, email, password_hash, role, created_by) VALUES (?, ?, ?, ?, ?, ?)',
+                ((username or '').strip(), (name or '').strip(), (email or '').strip(), pw_hash, role, created_by)
             )
             user_id = cursor.lastrowid
         return {'success': True, 'user_id': user_id}
     except sqlite3.IntegrityError:
-        return {'success': False, 'message': 'Username already exists.'}
+        return {'success': False, 'message': 'Username is already taken by another account.'}
     finally:
         conn.close()
+
+
+def get_user_by_identifier(identifier):
+    """Fetch user dict by username or email."""
+    identifier = (identifier or '').strip()
+    if not identifier:
+        return None
+    conn = get_connection()
+    row = conn.execute(
+        'SELECT id, username, name, email, profile_pic, role FROM users WHERE username = ? OR (email != "" AND email = ?)',
+        (identifier, identifier)
+    ).fetchone()
+    conn.close()
+    if row:
+        u = dict(row)
+        u['name'] = u.get('name') or ''
+        u['email'] = u.get('email') or ''
+        u['profile_pic'] = u.get('profile_pic') or ''
+        return u
+    return None
+
+
+def update_user_password_by_id(user_id, new_password):
+    """Update a user's password_hash by primary key."""
+    new_password = (new_password or '').strip()
+    if not new_password or len(new_password) < 6:
+        return {'success': False, 'message': 'New password must be at least 6 characters long.'}
+
+    pw_hash = generate_password_hash(new_password)
+    conn = get_connection()
+    try:
+        with conn:
+            conn.execute('UPDATE users SET password_hash = ? WHERE id = ?', (pw_hash, user_id))
+        conn.close()
+        return {'success': True, 'message': 'Your password has been reset successfully! You can now sign in.'}
+    except Exception as e:
+        conn.close()
+        return {'success': False, 'message': f'Failed to update password: {str(e)}'}
+
+
+def reset_user_password_by_identifier(identifier, new_password):
+    """Find a user by username or email and reset their password."""
+    identifier = (identifier or '').strip()
+    new_password = (new_password or '').strip()
+
+    if not identifier:
+        return {'success': False, 'message': 'Username or Email is required.'}
+
+    if not new_password or len(new_password) < 6:
+        return {'success': False, 'message': 'New password must be at least 6 characters long.'}
+
+    conn = get_connection()
+    row = conn.execute(
+        'SELECT id, username, email FROM users WHERE username = ? OR (email != "" AND email = ?)',
+        (identifier, identifier)
+    ).fetchone()
+
+    if not row:
+        conn.close()
+        return {'success': False, 'message': 'No user account found matching that username or email.'}
+
+    pw_hash = generate_password_hash(new_password)
+    try:
+        with conn:
+            conn.execute('UPDATE users SET password_hash = ? WHERE id = ?', (pw_hash, row['id']))
+        conn.close()
+        return {'success': True, 'message': 'Password reset successfully! You can now sign in with your new password.'}
+    except Exception as e:
+        conn.close()
+        return {'success': False, 'message': f'Failed to reset password: {str(e)}'}
 
 
 def verify_user(username, password):

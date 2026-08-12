@@ -4,12 +4,30 @@ Main application file - handles all routes and API endpoints
 """
 
 import os
+# Auto-load .env or .env.example file if present
+def _load_env_file():
+    for filename in ['.env', '.env.example']:
+        env_path = os.path.join(os.path.dirname(__file__), filename)
+        if os.path.exists(env_path):
+            with open(env_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        k, v = line.split('=', 1)
+                        os.environ[k.strip()] = v.strip().strip("'\"")
+
+_load_env_file()
+
 import base64
 import json
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, send_from_directory, session, redirect, url_for, flash, abort
 from werkzeug.utils import secure_filename
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
 
 from utils.face_utils import (
     extract_face_encodings,
@@ -56,7 +74,10 @@ from database import (
     update_user_profile,
     update_user_profile_pic,
     update_user,
-    delete_user
+    delete_user,
+    reset_user_password_by_identifier,
+    get_user_by_identifier,
+    update_user_password_by_id
 )
 
 # ─── App Configuration ───────────────────────────────────────────────────────
@@ -237,6 +258,80 @@ def auth_page():
     return render_template('frontend/auth.html')
 
 
+@app.route('/forgot-password')
+def forgot_password_page():
+    """Separate Forgot Password request page."""
+    return render_template('frontend/forgot_password.html')
+
+
+@app.route('/reset-password')
+def reset_password_page():
+    """Separate Reset Password page with URL token verification."""
+    token = request.args.get('token', '').strip()
+    return render_template('frontend/reset_password.html', token=token)
+
+
+def _get_reset_serializer():
+    """Return URLSafeTimedSerializer instance using app secret key."""
+    return URLSafeTimedSerializer(app.secret_key, salt='kipa-password-reset-salt')
+
+
+def _send_password_reset_email(to_email, reset_url, username):
+    """Send HTML password reset email via SMTP, or log to console in dev mode."""
+    subject = "Reset Your KIPA Password"
+    html_body = f"""
+    <div style="font-family:'Plus Jakarta Sans',sans-serif;max-width:560px;margin:0 auto;padding:32px;background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;">
+        <div style="text-align:center;margin-bottom:24px;">
+            <h2 style="color:#0f172a;font-size:1.5rem;font-weight:800;margin-bottom:8px;">Reset Your KIPA Password</h2>
+            <p style="color:#475569;font-size:0.95rem;">Hello <strong>{username}</strong>, we received a request to reset your password for your KIPA account.</p>
+        </div>
+        <div style="text-align:center;margin:32px 0;">
+            <a href="{reset_url}" style="background:#E5093A;color:#ffffff;padding:14px 28px;border-radius:10px;text-decoration:none;font-weight:700;font-size:1rem;display:inline-block;box-shadow:0 4px 12px rgba(229,9,58,0.25);">Reset Password</a>
+        </div>
+        <p style="color:#64748b;font-size:0.85rem;line-height:1.5;">If the button above does not work, copy and paste this link into your browser:<br><a href="{reset_url}" style="color:#E5093A;word-break:break-all;">{reset_url}</a></p>
+        <hr style="border:0;border-top:1px solid #f1f5f9;margin:24px 0;">
+        <p style="color:#94a3b8;font-size:0.8rem;text-align:center;">This link is valid for 1 hour. If you did not request a password reset, you can safely ignore this email.</p>
+    </div>
+    """
+
+    _load_env_file() # Ensure fresh env values
+    smtp_server   = os.getenv('SMTP_SERVER')
+    smtp_port     = int(os.getenv('SMTP_PORT', 587))
+    smtp_user     = os.getenv('SMTP_USERNAME')
+    smtp_password = os.getenv('SMTP_PASSWORD')
+    sender_email  = os.getenv('MAIL_DEFAULT_SENDER', 'KIPA Photography <noreply@kipa.com>')
+
+    if smtp_server and smtp_user and smtp_password:
+        try:
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = subject
+            msg['From']    = sender_email
+            msg['To']      = to_email
+            msg.attach(MIMEText(html_body, 'html'))
+
+            if smtp_port == 465:
+                with smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=10) as server:
+                    server.login(smtp_user, smtp_password)
+                    server.sendmail(sender_email, [to_email], msg.as_string())
+            else:
+                with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as server:
+                    server.starttls()
+                    server.login(smtp_user, smtp_password)
+                    server.sendmail(sender_email, [to_email], msg.as_string())
+            print(f"[EMAIL SUCCESS] Password reset email sent to {to_email}")
+            return True
+        except Exception as err:
+            import traceback
+            print(f"[EMAIL ERROR] Failed to send SMTP email to {to_email}: {err}")
+            traceback.print_exc()
+
+    print(f"\n=======================================================")
+    print(f"[DEV EMAIL LOG] Password Reset Request for {username} ({to_email})")
+    print(f"Reset Link: {reset_url}")
+    print(f"=======================================================\n")
+    return True
+
+
 @app.route('/event/<int:event_id>')
 def event_detail(event_id):
     """Event detail page. Shows webcam face scan controls only."""
@@ -251,24 +346,33 @@ def event_detail(event_id):
 
 @app.route('/api/register', methods=['POST'])
 def api_register():
-    """Register a new photographer."""
+    """Register a new photographer account."""
     data = request.form
-    username = data.get('username')
-    password = data.get('password')
+    username = (data.get('username') or '').strip()
+    name     = (data.get('name') or '').strip()
+    email    = (data.get('email') or '').strip()
+    password = (data.get('password') or '').strip()
 
-    if not username or not password:
-        return jsonify({'success': False, 'message': 'Username and password are required.'}), 400
+    if not username:
+        return jsonify({'success': False, 'message': 'Username is required.'}), 400
+    if len(username) < 3:
+        return jsonify({'success': False, 'message': 'Username must be at least 3 characters long.'}), 400
+    if not password:
+        return jsonify({'success': False, 'message': 'Password is required.'}), 400
+    if len(password) < 6:
+        return jsonify({'success': False, 'message': 'Password must be at least 6 characters long.'}), 400
 
-    res = create_user(username, password, 'photographer')
-    return jsonify(res)
+    res = create_user(username, password, 'photographer', name=name, email=email)
+    status_code = 200 if res['success'] else 400
+    return jsonify(res), status_code
 
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
     """Authenticate and log in any user role."""
     data = request.form
-    username = data.get('username')
-    password = data.get('password')
+    username = (data.get('username') or '').strip()
+    password = (data.get('password') or '').strip()
 
     if not username or not password:
         return jsonify({'success': False, 'message': 'Username and password are required.'}), 400
@@ -286,6 +390,72 @@ def api_login():
         return jsonify({'success': True, 'redirect': redirect_url})
 
     return jsonify({'success': False, 'message': 'Invalid username or password.'}), 401
+
+
+@app.route('/api/forgot-password', methods=['POST'])
+def api_forgot_password():
+    """Request a password reset email link for username or email."""
+    data = request.form
+    identifier = (data.get('identifier') or '').strip()
+
+    if not identifier:
+        return jsonify({'success': False, 'message': 'Username or Email is required.'}), 400
+
+    user = get_user_by_identifier(identifier)
+
+    if not user:
+        return jsonify({'success': False, 'message': 'No account found with that username or email address.'}), 404
+
+    target_email = user.get('email') or ''
+
+    if not target_email:
+        return jsonify({'success': False, 'message': f'The account "{user["username"]}" has no email address registered. Please contact the administrator to reset your password.'}), 400
+
+    # Generate time-sensitive signed token (expires in 1 hour)
+    serializer = _get_reset_serializer()
+    token = serializer.dumps({'user_id': user['id'], 'email': target_email, 'username': user['username']})
+    reset_url = request.host_url.rstrip('/') + url_for('reset_password_page') + '?token=' + token
+
+    _send_password_reset_email(target_email, reset_url, user['username'])
+    return jsonify({
+        'success': True,
+        'message': f'Password reset link sent to {target_email}',
+        'reset_url_dev': reset_url
+    })
+
+
+@app.route('/api/reset-password', methods=['POST'])
+def api_reset_password():
+    """Reset password using URL token verification."""
+    data = request.form
+    token            = (data.get('token') or '').strip()
+    new_password     = (data.get('new_password') or '').strip()
+    confirm_password = (data.get('confirm_password') or '').strip()
+
+    if not token:
+        return jsonify({'success': False, 'message': 'Missing reset token. Please request a new link.'}), 400
+
+    if not new_password:
+        return jsonify({'success': False, 'message': 'New password is required.'}), 400
+
+    if len(new_password) < 6:
+        return jsonify({'success': False, 'message': 'New password must be at least 6 characters long.'}), 400
+
+    if new_password != confirm_password:
+        return jsonify({'success': False, 'message': 'Passwords do not match.'}), 400
+
+    serializer = _get_reset_serializer()
+    try:
+        payload = serializer.loads(token, max_age=3600)  # valid for 1 hour (3600 seconds)
+        user_id = payload.get('user_id')
+    except SignatureExpired:
+        return jsonify({'success': False, 'message': 'Password reset link has expired. Please request a new link.'}), 400
+    except BadTimeSignature:
+        return jsonify({'success': False, 'message': 'Invalid password reset link. Please request a new link.'}), 400
+
+    res = update_user_password_by_id(user_id, new_password)
+    status_code = 200 if res['success'] else 400
+    return jsonify(res), status_code
 
 
 @app.route('/logout')

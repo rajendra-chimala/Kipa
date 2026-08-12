@@ -1,0 +1,14 @@
+# Environment variables & secrets
+.env
+
+# SQLite Database
+database.db
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Uploads & Temporary files
+static/uploads/*
+!static/uploads/profile_pics/
+!static/uploads/profile_pics/.gitkeep

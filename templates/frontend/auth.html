@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -20,10 +20,10 @@
         <div class="auth-card fade-up">
             <div class="auth-tabs">
                 <button type="button" id="tab-login" class="auth-tab active" onclick="switchTab('login')">Sign In</button>
-                <button type="button" id="tab-register" class="auth-tab" onclick="switchTab('register')">Photographer Sign Up</button>
+                <button type="button" id="tab-register" class="auth-tab" onclick="switchTab('register')">Sign Up</button>
             </div>
 
-            <!-- Login Form -->
+            <!-- ── 1. Sign In Form ── -->
             <form id="form-login" class="auth-form active" onsubmit="handleAuth(event, '/api/login')">
                 <div class="form-header">
                     <h2>Welcome Back</h2>
@@ -31,33 +31,65 @@
                 </div>
                 <div id="login-error" class="alert alert-danger hidden"></div>
                 <div class="form-group">
-                    <label for="login-username">Username</label>
+                    <label for="login-username">Username <span style="color:var(--primary);">*</span></label>
                     <input type="text" id="login-username" name="username" placeholder="Enter your username" required autocomplete="username">
                 </div>
                 <div class="form-group">
-                    <label for="login-password">Password</label>
-                    <input type="password" id="login-password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                    <label for="login-password">Password <span style="color:var(--primary);">*</span></label>
+                    <div class="password-input-wrap">
+                        <input type="password" id="login-password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                        <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('login-password', this)" title="Show/Hide Password">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="forgot-password-wrap">
+                        <span></span>
+                        <a href="{{ url_for('forgot_password_page') }}" class="forgot-password-link">Forgot Password?</a>
+                    </div>
                 </div>
                 <button type="submit" id="btn-submit-login" class="btn btn-primary btn-block">
                     <span>Sign In</span>
                 </button>
             </form>
 
-            <!-- Register Form -->
-            <form id="form-register" class="auth-form" onsubmit="handleAuth(event, '/api/register')">
+            <!-- ── 2. Photographer Sign Up Form ── -->
+            <form id="form-register" class="auth-form" onsubmit="handleRegister(event)">
                 <div class="form-header">
                     <h2>Join KIPA</h2>
                     <p>Create a photographer account to start publishing events</p>
                 </div>
                 <div id="register-error" class="alert alert-danger hidden"></div>
                 <div id="register-success" class="alert alert-success hidden"></div>
+                
                 <div class="form-group">
-                    <label for="register-username">Username</label>
-                    <input type="text" id="register-username" name="username" placeholder="Choose a username" required autocomplete="username">
+                    <label for="register-username">Username <span style="color:var(--primary);">*</span></label>
+                    <input type="text" id="register-username" name="username" placeholder="Choose a username (min 3 chars)" required minlength="3" autocomplete="username">
                 </div>
                 <div class="form-group">
-                    <label for="register-password">Password</label>
-                    <input type="password" id="register-password" name="password" placeholder="Create a password" required autocomplete="new-password">
+                    <label for="register-name">Full Name</label>
+                    <input type="text" id="register-name" name="name" placeholder="e.g. John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="register-email">Email Address</label>
+                    <input type="email" id="register-email" name="email" placeholder="e.g. john@example.com" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password <span style="color:var(--primary);">*</span></label>
+                    <div class="password-input-wrap">
+                        <input type="password" id="register-password" name="password" placeholder="Create a password (min 6 chars)" required minlength="6" autocomplete="new-password">
+                        <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('register-password', this)" title="Show/Hide Password">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="register-confirm-password">Confirm Password <span style="color:var(--primary);">*</span></label>
+                    <div class="password-input-wrap">
+                        <input type="password" id="register-confirm-password" name="confirm_password" placeholder="Confirm your password" required autocomplete="new-password">
+                        <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('register-confirm-password', this)" title="Show/Hide Password">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" id="btn-submit-register" class="btn btn-primary btn-block">
                     <span>Sign Up</span>
@@ -69,33 +101,50 @@
     {% include 'frontend/partials/footer.html' %}
 
     <script>
+        // ── Tab Switcher ──────────────────────────────────────────────────
         function switchTab(tab) {
-            const loginForm = document.getElementById('form-login');
+            const loginForm    = document.getElementById('form-login');
             const registerForm = document.getElementById('form-register');
-            const loginTab = document.getElementById('tab-login');
-            const registerTab = document.getElementById('tab-register');
+            const loginTab     = document.getElementById('tab-login');
+            const registerTab  = document.getElementById('tab-register');
+
+            [loginForm, registerForm].forEach(f => f.classList.remove('active'));
+            [loginTab, registerTab].forEach(t => t.classList.remove('active'));
 
             if (tab === 'login') {
                 loginForm.classList.add('active');
-                registerForm.classList.remove('active');
                 loginTab.classList.add('active');
-                registerTab.classList.remove('active');
-            } else {
+            } else if (tab === 'register') {
                 registerForm.classList.add('active');
-                loginForm.classList.remove('active');
                 registerTab.classList.add('active');
-                loginTab.classList.remove('active');
             }
         }
 
+        // ── Show/Hide Password Eye Toggle ───────────────────────────────
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-regular fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-regular fa-eye';
+            }
+        }
+
+        // ── General Auth Submission Handler ──────────────────────────────
         async function handleAuth(event, endpoint) {
             event.preventDefault();
             const form = event.target;
-            const errorDiv = form.id === 'form-login' ? document.getElementById('login-error') : document.getElementById('register-error');
-            const successDiv = document.getElementById('register-success');
+            const btn  = form.querySelector('button[type="submit"]');
+            const errorDiv = document.getElementById('login-error');
             
             if (errorDiv) errorDiv.classList.add('hidden');
-            if (successDiv) successDiv.classList.add('hidden');
+            btn.disabled = true;
+            const origText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Signing In...';
 
             const formData = new FormData(form);
 
@@ -107,24 +156,86 @@
                 const result = await response.json();
 
                 if (response.ok && result.success) {
-                    if (endpoint.includes('login')) {
-                        window.location.href = result.redirect;
-                    } else {
-                        successDiv.textContent = "Registration successful! You can now sign in.";
-                        successDiv.classList.remove('hidden');
-                        form.reset();
-                        setTimeout(() => { switchTab('login'); }, 1500);
-                    }
+                    window.location.href = result.redirect;
                 } else {
-                    errorDiv.textContent = result.message || "An error occurred. Please try again.";
+                    errorDiv.textContent = result.message || "Invalid username or password.";
                     errorDiv.classList.remove('hidden');
                 }
             } catch (err) {
                 console.error(err);
                 errorDiv.textContent = "Unable to connect to the server.";
                 errorDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origText;
             }
         }
+
+        // ── Registration Handler with Client-Side Validation ─────────────
+        async function handleRegister(event) {
+            event.preventDefault();
+            const form = event.target;
+            const btn  = form.querySelector('button[type="submit"]');
+            const errorDiv   = document.getElementById('register-error');
+            const successDiv = document.getElementById('register-success');
+
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+
+            const username = document.getElementById('register-username').value.trim();
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+
+            // Client-side validations
+            if (username.length < 3) {
+                errorDiv.textContent = "Username must be at least 3 characters long.";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            if (password.length < 6) {
+                errorDiv.textContent = "Password must be at least 6 characters long.";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            if (password !== confirmPassword) {
+                errorDiv.textContent = "Passwords do not match.";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            const origText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating Account...';
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    successDiv.textContent = "Account created successfully! Redirecting to Sign In…";
+                    successDiv.classList.remove('hidden');
+                    form.reset();
+                    setTimeout(() => { switchTab('login'); }, 1400);
+                } else {
+                    errorDiv.textContent = result.message || "Failed to create account.";
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error(err);
+                errorDiv.textContent = "Unable to connect to the server.";
+                errorDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origText;
+            }
+        }
+
+
     </script>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

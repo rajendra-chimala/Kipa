@@ -900,6 +900,53 @@ h1, h2, h3, h4, h5, h6 {
 }
 .form-group textarea { resize: vertical; }
 
+/* Password Input Wrap & Show/Hide Eye Toggle */
+.password-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.password-input-wrap input {
+    padding-right: 42px !important;
+}
+.toggle-password-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #94A3B8;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--t-fast);
+}
+.toggle-password-btn:hover {
+    color: var(--primary);
+}
+
+.forgot-password-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 6px;
+}
+.forgot-password-link {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--primary);
+    cursor: pointer;
+    transition: color var(--t-fast);
+}
+.forgot-password-link:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
 .checkbox-container {
     display: flex;
     align-items: center;
