@@ -20,8 +20,48 @@ def get_connection():
     return conn
 
 
+def seed_demo_data():
+    """Seed initial super_admin, photographer, and assistant demo accounts."""
+    conn = get_connection()
+    with conn:
+        # 1. Super Admin
+        admin_exists = conn.execute("SELECT id FROM users WHERE username = 'admin'").fetchone()
+        if not admin_exists:
+            pw_hash = generate_password_hash("admin123")
+            conn.execute(
+                "INSERT INTO users (username, name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)",
+                ("admin", "System Administrator", "admin@kipa.com", pw_hash, "super_admin")
+            )
+            print("[DB] Seeded Super Admin: admin / admin123")
+
+        # 2. Photographer
+        photo_row = conn.execute("SELECT id FROM users WHERE username = 'photographer'").fetchone()
+        if not photo_row:
+            pw_hash = generate_password_hash("photo123")
+            cursor = conn.execute(
+                "INSERT INTO users (username, name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)",
+                ("photographer", "John Studio", "photographer@kipa.com", pw_hash, "photographer")
+            )
+            photo_id = cursor.lastrowid
+            print("[DB] Seeded Photographer: photographer / photo123")
+        else:
+            photo_id = photo_row['id']
+
+        # 3. Assistant
+        asst_exists = conn.execute("SELECT id FROM users WHERE username = 'assistant'").fetchone()
+        if not asst_exists and photo_id:
+            pw_hash = generate_password_hash("assist123")
+            conn.execute(
+                "INSERT INTO users (username, name, email, password_hash, role, created_by) VALUES (?, ?, ?, ?, ?, ?)",
+                ("assistant", "Alex Assistant", "assistant@kipa.com", pw_hash, "assistant", photo_id)
+            )
+            print("[DB] Seeded Assistant: assistant / assist123")
+
+    conn.close()
+
+
 def init_db():
-    """Create tables if they do not exist and seed the default super_admin."""
+    """Create tables if they do not exist and seed default accounts."""
     conn = get_connection()
     
     # ─── Migration Check: Drop face_encodings if old schema exists ──────────
@@ -134,20 +174,8 @@ def init_db():
             )
         ''')
 
-    # Seed Default Super Admin if not exists
-    with conn:
-        admin_exists = conn.execute(
-            "SELECT 1 FROM users WHERE role = 'super_admin'"
-        ).fetchone()
-        if not admin_exists:
-            pw_hash = generate_password_hash("admin123")
-            conn.execute(
-                "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
-                ("admin", pw_hash, "super_admin")
-            )
-            print("[DB] Default super_admin seeded (admin / admin123).")
-
     conn.close()
+    seed_demo_data()
     print('[DB] Database initialised successfully.')
 
 
@@ -201,7 +229,11 @@ def get_user_by_id(user_id):
     ).fetchone()
     conn.close()
     if row:
-        return dict(row)
+        u = dict(row)
+        u['name'] = u.get('name') or ''
+        u['email'] = u.get('email') or ''
+        u['profile_pic'] = u.get('profile_pic') or ''
+        return u
     return None
 
 
@@ -253,10 +285,14 @@ def update_user_profile(user_id, name=None, email=None, username=None, current_p
         
         updated = conn.execute('SELECT id, username, name, email, profile_pic, role FROM users WHERE id = ?', (user_id,)).fetchone()
         conn.close()
+        u = dict(updated)
+        u['name'] = u.get('name') or ''
+        u['email'] = u.get('email') or ''
+        u['profile_pic'] = u.get('profile_pic') or ''
         return {
             'success': True,
             'message': 'Profile updated successfully!',
-            'user': dict(updated)
+            'user': u
         }
     except Exception as e:
         conn.close()
@@ -968,3 +1004,13 @@ def delete_user(user_id):
     except Exception as e:
         conn.close()
         return {'success': False, 'message': f'Failed to delete user: {str(e)}'}
+
+
+if __name__ == '__main__':
+    import sys
+    import os
+    if '--reset' in sys.argv or '-r' in sys.argv:
+        if os.path.exists(DB_PATH):
+            os.remove(DB_PATH)
+            print(f"[DB] Removed existing {DB_PATH}.")
+    init_db()

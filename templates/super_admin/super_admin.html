@@ -816,6 +816,13 @@
                 const userNameEl = document.querySelector('.ta-sidebar-user .user-name');
                 if (userNameEl && res.user) { userNameEl.textContent = res.user.name || res.user.username; }
                 if (res.user) {
+                    const inputName = document.getElementById('input-name');
+                    const inputEmail = document.getElementById('input-email');
+                    const inputUsername = document.getElementById('input-username');
+                    if (inputName && res.user.name !== undefined) inputName.value = res.user.name;
+                    if (inputEmail && res.user.email !== undefined) inputEmail.value = res.user.email;
+                    if (inputUsername && res.user.username) inputUsername.value = res.user.username;
+
                     const pName = document.getElementById('preview-name');
                     const pEmail = document.getElementById('preview-email');
                     const pUser  = document.getElementById('preview-username');

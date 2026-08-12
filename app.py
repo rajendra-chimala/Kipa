@@ -296,39 +296,6 @@ def logout():
     return redirect(url_for('index'))
 
 
-# ─── User Profile API ────────────────────────────────────────────────────────
-
-@app.route('/api/user/profile', methods=['POST'])
-def api_update_user_profile():
-    """Update profile settings (name, email, username, password) for logged in user."""
-    if not session.get('user'):
-        return jsonify({'success': False, 'message': 'Unauthorized. Please sign in.'}), 401
-    
-    user_id = session['user']['id']
-    data = request.form
-    name = data.get('name')
-    email = data.get('email')
-    username = data.get('username')
-    current_password = data.get('current_password')
-    new_password = data.get('new_password')
-
-    res = update_user_profile(
-        user_id=user_id,
-        name=name,
-        email=email,
-        username=username,
-        current_password=current_password,
-        new_password=new_password
-    )
-
-    if res.get('success') and 'user' in res:
-        session['user']['username'] = res['user']['username']
-        session['user']['name'] = res['user']['name']
-        session['user']['email'] = res['user']['email']
-        session.modified = True
-
-    return jsonify(res)
-
 
 # ─── Profile Picture API ──────────────────────────────────────────────────────
 
@@ -395,10 +362,10 @@ def photographer_dashboard():
     p_id = session['user']['id']
     u_info = get_user_by_id(p_id)
     if u_info:
-        session['user']['name'] = u_info.get('name', '')
-        session['user']['email'] = u_info.get('email', '')
-        session['user']['username'] = u_info.get('username', '')
-        session['user']['profile_pic'] = u_info.get('profile_pic', '')
+        session['user']['name'] = u_info.get('name') or ''
+        session['user']['email'] = u_info.get('email') or ''
+        session['user']['username'] = u_info.get('username') or ''
+        session['user']['profile_pic'] = u_info.get('profile_pic') or ''
         session.modified = True
 
     events = get_events_by_photographer(p_id)
@@ -440,10 +407,10 @@ def assistant_dashboard():
     a_id = session['user']['id']
     u_info = get_user_by_id(a_id)
     if u_info:
-        session['user']['name'] = u_info.get('name', '')
-        session['user']['email'] = u_info.get('email', '')
-        session['user']['username'] = u_info.get('username', '')
-        session['user']['profile_pic'] = u_info.get('profile_pic', '')
+        session['user']['name'] = u_info.get('name') or ''
+        session['user']['email'] = u_info.get('email') or ''
+        session['user']['username'] = u_info.get('username') or ''
+        session['user']['profile_pic'] = u_info.get('profile_pic') or ''
         session.modified = True
 
     assigned_events = get_assigned_events_for_assistant(a_id)
@@ -457,10 +424,10 @@ def super_admin_dashboard():
     admin_id = session['user']['id']
     u_info = get_user_by_id(admin_id)
     if u_info:
-        session['user']['name'] = u_info.get('name', '')
-        session['user']['email'] = u_info.get('email', '')
-        session['user']['username'] = u_info.get('username', '')
-        session['user']['profile_pic'] = u_info.get('profile_pic', '')
+        session['user']['name'] = u_info.get('name') or ''
+        session['user']['email'] = u_info.get('email') or ''
+        session['user']['username'] = u_info.get('username') or ''
+        session['user']['profile_pic'] = u_info.get('profile_pic') or ''
         session.modified = True
 
     stats = get_global_stats()
@@ -1234,21 +1201,24 @@ def api_match_face(event_id):
 def api_update_profile():
     """Update the currently logged-in user's profile (name, email, username, password)."""
     user_id = session['user']['id']
-    data = request.get_json() or {}
+    if request.is_json:
+        data = request.get_json() or {}
+    else:
+        data = request.form or {}
 
-    name             = data.get('name', '').strip()
-    email            = data.get('email', '').strip()
-    username         = data.get('username', '').strip()
-    current_password = data.get('current_password', '').strip()
-    new_password     = data.get('new_password', '').strip()
+    name             = (data.get('name') or '').strip()
+    email            = (data.get('email') or '').strip()
+    username         = (data.get('username') or '').strip()
+    current_password = (data.get('current_password') or '').strip()
+    new_password     = (data.get('new_password') or '').strip()
 
     if not username:
         return jsonify({'success': False, 'message': 'Username is required.'}), 400
 
     result = update_user_profile(
         user_id,
-        name=name if name else None,
-        email=email if email else None,
+        name=name,
+        email=email,
         username=username,
         current_password=current_password if current_password else None,
         new_password=new_password if new_password else None,
@@ -1256,13 +1226,11 @@ def api_update_profile():
 
     if result['success'] and 'user' in result:
         # Refresh session so header and avatar update immediately
-        session['user'] = {
-            'id':       result['user']['id'],
-            'username': result['user']['username'],
-            'name':     result['user'].get('name', ''),
-            'email':    result['user'].get('email', ''),
-            'role':     result['user']['role'],
-        }
+        u = result['user']
+        session['user']['name'] = u.get('name') or ''
+        session['user']['email'] = u.get('email') or ''
+        session['user']['username'] = u.get('username') or ''
+        session['user']['profile_pic'] = u.get('profile_pic') or ''
         session.modified = True
 
     status_code = 200 if result['success'] else 400
