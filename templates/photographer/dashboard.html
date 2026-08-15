@@ -1188,7 +1188,13 @@
         }
 
         async function removeProfilePic() {
-            if (!confirm('Remove your profile picture?')) return;
+            const confirmed = await kipaConfirm({
+                title: 'Remove Profile Picture?',
+                message: 'Your current profile picture will be deleted.',
+                type: 'warning',
+                confirmText: 'Remove',
+            });
+            if (!confirmed) return;
             const status = document.getElementById('profile-pic-status');
             status.classList.add('hidden');
 
@@ -1259,7 +1265,13 @@
         }
 
         async function deleteEvent(eventId, name) {
-            if (!confirm(`Are you sure you want to delete the event "${name}"?\n\nThis will permanently remove the event and all of its uploaded photos.`)) return;
+            const confirmed = await kipaConfirm({
+                title: 'Delete Event',
+                message: `Are you sure you want to delete the event <strong>"${name}"</strong>?<br><br>This will permanently remove the event and all of its uploaded photos.`,
+                type: 'danger',
+                confirmText: 'Yes, Delete',
+            });
+            if (!confirmed) return;
             try {
                 const response = await fetch(`/api/event/${eventId}/delete`, { method: 'POST', body: new FormData() });
                 const res = await response.json();
@@ -1357,7 +1369,13 @@
         }
 
         async function removeAssignment(eventId, userId) {
-            if (!confirm("Are you sure you want to unassign this assistant?")) return;
+            const confirmed = await kipaConfirm({
+                title: 'Unassign Assistant',
+                message: 'Are you sure you want to remove this assistant from the event?',
+                type: 'warning',
+                confirmText: 'Yes, Unassign',
+            });
+            if (!confirmed) return;
             const formData = new FormData();
             formData.append('event_id', eventId);
             formData.append('user_id', userId);
@@ -1463,7 +1481,13 @@
         }
 
         async function removeSectionAssignment(eventId, userId) {
-            if (!confirm("Are you sure you want to unassign this assistant?")) return;
+            const confirmed = await kipaConfirm({
+                title: 'Unassign Assistant',
+                message: 'Are you sure you want to remove this assistant from the event?',
+                type: 'warning',
+                confirmText: 'Yes, Unassign',
+            });
+            if (!confirmed) return;
             const formData = new FormData();
             formData.append('event_id', eventId);
             formData.append('user_id', userId);
@@ -1519,7 +1543,13 @@
         }
 
         async function deletePhoto(imageId) {
-            if (!confirm("Delete this photo? Face encodings will also be removed.")) return;
+            const confirmed = await kipaConfirm({
+                title: 'Delete Photo',
+                message: 'This photo and all its face encodings will be permanently deleted.',
+                type: 'danger',
+                confirmText: 'Yes, Delete',
+            });
+            if (!confirmed) return;
             try {
                 const response = await fetch(`/api/event/${activeEventId}/image/${imageId}`, { method: 'DELETE' });
                 const res = await response.json();
@@ -2038,6 +2068,6 @@
 
         document.addEventListener('DOMContentLoaded', function() { loadEventCharts(); });
     </script>
-
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

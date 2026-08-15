@@ -521,7 +521,13 @@
     }
 
     async function removeProfilePic() {
-        if (!confirm('Remove your profile picture?')) return;
+        const confirmed = await kipaConfirm({
+            title: 'Remove Profile Picture?',
+            message: 'Your current profile picture will be deleted.',
+            type: 'warning',
+            confirmText: 'Remove',
+        });
+        if (!confirmed) return;
         const status = document.getElementById('profile-pic-status');
         status.classList.add('hidden');
 
@@ -545,7 +551,13 @@
 
     // ── Toggle Event Status ──────────────────────────────────────────
     async function toggleEventStatus(eventId, newStatus) {
-        if (!confirm(`Change this event status to ${newStatus}?`)) return;
+        const confirmed = await kipaConfirm({
+            title: 'Change Event Status',
+            message: `Change this event status to <strong>${newStatus}</strong>?`,
+            type: 'warning',
+            confirmText: 'Yes, Change',
+        });
+        if (!confirmed) return;
         const formData = new FormData();
         formData.append('status', newStatus);
         try {
@@ -603,7 +615,13 @@
     }
 
     async function deletePhoto(imageId) {
-        if (!confirm("Delete this photo?")) return;
+        const confirmed = await kipaConfirm({
+            title: 'Delete Photo',
+            message: 'This photo and all its face encodings will be permanently deleted.',
+            type: 'danger',
+            confirmText: 'Yes, Delete',
+        });
+        if (!confirmed) return;
         try {
             const response = await fetch(`/api/event/${activeEventId}/image/${imageId}`, { method: 'DELETE' });
             const res = await response.json();
@@ -673,5 +691,6 @@
         setTimeout(() => { progressContainer.style.display = 'none'; }, 6000);
     }
 </script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

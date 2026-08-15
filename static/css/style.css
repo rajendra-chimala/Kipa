@@ -3975,3 +3975,142 @@ html.js .fade-up.d-6 { transition-delay: 0.48s; }
         transition: none !important;
     }
 }
+
+/* ── Custom Confirm Modal ────────────────────────────────────────── */
+.kipa-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.22s ease, visibility 0.22s ease;
+}
+.kipa-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+.kipa-modal {
+    background: #fff;
+    border-radius: var(--r-xl);
+    box-shadow: 0 24px 60px -10px rgba(15,23,42,0.22), 0 8px 24px -6px rgba(15,23,42,0.12);
+    padding: 36px 32px 28px;
+    max-width: 420px;
+    width: calc(100% - 32px);
+    text-align: center;
+    transform: scale(0.88) translateY(20px);
+    transition: transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s ease;
+    opacity: 0;
+}
+.kipa-modal-overlay.active .kipa-modal {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+.kipa-modal-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 1.6rem;
+}
+.kipa-modal-icon.danger {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+.kipa-modal-icon.warning {
+    background: var(--warning-light);
+    color: var(--warning);
+}
+.kipa-modal-icon.info {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+.kipa-modal h3 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    line-height: 1.35;
+}
+.kipa-modal p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 28px;
+}
+.kipa-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+.kipa-modal-actions .btn-modal-cancel {
+    flex: 1;
+    padding: 11px 20px;
+    border-radius: var(--r-md);
+    border: 1.5px solid var(--border);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color var(--t-fast), background var(--t-fast), color var(--t-fast);
+    font-family: inherit;
+}
+.kipa-modal-actions .btn-modal-cancel:hover {
+    border-color: var(--border-hover);
+    background: #fff;
+    color: var(--text-primary);
+}
+.kipa-modal-actions .btn-modal-confirm {
+    flex: 1;
+    padding: 11px 20px;
+    border-radius: var(--r-md);
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--t-fast), transform 0.1s ease, box-shadow var(--t-fast);
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+}
+.kipa-modal-actions .btn-modal-confirm.danger {
+    background: var(--danger);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(239,68,68,0.28);
+}
+.kipa-modal-actions .btn-modal-confirm.danger:hover {
+    background: #DC2626;
+    box-shadow: 0 6px 16px rgba(239,68,68,0.35);
+    transform: translateY(-1px);
+}
+.kipa-modal-actions .btn-modal-confirm.warning {
+    background: var(--warning);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(245,158,11,0.28);
+}
+.kipa-modal-actions .btn-modal-confirm.warning:hover {
+    background: #D97706;
+    box-shadow: 0 6px 16px rgba(245,158,11,0.35);
+    transform: translateY(-1px);
+}
+.kipa-modal-actions .btn-modal-confirm.primary {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(229,9,58,0.28);
+}
+.kipa-modal-actions .btn-modal-confirm.primary:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 6px 16px rgba(229,9,58,0.35);
+    transform: translateY(-1px);
+}

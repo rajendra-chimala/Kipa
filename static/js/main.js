@@ -352,3 +352,98 @@ Kipa.toast = function(message, type = 'info', duration = 4000) {
     // Safety net: never block the site longer than 4s.
     setTimeout(release, 4000);
 })();
+
+
+// ── Global Custom Confirm Modal ──────────────────────────────────────────────
+// Usage: const confirmed = await kipaConfirm({ title, message, type, confirmText, cancelText })
+// type: 'danger' | 'warning' | 'primary'  (default: 'danger')
+
+(function () {
+    // Build the modal HTML once and inject into body
+    function ensureModal() {
+        if (document.getElementById('kipa-confirm-overlay')) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kipa-confirm-overlay';
+        overlay.className = 'kipa-modal-overlay';
+        overlay.innerHTML = `
+            <div class="kipa-modal" role="dialog" aria-modal="true">
+                <div class="kipa-modal-icon danger" id="kipa-modal-icon"></div>
+                <h3 id="kipa-modal-title">Are you sure?</h3>
+                <p id="kipa-modal-message">This action cannot be undone.</p>
+                <div class="kipa-modal-actions">
+                    <button type="button" class="btn-modal-cancel" id="kipa-modal-cancel">Cancel</button>
+                    <button type="button" class="btn-modal-confirm danger" id="kipa-modal-confirm">
+                        <span id="kipa-modal-confirm-text">Delete</span>
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        // Close on overlay backdrop click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) _resolveModal(false);
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('active')) _resolveModal(false);
+        });
+
+        document.getElementById('kipa-modal-cancel').addEventListener('click', () => _resolveModal(false));
+        document.getElementById('kipa-modal-confirm').addEventListener('click', () => _resolveModal(true));
+    }
+
+    let _resolveFn = null;
+
+    function _resolveModal(value) {
+        const overlay = document.getElementById('kipa-confirm-overlay');
+        if (!overlay) return;
+        overlay.classList.remove('active');
+        if (_resolveFn) { _resolveFn(value); _resolveFn = null; }
+    }
+
+    const ICON_MAP = {
+        danger: {
+            svg: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`,
+            btnClass: 'danger'
+        },
+        warning: {
+            svg: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+            btnClass: 'warning'
+        },
+        primary: {
+            svg: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+            btnClass: 'primary'
+        }
+    };
+
+    window.kipaConfirm = function ({ title = 'Are you sure?', message = 'This action cannot be undone.', type = 'danger', confirmText = 'Delete', cancelText = 'Cancel' } = {}) {
+        ensureModal();
+
+        const overlay      = document.getElementById('kipa-confirm-overlay');
+        const iconWrap     = document.getElementById('kipa-modal-icon');
+        const titleEl      = document.getElementById('kipa-modal-title');
+        const msgEl        = document.getElementById('kipa-modal-message');
+        const confirmBtn   = document.getElementById('kipa-modal-confirm');
+        const confirmText2 = document.getElementById('kipa-modal-confirm-text');
+        const cancelBtn    = document.getElementById('kipa-modal-cancel');
+
+        const cfg = ICON_MAP[type] || ICON_MAP.danger;
+
+        // Update content & icons
+        iconWrap.className = `kipa-modal-icon ${cfg.btnClass}`;
+        iconWrap.innerHTML = cfg.svg;
+        titleEl.textContent = title;
+        msgEl.innerHTML     = message;
+        confirmBtn.className = `btn-modal-confirm ${cfg.btnClass}`;
+        confirmText2.textContent = confirmText;
+        cancelBtn.textContent    = cancelText;
+
+        overlay.classList.add('active');
+        setTimeout(() => cancelBtn.focus(), 80);
+
+        return new Promise((resolve) => { _resolveFn = resolve; });
+    };
+})();
