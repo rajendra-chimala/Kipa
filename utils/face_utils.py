@@ -12,6 +12,8 @@ import face_recognition
 def extract_face_encodings(image_path: str):
     """
     Load an image, detect all faces, and return their 128-d encodings.
+    Uses multi-stage detection and jitter resampling (num_jitters=2) for high accuracy,
+    especially across eyewear variations (glasses on/off).
 
     Args:
         image_path: Absolute or relative path to the image file.
@@ -25,11 +27,13 @@ def extract_face_encodings(image_path: str):
         # Load image into RGB array (face_recognition uses RGB, not BGR)
         image = face_recognition.load_image_file(image_path)
 
-        # Detect face locations using HOG-based model (fast, CPU-friendly)
-        face_locations = face_recognition.face_locations(image, model='hog')
+        # Detect face locations using HOG model; retry with upsample=2 if 0 faces found
+        face_locations = face_recognition.face_locations(image, number_of_times_to_upsample=1, model='hog')
+        if not face_locations:
+            face_locations = face_recognition.face_locations(image, number_of_times_to_upsample=2, model='hog')
 
-        # Compute 128-d encodings for every detected face
-        encodings = face_recognition.face_encodings(image, known_face_locations=face_locations)
+        # Compute 128-d encodings for every detected face with num_jitters=2 for eyewear resilience
+        encodings = face_recognition.face_encodings(image, known_face_locations=face_locations, num_jitters=2)
 
         return encodings, len(encodings)
 
@@ -38,7 +42,7 @@ def extract_face_encodings(image_path: str):
         return [], 0
 
 
-def match_face_encoding(user_encoding: np.ndarray, stored_records: list, threshold: float = 0.5):
+def match_face_encoding(user_encoding: np.ndarray, stored_records: list, threshold: float = 0.58):
     """
     Compare a user's face encoding against a list of stored encodings.
 
@@ -46,7 +50,7 @@ def match_face_encoding(user_encoding: np.ndarray, stored_records: list, thresho
         user_encoding:   128-d numpy array of the user's face.
         stored_records:  List of (id, image_path, numpy_encoding) tuples from DB.
         threshold:       Maximum face distance to consider a match (lower = stricter).
-                         Default 0.5 is recommended by face_recognition docs.
+                         Default 0.58 accommodates face variations with/without glasses while maintaining high precision (dlib standard = 0.60).
 
     Returns:
         List of record IDs that matched.
@@ -107,10 +111,12 @@ def get_face_encoding_from_image(image_path: str):
     """
     try:
         image = face_recognition.load_image_file(image_path)
-        locations = face_recognition.face_locations(image, model='hog')
+        locations = face_recognition.face_locations(image, number_of_times_to_upsample=1, model='hog')
+        if not locations:
+            locations = face_recognition.face_locations(image, number_of_times_to_upsample=2, model='hog')
         if not locations:
             return None, 'No face detected'
-        encodings = face_recognition.face_encodings(image, known_face_locations=locations)
+        encodings = face_recognition.face_encodings(image, known_face_locations=locations, num_jitters=2)
         if not encodings:
             return None, 'Could not compute face encoding'
         return encodings[0], None
@@ -118,7 +124,7 @@ def get_face_encoding_from_image(image_path: str):
         return None, str(e)
 
 
-def verify_same_face(enc1, enc2, threshold=0.5):
+def verify_same_face(enc1, enc2, threshold=0.58):
     """
     Verify that two face encodings belong to the same person.
     Returns (True, distance) if match, (False, distance) otherwise.

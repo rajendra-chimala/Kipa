@@ -39,7 +39,7 @@ const sensitivityLabels = {
     40: 'Fairly Strict',
     45: 'Moderate',
     50: 'Balanced',
-    55: 'Relaxed',
+    58: 'Balanced (Glasses Friendly)',
     60: 'Fairly Relaxed',
     65: 'Very Relaxed',
     70: 'Maximum'
@@ -49,7 +49,7 @@ thresholdSlider.addEventListener('input', () => {
     // Pick nearest label
     const keys = Object.keys(sensitivityLabels).map(Number).sort((a,b) => a-b);
     const nearest = keys.reduce((a,b) => Math.abs(b-val) < Math.abs(a-val) ? b : a);
-    sensitivityValue.textContent = sensitivityLabels[nearest] || 'Balanced';
+    sensitivityValue.textContent = sensitivityLabels[nearest] || 'Balanced (Glasses Friendly)';
 });
 
 // ── Start Camera ────────────────────────────────────────────────────────

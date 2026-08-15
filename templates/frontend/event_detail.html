@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -94,9 +94,9 @@
                 <div class="sensitivity-control" id="sensitivityControl" style="display:none">
                     <label class="sensitivity-label">
                         Recognition Confidence
-                        <span class="sensitivity-value" id="sensitivityValue">Balanced</span>
+                        <span class="sensitivity-value" id="sensitivityValue">Balanced (Glasses Friendly)</span>
                     </label>
-                    <input type="range" id="thresholdSlider" min="30" max="70" value="50" class="slider" />
+                    <input type="range" id="thresholdSlider" min="30" max="70" value="58" class="slider" />
                     <div class="slider-labels">
                         <span>Strict (Fewer matches)</span>
                         <span>Relaxed (More matches)</span>
@@ -231,13 +231,13 @@
         // ── Sensitivity Slider ─────────────────────────────────────────────────
         const sensitivityLabels = {
             30:'Very Strict',35:'Strict',40:'Fairly Strict',45:'Moderate',
-            50:'Balanced',55:'Relaxed',60:'Fairly Relaxed',65:'Very Relaxed',70:'Maximum'
+            50:'Balanced',58:'Balanced (Glasses Friendly)',60:'Fairly Relaxed',65:'Very Relaxed',70:'Maximum'
         };
         thresholdSlider.addEventListener('input', () => {
             const val = parseInt(thresholdSlider.value);
             const keys = Object.keys(sensitivityLabels).map(Number).sort((a,b)=>a-b);
             const nearest = keys.reduce((a,b)=>Math.abs(b-val)<Math.abs(a-val)?b:a);
-            sensitivityValue.textContent = sensitivityLabels[nearest]||'Balanced';
+            sensitivityValue.textContent = sensitivityLabels[nearest]||'Balanced (Glasses Friendly)';
         });
 
         // ── Camera Controls ────────────────────────────────────────────────────

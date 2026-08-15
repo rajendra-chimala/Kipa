@@ -1241,7 +1241,7 @@ def api_liveness_check(event_id):
             return jsonify({'success': False, 'message': 'Unknown challenge type.'}), 400
 
         # ── Step 5: Same-face cross-check ────────────────────────────────────
-        same_face, face_dist = verify_same_face(enc_n, enc_a, threshold=0.5) if (enc_n is not None and enc_a is not None) else (False, 1.0)
+        same_face, face_dist = verify_same_face(enc_n, enc_a, threshold=0.58) if (enc_n is not None and enc_a is not None) else (False, 1.0)
         if not same_face:
             _cleanup()
             return jsonify({
@@ -1298,7 +1298,7 @@ def api_match_face(event_id):
         if not session_token or not _consume_liveness(session_token):
             return jsonify({'success': False, 'message': 'Liveness check not completed. Please pass the anti-spoof challenge first.'}), 403
         image_data = data['image']
-        threshold = float(data.get('threshold', 0.5))
+        threshold = float(data.get('threshold', 0.58))
 
         # Event status check
         event = get_event_by_id(event_id)
